@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --page-pad: 16px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background: #040b1d;
+}
+
+body {
+  color: #f2f7ff;
+}
+
+.app-body {
+  font-family: "Trebuchet MS", Verdana, "Segoe UI", sans-serif;
+}
+
+.star-noise {
+  background-image: radial-gradient(
+    rgba(125, 196, 255, 0.24) 0.65px,
+    rgba(0, 0, 0, 0) 0.65px
+  );
+  background-size: 14px 14px;
+  opacity: 0.45;
+}
+
+.card-ring {
+  box-shadow: 0 0 0 1px rgba(120, 209, 255, 0.18) inset;
+}

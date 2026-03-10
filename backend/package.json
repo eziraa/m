@@ -1,0 +1,36 @@
+{
+  "name": "m-bingo-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc --noEmit -p tsconfig.json",
+    "dev:up": "tsx src/dev/devUp.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "dev:seed": "tsx src/dev/seedLocalDev.ts"
+  },
+  "dependencies": {
+    "@socket.io/redis-adapter": "^8.3.0",
+    "dotenv": "^16.4.7",
+    "drizzle-orm": "^0.43.1",
+    "express": "^4.21.2",
+    "ioredis": "^5.4.2",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.13.3",
+    "socket.io": "^4.8.1",
+    "telegraf": "^4.16.3",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.1",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/node": "^22.13.10",
+    "@types/pg": "^8.18.0",
+    "drizzle-kit": "^0.30.4",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  }
+}
