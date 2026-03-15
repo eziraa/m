@@ -15,6 +15,13 @@
       "when": 1773168401219,
       "tag": "0001_gifted_mandroid",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1773170000000,
+      "tag": "0002_lucky_promotions",
+      "breakpoints": true
     }
   ]
 }

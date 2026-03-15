@@ -10,7 +10,8 @@
     "dev:up": "tsx src/dev/devUp.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "dev:seed": "tsx src/dev/seedLocalDev.ts"
+    "dev:seed": "tsx src/dev/seedLocalDev.ts",
+    "db:studio": "drizzle-kit studio --port 8081"
   },
   "dependencies": {
     "@socket.io/redis-adapter": "^8.3.0",

@@ -91,6 +91,14 @@ export function getApiBase() {
   return API_BASE;
 }
 
+export type ViewerResult = {
+  outcome: "won" | "lost" | "draw";
+  targetPath: string;
+  winnerUserId: string | null;
+  winnerName: string;
+  reason: "winner_declared" | "numbers_exhausted" | "stopped_by_operator";
+};
+
 export type BoardSelectionState = {
   sessionId: string;
   roomId: string;
@@ -99,6 +107,7 @@ export type BoardSelectionState = {
   startsInSec: number;
   stakeCents: number;
   stakeLabel: string;
+  viewerResult: ViewerResult | null;
 };
 
 export async function fetchBoardSelectionState(
@@ -121,6 +130,56 @@ export async function fetchBoardSelectionState(
     ok: boolean;
     state: BoardSelectionState;
   };
+  return json.state;
+}
+
+export async function resolveActiveSessionByRoomName(
+  token: string,
+  roomName: string,
+): Promise<BoardSelectionState> {
+  const res = await fetch(`${API_BASE}/sessions/resolve-active`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ roomName }),
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error("resolve_active_session_failed");
+  }
+
+  const json = (await res.json()) as {
+    ok: boolean;
+    state: BoardSelectionState;
+  };
+
+  return json.state;
+}
+
+export async function resolveActiveSessionByRoomId(
+  token: string,
+  roomId: string,
+): Promise<BoardSelectionState> {
+  const res = await fetch(`${API_BASE}/rooms/${roomId}/active-session`, {
+    method: "GET",
+    headers: {
+      authorization: `Bearer ${token}`,
+    },
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error("resolve_active_session_failed");
+  }
+
+  const json = (await res.json()) as {
+    ok: boolean;
+    state: BoardSelectionState;
+  };
+
   return json.state;
 }
 
@@ -151,6 +210,34 @@ export async function buyBoard(
   };
 }
 
+export async function leaveSessionBeforeStart(
+  token: string,
+  sessionId: string,
+) {
+  const res = await fetch(`${API_BASE}/sessions/${sessionId}/leave`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("session_leave_failed");
+  }
+
+  return (await res.json()) as {
+    ok: boolean;
+    removedBoards: number;
+    status: string;
+    stakeCents: number;
+    stakeLabel: string;
+    playersCount: number;
+    boardsCount: number;
+    potCents: number;
+    potLabel: string;
+  };
+}
+
 export type SessionState = {
   id: string;
   roomId: string;
@@ -159,6 +246,13 @@ export type SessionState = {
   currentNumber: number | null;
   winnerUserId: string | null;
   recentCalls: Array<{ seq: number; number: number }>;
+  playersCount?: number;
+  boardsCount?: number;
+  potCents?: number;
+  stakeCents?: number;
+  potLabel?: string;
+  stakeLabel?: string;
+  viewerResult: ViewerResult | null;
 };
 
 export async function fetchSessionState(
@@ -183,4 +277,49 @@ export async function fetchSessionState(
   };
 
   return json.state;
+}
+
+export type WinningPatternInput = {
+  type: "row" | "column" | "diagonal" | "full_house";
+  index?: number;
+  diagonal?: "main" | "anti";
+};
+
+export async function submitBingoClaim(
+  token: string,
+  input: {
+    sessionId: string;
+    boardId: string;
+    markedCells: number[];
+    winningPattern: WinningPatternInput;
+    idempotencyKey: string;
+    clientLastSeq: number;
+  },
+) {
+  const res = await fetch(`${API_BASE}/sessions/bingo-claims`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(input),
+  });
+
+  if (!res.ok) {
+    throw new Error("bingo_claim_failed");
+  }
+
+  return (await res.json()) as {
+    ok: boolean;
+    replay: boolean;
+    claim: {
+      id: string;
+      status: "accepted" | "rejected";
+      rejectionReason: string | null;
+    };
+    winner: {
+      sessionId: string;
+      userId: string;
+    } | null;
+  };
 }

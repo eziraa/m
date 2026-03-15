@@ -8,13 +8,16 @@ import {
   callBingo,
   canJoinRoom,
   canJoinSession,
+  getSessionParticipationStats,
   getMiniHomeSnapshot,
+  leaveSessionBeforeStart,
 } from "../game/gameService.js";
 import {
   getBoardSelectionState,
   getSessionDelta,
   getSessionState,
 } from "../game/sessionRunner.js";
+import { getSessionResultForIdentity } from "../game/sessionResultNotifier.js";
 import { isAllowedOrigin } from "../utils/cors.js";
 import { checkRateLimit } from "../utils/rateLimit.js";
 import { setIo } from "./ioHub.js";
@@ -135,8 +138,31 @@ export function createSocketServer(server: HttpServer) {
           lastSeq: snapshot.currentSeq,
           recentCalls: snapshot.recentCalls,
           startsInSec: boardSelection.startsInSec,
+          playersCount: snapshot.playersCount,
+          boardsCount: snapshot.boardsCount,
+          potCents: snapshot.potCents,
+          stakeCents: snapshot.stakeCents,
+          potLabel: snapshot.potLabel,
+          stakeLabel: snapshot.stakeLabel,
+          viewerResult: snapshot.viewerResult,
         });
+
+        if (snapshot.viewerResult) {
+          socket.emit("session_result_ready", {
+            sessionId: snapshot.id,
+            roomId: snapshot.roomId,
+            ...snapshot.viewerResult,
+            potCents: snapshot.potCents ?? 0,
+            finishedAt: Date.now(),
+          });
+        }
       } catch {
+        const viewerResult = await getSessionResultForIdentity(
+          identity,
+          payload.sessionId,
+          "numbers_exhausted",
+        ).catch(() => null);
+
         socket.emit("session_snapshot", {
           sessionId: payload.sessionId,
           status: "waiting",
@@ -144,7 +170,24 @@ export function createSocketServer(server: HttpServer) {
           lastSeq: 0,
           recentCalls: [],
           startsInSec: 0,
+          playersCount: 0,
+          boardsCount: 0,
+          potCents: 0,
+          stakeCents: 0,
+          potLabel: "0.00",
+          stakeLabel: "0.00",
+          viewerResult,
         });
+
+        if (viewerResult) {
+          socket.emit("session_result_ready", {
+            sessionId: payload.sessionId,
+            roomId: joinResult.roomId,
+            ...viewerResult,
+            potCents: 0,
+            finishedAt: Date.now(),
+          });
+        }
       }
     });
 
@@ -204,6 +247,15 @@ export function createSocketServer(server: HttpServer) {
             sessionId: payload.sessionId,
             boards: result.created,
           });
+
+          const stats = await getSessionParticipationStats(payload.sessionId);
+          io.to(`session:${payload.sessionId}`).emit(
+            "session_participants_updated",
+            {
+              sessionId: payload.sessionId,
+              ...stats,
+            },
+          );
 
           const snapshot = await getMiniHomeSnapshot(identity);
           io.to(`user:${identity.userId}`).emit("home_snapshot", {
@@ -281,6 +333,35 @@ export function createSocketServer(server: HttpServer) {
           const reason =
             error instanceof Error ? error.message : "claim_failed";
           socket.emit("bingo_rejected", {
+            sessionId: payload.sessionId,
+            reason,
+          });
+        }
+      },
+    );
+
+    socket.on(
+      "leave_session_before_start",
+      async (payload: { sessionId?: string }) => {
+        if (!(await passSocketRateLimit("leave_session_before_start"))) return;
+        if (!payload?.sessionId) {
+          socket.emit("leave_session_failed", { reason: "invalid_payload" });
+          return;
+        }
+
+        try {
+          const result = await leaveSessionBeforeStart(
+            identity,
+            payload.sessionId,
+          );
+          socket.emit("session_left", {
+            sessionId: payload.sessionId,
+            removedBoards: result.removedBoards,
+          });
+        } catch (error) {
+          const reason =
+            error instanceof Error ? error.message : "leave_session_failed";
+          socket.emit("leave_session_failed", {
             sessionId: payload.sessionId,
             reason,
           });

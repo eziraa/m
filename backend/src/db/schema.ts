@@ -57,6 +57,14 @@ export const ledgerTypeEnum = pgEnum("ledger_type", [
 
 export const ledgerStatusEnum = pgEnum("ledger_status", ["posted", "reversed"]);
 
+export const depositStatusEnum = pgEnum("deposit_status", [
+  "pending",
+  "approved",
+  "rejected",
+]);
+
+export const bonusTypeEnum = pgEnum("bonus_type", ["percentage", "fixed"]);
+
 export const users = pgTable(
   "users",
   {
@@ -431,6 +439,120 @@ export const walletLedger = pgTable(
   }),
 );
 
+export const deposits = pgTable(
+  "deposits",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    amountCents: bigint("amount_cents", { mode: "number" }).notNull(),
+    promoCode: text("promo_code"),
+    status: depositStatusEnum("status").default("pending").notNull(),
+    approvedAt: timestamp("approved_at", { withTimezone: true }),
+    approvedBy: uuid("approved_by").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    userStatusCreatedIdx: index("idx_deposits_user_status_created").on(
+      table.userId,
+      table.status,
+      table.createdAt,
+    ),
+    statusCreatedIdx: index("idx_deposits_status_created").on(
+      table.status,
+      table.createdAt,
+    ),
+    promoCodeIdx: index("idx_deposits_promo_code").on(table.promoCode),
+  }),
+);
+
+export const promoCodes = pgTable(
+  "promo_codes",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    code: text("code").notNull(),
+    bonusType: bonusTypeEnum("bonus_type").notNull(),
+    bonusValueBps: integer("bonus_value_bps"),
+    bonusValueCents: bigint("bonus_value_cents", { mode: "number" }),
+    maxUsers: integer("max_users").notNull(),
+    usedCount: integer("used_count").default(0).notNull(),
+    minimumDepositCents: bigint("minimum_deposit_cents", {
+      mode: "number",
+    })
+      .default(0)
+      .notNull(),
+    maximumBonusCapCents: bigint("maximum_bonus_cap_cents", {
+      mode: "number",
+    }).notNull(),
+    expiryDate: timestamp("expiry_date", { withTimezone: true }),
+    isActive: boolean("is_active").default(true).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    codeUq: uniqueIndex("uq_promo_codes_code").on(table.code),
+    activeExpiryIdx: index("idx_promo_codes_active_expiry").on(
+      table.isActive,
+      table.expiryDate,
+    ),
+    createdAtIdx: index("idx_promo_codes_created_at").on(table.createdAt),
+    promoCodeTypeCheck: sql`check ((
+      ${table.bonusType} = 'percentage' and ${table.bonusValueBps} is not null and ${table.bonusValueBps} > 0 and ${table.bonusValueCents} is null
+    ) or (
+      ${table.bonusType} = 'fixed' and ${table.bonusValueCents} is not null and ${table.bonusValueCents} > 0 and ${table.bonusValueBps} is null
+    ))`,
+  }),
+);
+
+export const promoCodeUsages = pgTable(
+  "promo_code_usages",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    promoCodeId: uuid("promo_code_id")
+      .notNull()
+      .references(() => promoCodes.id, { onDelete: "cascade" }),
+    depositId: uuid("deposit_id")
+      .notNull()
+      .references(() => deposits.id, { onDelete: "cascade" }),
+    bonusAmountCents: bigint("bonus_amount_cents", {
+      mode: "number",
+    }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    depositUq: uniqueIndex("uq_promo_usage_deposit").on(table.depositId),
+    userPromoUq: uniqueIndex("uq_promo_usage_user_promo").on(
+      table.userId,
+      table.promoCodeId,
+    ),
+    promoCreatedIdx: index("idx_promo_usage_promo_created").on(
+      table.promoCodeId,
+      table.createdAt,
+    ),
+    userCreatedIdx: index("idx_promo_usage_user_created").on(
+      table.userId,
+      table.createdAt,
+    ),
+  }),
+);
+
 export const telegramUpdates = pgTable(
   "telegram_updates",
   {
@@ -462,3 +584,6 @@ export type GameSession = typeof gameSessions.$inferSelect;
 export type Board = typeof boards.$inferSelect;
 export type BingoClaim = typeof bingoClaims.$inferSelect;
 export type SessionWinner = typeof sessionWinners.$inferSelect;
+export type Deposit = typeof deposits.$inferSelect;
+export type PromoCode = typeof promoCodes.$inferSelect;
+export type PromoCodeUsage = typeof promoCodeUsages.$inferSelect;

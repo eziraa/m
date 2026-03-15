@@ -140,12 +140,14 @@ export function HomeScreen() {
     return home.rooms;
   }, [home]);
 
-  function openRoom(room: { roomId: string; sessionId: string | null }) {
-    if (!room.sessionId) {
-      setError("No active session for this room right now.");
-      return;
-    }
-    router.push(`/rooms/${room.roomId}/session/${room.sessionId}`);
+  async function openRoom(room: {
+    roomId: string;
+    sessionId: string | null;
+    title: string;
+  }) {
+    void room.sessionId;
+    void room.title;
+    router.push(`/rooms/${room.roomId}`);
   }
 
   if (state === "boot") {

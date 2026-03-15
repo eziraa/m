@@ -1,7 +1,16 @@
-import { and, eq, gt, inArray } from "drizzle-orm";
+import { and, desc, eq, gt, inArray, sql } from "drizzle-orm";
 import { db } from "../db/client.js";
-import { gameSessions, rooms, sessionCalledNumbers } from "../db/schema.js";
+import {
+  boards,
+  gameSessions,
+  rooms,
+  sessionCalledNumbers,
+} from "../db/schema.js";
 import type { RequestIdentity } from "../http/authMiddleware.js";
+import {
+  emitSessionResultReady,
+  getSessionResultForIdentity,
+} from "./sessionResultNotifier.js";
 import { getIo } from "../realtime/ioHub.js";
 import { logger } from "../utils/logger.js";
 import { incCounter } from "../utils/metrics.js";
@@ -82,12 +91,7 @@ async function finishSession(sessionId: string) {
     .set({ status: "finished", finishedAt: new Date(), updatedAt: new Date() })
     .where(eq(gameSessions.id, sessionId));
 
-  const io = getIo();
-  io?.to(`session:${sessionId}`).emit("game_finished", {
-    sessionId,
-    reason: "numbers_exhausted",
-    finishedAt: Date.now(),
-  });
+  await emitSessionResultReady(sessionId, "numbers_exhausted");
 }
 
 async function tick(sessionId: string) {
@@ -378,11 +382,8 @@ export async function stopSession(
     .where(eq(gameSessions.id, sessionId));
 
   const io = getIo();
-  io?.to(`session:${sessionId}`).emit("game_finished", {
-    sessionId,
-    reason: "stopped_by_operator",
-    finishedAt: Date.now(),
-  });
+  void io;
+  await emitSessionResultReady(sessionId, "stopped_by_operator");
 
   return { status: "cancelled" as const };
 }
@@ -400,8 +401,10 @@ export async function getSessionState(
       currentNumber: gameSessions.currentNumber,
       winnerUserId: gameSessions.winnerUserId,
       agentId: gameSessions.agentId,
+      stakeCents: rooms.boardPriceCents,
     })
     .from(gameSessions)
+    .innerJoin(rooms, eq(rooms.id, gameSessions.roomId))
     .where(eq(gameSessions.id, sessionId))
     .limit(1);
 
@@ -429,9 +432,42 @@ export async function getSessionState(
     .orderBy(sessionCalledNumbers.seq)
     .limit(200);
 
+  const [stats] = await db
+    .select({
+      playersCount: sql<number>`coalesce(count(distinct ${boards.userId}), 0)`,
+      boardsCount: sql<number>`coalesce(count(${boards.id}), 0)`,
+      potCents: sql<number>`coalesce(sum(${boards.purchaseAmountCents}), 0)`,
+    })
+    .from(gameSessions)
+    .leftJoin(boards, eq(boards.sessionId, gameSessions.id))
+    .where(eq(gameSessions.id, sessionId))
+    .groupBy(gameSessions.id)
+    .limit(1);
+
+  const viewerResult =
+    session.status === "finished"
+      ? await getSessionResultForIdentity(
+          identity,
+          sessionId,
+          session.winnerUserId ? "winner_declared" : "numbers_exhausted",
+        )
+      : session.status === "cancelled"
+        ? await getSessionResultForIdentity(
+            identity,
+            sessionId,
+            "stopped_by_operator",
+          )
+        : null;
+
   return {
     ...session,
     recentCalls,
+    playersCount: stats?.playersCount ?? 0,
+    boardsCount: stats?.boardsCount ?? 0,
+    potCents: stats?.potCents ?? 0,
+    stakeLabel: (session.stakeCents / 100).toFixed(2),
+    potLabel: ((stats?.potCents ?? 0) / 100).toFixed(2),
+    viewerResult,
   };
 }
 
@@ -474,6 +510,7 @@ export async function getBoardSelectionState(
     .select({
       id: gameSessions.id,
       status: gameSessions.status,
+      winnerUserId: gameSessions.winnerUserId,
       updatedAt: gameSessions.updatedAt,
       countdownSeconds: gameSessions.countdownSeconds,
       roomId: gameSessions.roomId,
@@ -510,6 +547,21 @@ export async function getBoardSelectionState(
     startsInSec = Math.max(session.countdownSeconds - elapsedSec, 0);
   }
 
+  const viewerResult =
+    session.status === "finished"
+      ? await getSessionResultForIdentity(
+          identity,
+          sessionId,
+          session.winnerUserId ? "winner_declared" : "numbers_exhausted",
+        )
+      : session.status === "cancelled"
+        ? await getSessionResultForIdentity(
+            identity,
+            sessionId,
+            "stopped_by_operator",
+          )
+        : null;
+
   return {
     sessionId: session.id,
     roomId: session.roomId,
@@ -518,6 +570,146 @@ export async function getBoardSelectionState(
     startsInSec,
     stakeCents: session.stakeCents,
     stakeLabel: (session.stakeCents / 100).toFixed(2),
+    viewerResult,
+  };
+}
+
+export async function resolveOrCreateActiveSessionByRoomName(
+  identity: RequestIdentity,
+  roomName: string,
+) {
+  const normalizedRoomName = roomName.trim();
+  if (!normalizedRoomName) {
+    throw new Error("room_name_required");
+  }
+
+  const roomFilters = [
+    eq(rooms.status, "active"),
+    eq(rooms.name, normalizedRoomName),
+  ];
+
+  if (identity.role === "AGENT") {
+    roomFilters.push(eq(rooms.agentId, identity.userId));
+  } else if (identity.role === "USER") {
+    if (!identity.agentId) {
+      throw new Error("forbidden_agent_scope");
+    }
+    roomFilters.push(eq(rooms.agentId, identity.agentId));
+  }
+
+  const [room] = await db
+    .select({
+      id: rooms.id,
+      agentId: rooms.agentId,
+      name: rooms.name,
+    })
+    .from(rooms)
+    .where(and(...roomFilters))
+    .orderBy(desc(rooms.createdAt))
+    .limit(1);
+
+  if (!room) {
+    throw new Error("room_not_found");
+  }
+
+  return resolveOrCreateActiveSessionForRoom(identity, room);
+}
+
+export async function resolveOrCreateActiveSessionByRoomId(
+  identity: RequestIdentity,
+  roomId: string,
+) {
+  const roomFilters = [eq(rooms.status, "active"), eq(rooms.id, roomId)];
+
+  if (identity.role === "AGENT") {
+    roomFilters.push(eq(rooms.agentId, identity.userId));
+  } else if (identity.role === "USER") {
+    if (!identity.agentId) {
+      throw new Error("forbidden_agent_scope");
+    }
+    roomFilters.push(eq(rooms.agentId, identity.agentId));
+  }
+
+  const [room] = await db
+    .select({
+      id: rooms.id,
+      agentId: rooms.agentId,
+      name: rooms.name,
+    })
+    .from(rooms)
+    .where(and(...roomFilters))
+    .orderBy(desc(rooms.createdAt))
+    .limit(1);
+
+  if (!room) {
+    throw new Error("room_not_found");
+  }
+
+  return resolveOrCreateActiveSessionForRoom(identity, room);
+}
+
+async function resolveOrCreateActiveSessionForRoom(
+  identity: RequestIdentity,
+  room: {
+    id: string;
+    agentId: string;
+    name: string;
+  },
+) {
+  const [activeSession] = await db
+    .select({ id: gameSessions.id })
+    .from(gameSessions)
+    .where(
+      and(
+        eq(gameSessions.roomId, room.id),
+        inArray(gameSessions.status, ["countdown", "playing"]),
+      ),
+    )
+    .orderBy(desc(gameSessions.createdAt))
+    .limit(1);
+
+  if (activeSession) {
+    const state = await getBoardSelectionState(identity, activeSession.id);
+    return {
+      ...state,
+      source: "existing" as const,
+    };
+  }
+
+  let sessionId: string;
+  const [waitingSession] = await db
+    .select({ id: gameSessions.id })
+    .from(gameSessions)
+    .where(
+      and(eq(gameSessions.roomId, room.id), eq(gameSessions.status, "waiting")),
+    )
+    .orderBy(desc(gameSessions.createdAt))
+    .limit(1);
+
+  if (waitingSession) {
+    sessionId = waitingSession.id;
+  } else {
+    const [created] = await db
+      .insert(gameSessions)
+      .values({
+        roomId: room.id,
+        agentId: room.agentId,
+        status: "waiting",
+      })
+      .returning({ id: gameSessions.id });
+
+    if (!created) {
+      throw new Error("session_create_failed");
+    }
+    sessionId = created.id;
+  }
+
+  await autoStartSessionIfWaiting(sessionId);
+  const state = await getBoardSelectionState(identity, sessionId);
+
+  return {
+    ...state,
+    source: "created" as const,
   };
 }
 

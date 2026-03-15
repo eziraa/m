@@ -23,6 +23,7 @@ import {
   type BoardMatrix,
 } from "./boardGenerator.js";
 import { autoStartSessionIfWaiting } from "./sessionRunner.js";
+import { emitSessionResultReady } from "./sessionResultNotifier.js";
 import {
   requiredNumbersForPattern,
   type WinningPatternInput,
@@ -469,7 +470,99 @@ export async function buyBoards(
     }
   }
 
+  try {
+    const stats = await getSessionParticipationStats(sessionId);
+    const io = getIo();
+    io?.to(`session:${sessionId}`).emit("session_participants_updated", {
+      sessionId,
+      ...stats,
+    });
+  } catch {
+    // Board purchase succeeded; live stats push is best-effort.
+  }
+
   return purchase;
+}
+
+export async function getSessionParticipationStats(sessionId: string) {
+  const [stats] = await db
+    .select({
+      sessionId: gameSessions.id,
+      status: gameSessions.status,
+      stakeCents: rooms.boardPriceCents,
+      playersCount: sql<number>`coalesce(count(distinct ${boards.userId}), 0)`,
+      boardsCount: sql<number>`coalesce(count(${boards.id}), 0)`,
+      potCents: sql<number>`coalesce(sum(${boards.purchaseAmountCents}), 0)`,
+    })
+    .from(gameSessions)
+    .innerJoin(rooms, eq(rooms.id, gameSessions.roomId))
+    .leftJoin(boards, eq(boards.sessionId, gameSessions.id))
+    .where(eq(gameSessions.id, sessionId))
+    .groupBy(gameSessions.id, gameSessions.status, rooms.boardPriceCents)
+    .limit(1);
+
+  if (!stats) {
+    throw new Error("session_not_found");
+  }
+
+  return {
+    status: stats.status,
+    stakeCents: stats.stakeCents,
+    stakeLabel: centsToEtbString(stats.stakeCents),
+    playersCount: stats.playersCount,
+    boardsCount: stats.boardsCount,
+    potCents: stats.potCents,
+    potLabel: centsToEtbString(stats.potCents),
+  };
+}
+
+export async function leaveSessionBeforeStart(
+  identity: RequestIdentity,
+  sessionId: string,
+) {
+  if (identity.role !== "USER") {
+    throw new Error("only_user_can_leave_session");
+  }
+
+  const [session] = await db
+    .select({
+      id: gameSessions.id,
+      status: gameSessions.status,
+      sessionAgentId: gameSessions.agentId,
+      roomStatus: rooms.status,
+    })
+    .from(gameSessions)
+    .innerJoin(rooms, eq(rooms.id, gameSessions.roomId))
+    .where(eq(gameSessions.id, sessionId))
+    .limit(1);
+
+  if (!session) throw new Error("session_not_found");
+  if (session.roomStatus !== "active") throw new Error("room_not_active");
+  if (!(session.status === "waiting" || session.status === "countdown")) {
+    throw new Error("session_not_open_for_leave");
+  }
+  if (!identity.agentId || identity.agentId !== session.sessionAgentId) {
+    throw new Error("forbidden_agent_scope");
+  }
+
+  const removed = await db
+    .delete(boards)
+    .where(
+      and(eq(boards.sessionId, sessionId), eq(boards.userId, identity.userId)),
+    )
+    .returning({ id: boards.id });
+
+  const stats = await getSessionParticipationStats(sessionId);
+  const io = getIo();
+  io?.to(`session:${sessionId}`).emit("session_participants_updated", {
+    sessionId,
+    ...stats,
+  });
+
+  return {
+    removedBoards: removed.length,
+    ...stats,
+  };
 }
 
 export type ClaimInput = {
@@ -488,7 +581,7 @@ export async function callBingo(identity: RequestIdentity, input: ClaimInput) {
     throw new Error("only_user_can_call_bingo");
   }
 
-  return db.transaction(async (tx) => {
+  const txResult = await db.transaction(async (tx) => {
     const existingClaim = await tx
       .select({
         id: bingoClaims.id,
@@ -506,7 +599,12 @@ export async function callBingo(identity: RequestIdentity, input: ClaimInput) {
       .limit(1);
 
     if (existingClaim.length > 0) {
-      return { replay: true, claim: existingClaim[0] };
+      return {
+        replay: true,
+        claim: existingClaim[0],
+        winner: null,
+        notifyWinner: null,
+      };
     }
 
     const [session] = await tx
@@ -589,7 +687,12 @@ export async function callBingo(identity: RequestIdentity, input: ClaimInput) {
         sessionId: input.sessionId,
         reason: "pattern_numbers_not_called",
       });
-      return { replay: false, claim: insertedClaim, winner: null };
+      return {
+        replay: false,
+        claim: insertedClaim,
+        winner: null,
+        notifyWinner: null,
+      };
     }
 
     // Single-winner guarantee relies on unique(session_id) on session_winners.
@@ -635,6 +738,7 @@ export async function callBingo(identity: RequestIdentity, input: ClaimInput) {
           rejectionReason: "winner_already_declared",
         },
         winner: null,
+        notifyWinner: null,
       };
     }
 
@@ -700,21 +804,44 @@ export async function callBingo(identity: RequestIdentity, input: ClaimInput) {
 
     incCounter("bingo_claim_valid_total");
 
-    const io = getIo();
-    io?.to(`session:${input.sessionId}`).emit("bingo_verified", {
-      sessionId: input.sessionId,
-      winnerUserId: identity.userId,
-      boardId: input.boardId,
-      pattern: input.winningPattern,
-      payoutCents,
-      commissionCents,
-    });
-    io?.to(`session:${input.sessionId}`).emit("game_finished", {
-      sessionId: input.sessionId,
-      winnerUserId: identity.userId,
-      finishedAt: Date.now(),
-    });
-
-    return { replay: false, claim: insertedClaim, winner: winnerRows[0] };
+    return {
+      replay: false,
+      claim: insertedClaim,
+      winner: winnerRows[0],
+      notifyWinner: {
+        sessionId: input.sessionId,
+        winnerUserId: identity.userId,
+        boardId: input.boardId,
+        pattern: input.winningPattern,
+        payoutCents,
+        commissionCents,
+      },
+    };
   });
+
+  if (txResult.notifyWinner) {
+    const io = getIo();
+    io?.to(`session:${txResult.notifyWinner.sessionId}`).emit(
+      "bingo_verified",
+      {
+        sessionId: txResult.notifyWinner.sessionId,
+        winnerUserId: txResult.notifyWinner.winnerUserId,
+        boardId: txResult.notifyWinner.boardId,
+        pattern: txResult.notifyWinner.pattern,
+        payoutCents: txResult.notifyWinner.payoutCents,
+        commissionCents: txResult.notifyWinner.commissionCents,
+      },
+    );
+
+    await emitSessionResultReady(
+      txResult.notifyWinner.sessionId,
+      "winner_declared",
+    );
+  }
+
+  return {
+    replay: txResult.replay,
+    claim: txResult.claim,
+    winner: txResult.winner,
+  };
 }

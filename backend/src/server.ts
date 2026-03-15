@@ -15,10 +15,12 @@ import {
   requestLogger,
 } from "./http/requestContext.js";
 import authRouter from "./http/authRouter.js";
+import adminRouter from "./http/adminRouter.js";
 import gameRouter from "./http/gameRouter.js";
 import { httpRateLimit } from "./http/rateLimitMiddleware.js";
 import telegramWebhookRouter from "./http/telegramWebhook.js";
 import userRouter from "./http/userRouter.js";
+import walletRouter from "./http/walletRouter.js";
 import { closeSocketServer, createSocketServer } from "./realtime/socket.js";
 import { isAllowedOrigin } from "./utils/cors.js";
 import { logger } from "./utils/logger.js";
@@ -96,8 +98,10 @@ app.get("/metrics", (_req, res) => {
 });
 
 app.use(authRouter);
+app.use(adminRouter);
 app.use(gameRouter);
 app.use(userRouter);
+app.use(walletRouter);
 app.use(telegramWebhookRouter);
 app.use(notFoundHandler);
 app.use(errorHandler);
