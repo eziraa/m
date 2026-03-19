@@ -226,8 +226,8 @@ export function HomeScreen() {
     if (showDevAuth) {
       return (
         <main className="min-h-screen bg-background p-4 text-foreground">
-          <div className="relative mx-auto mt-20 max-w-md rounded-2xl border border-cyan-400/30 bg-muted/90 p-5">
-            <p className="text-xs uppercase tracking-[0.18em] text-cyan-200/90">
+          <div className="relative mx-auto mt-20 max-w-md rounded-2xl border border-primary/30 bg-muted/90 p-5">
+            <p className="text-xs uppercase tracking-[0.18em] text-primary/70">
               Local Dev Mode
             </p>
             <h2 className="mt-2 text-2xl font-bold">
