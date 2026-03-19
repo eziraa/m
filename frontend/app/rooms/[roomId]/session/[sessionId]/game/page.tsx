@@ -605,8 +605,8 @@ export default function GameSessionPage() {
   }
 
   return (
-    <main className="min-h-screen w-full bg-[#020815] text-white">
-      <div className="relative z-[2000] mx-auto flex w-full max-w-md flex-col items-stretch px-3 pb-6 pt-3">
+    <main className="min-h-screen z-1000 w-full bg-[#020815] text-white">
+      <div className="relative z-2000 mx-auto flex w-full max-w-md flex-col items-stretch px-3 pb-6 pt-3">
         <div className="mb-2.5 flex flex-col gap-3">
           <div className="flex items-center justify-between">
             <h1
