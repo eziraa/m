@@ -79,7 +79,6 @@ export default function TransactionTable() {
     return (
       <div className="w-full h-64 flex flex-col items-center justify-center text-muted-foreground gap-2">
         <Loader2 className="animate-spin text-primary" size={32} />
-        <p className="text-sm">Loading latest transactions...</p>
       </div>
     );
   }

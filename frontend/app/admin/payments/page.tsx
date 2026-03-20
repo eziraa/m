@@ -100,7 +100,7 @@ export default function AdminPaymentsPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className=" hidden gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatsCard
           title="Total Records"
           value={stats?.totalCount ?? 0}
@@ -343,7 +343,9 @@ function StatsCard({
 function PaymentRow({ payment }: { payment: Payment }) {
   return (
     <tr className="border-b last:border-0 hover:bg-muted/30 text-xs">
-      <td className="px-2 py-3 font-medium opacity-50">{payment.id.slice(0, 8)}...</td>
+      <td className="px-2 py-3 font-medium opacity-50">
+        {payment.id.slice(0, 8)}...
+      </td>
       <td className="px-2 py-3">@{payment.username || "N/A"}</td>
       <td className="px-2 py-3">{payment.firstName || "N/A"}</td>
       <td className="px-2 py-3 font-bold">{payment.amount}</td>

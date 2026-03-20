@@ -790,6 +790,77 @@ export function useToggleRoomBotsMutation() {
   return [mutate, { isLoading: mutation.isPending }] as const;
 }
 
+export function useCreateRoomMutation() {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: async (input: {
+      name: string;
+      description?: string;
+      price: string;
+      minPlayers: number;
+      maxPlayers: number;
+      color: string;
+      icon: string;
+    }) => {
+      const res = await fetch(`${API_BASE}/agent/rooms`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${getAuthToken()}`,
+        },
+        body: JSON.stringify(input),
+      });
+      const data = await res.json();
+      if (!res.ok) throw { data };
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["rooms"] });
+    },
+  });
+  const mutate = (input: any) => {
+    const promise = mutation.mutateAsync(input);
+    return Object.assign(promise, { unwrap: () => promise });
+  };
+  return [mutate, { isLoading: mutation.isPending }] as const;
+}
+
+export function useUpdateRoomMutation() {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: async ({ id, ...input }: {
+      id: string;
+      name?: string;
+      description?: string;
+      price?: string;
+      minPlayers?: number;
+      maxPlayers?: number;
+      color?: string;
+      icon?: string;
+    }) => {
+      const res = await fetch(`${API_BASE}/agent/rooms/${id}`, {
+        method: "PATCH",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${getAuthToken()}`,
+        },
+        body: JSON.stringify(input),
+      });
+      const data = await res.json();
+      if (!res.ok) throw { data };
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["rooms"] });
+    },
+  });
+  const mutate = (input: any) => {
+    const promise = mutation.mutateAsync(input);
+    return Object.assign(promise, { unwrap: () => promise });
+  };
+  return [mutate, { isLoading: mutation.isPending }] as const;
+}
+
 export function useGetAdminUsersQuery(args: any, options?: { skip?: boolean }) {
   const token = getAuthToken();
   const query = useQuery({

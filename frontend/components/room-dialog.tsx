@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -22,9 +22,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Check, Hash, Palette } from "lucide-react";
+import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Room } from "@/lib/types";
+import { useCreateRoomMutation, useUpdateRoomMutation } from "@/lib/api";
 
 const roomSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -65,11 +66,18 @@ const colors = [
   { label: "Amber", value: "from-amber-400 to-amber-600" },
   { label: "Rose", value: "from-rose-400 to-rose-600" },
   { label: "Cyan", value: "from-cyan-400 to-cyan-600" },
+  { label: "Pink", value: "from-pink-400 to-pink-600" },
+  { label: "Orange", value: "from-orange-400 to-orange-600" },
+  { label: "Yellow", value: "from-yellow-400 to-yellow-600" },
+  { label: "Lime", value: "from-lime-400 to-lime-600" },
+  { label: "Teal", value: "from-teal-400 to-teal-600" },
+  { label: "Indigo", value: "from-indigo-400 to-indigo-600" },
+  { label: "Violet", value: "from-violet-400 to-violet-600" },
 ];
 
 export function RoomDialog({ room, open, onOpenChange }: RoomDialogProps) {
-  const isCreating = false;
-  const isUpdating = false;
+  const [createRoom, { isLoading: isCreating }] = useCreateRoomMutation();
+  const [updateRoom, { isLoading: isUpdating }] = useUpdateRoomMutation();
 
   const form = useForm({
     resolver: zodResolver(roomSchema as any),
@@ -110,9 +118,16 @@ export function RoomDialog({ room, open, onOpenChange }: RoomDialogProps) {
 
   async function onSubmit(values: RoomFormValues) {
     try {
-      toast.error("Room management is unavailable in this build.");
-    } catch {
-      toast.error("Failed to save room");
+      if (room) {
+        await updateRoom({ id: room.id, ...values }).unwrap();
+        toast.success("Room updated successfully");
+      } else {
+        await createRoom(values).unwrap();
+        toast.success("Room created successfully");
+      }
+      onOpenChange(false);
+    } catch (e: any) {
+      toast.error(e?.data?.error || "Failed to save room");
     }
   }
 
