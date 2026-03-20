@@ -1,6 +1,13 @@
 "use client";
 
-import { Gamepad2, Settings, User, Wallet, History } from "lucide-react";
+import {
+  Gamepad2,
+  Settings,
+  User,
+  Wallet,
+  History,
+  LayoutDashboard,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -13,17 +20,23 @@ export function BottomNav() {
   const pathname = usePathname() || "";
   const t = useTranslations("bottomNav");
 
+  const isAgent =
+    user?.role === "AGENT" || user?.role === "ADMIN";
+
   const navItems = [
     { label: t("play"), href: "/", icon: Gamepad2 },
     { label: t("wallet"), href: "/wallet", icon: Wallet },
     { label: t("history"), href: "/transactions", icon: History },
     { label: t("profile"), href: "/profile", icon: User },
-    { label: t("settings"), href: "/settings", icon: Settings },
+    ...(isAgent
+      ? [{ label: "Dashboard", href: "/admin/rooms", icon: LayoutDashboard }]
+      : [{ label: t("settings"), href: "/settings", icon: Settings }]),
   ];
 
   if (!user) return null;
 
   if (pathname.includes("game")) return null;
+  if (pathname.startsWith("/admin")) return null;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 px-4  flex justify-center pointer-events-none">

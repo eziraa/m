@@ -1,0 +1,433 @@
+"use client";
+
+import { useDeferredValue, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  ArrowLeft,
+  Users,
+  Search,
+  MoreVertical,
+  Trash2,
+  ExternalLink,
+  User as UserIcon,
+  Crown,
+  Zap,
+  RefreshCw,
+  ArrowDown,
+  ArrowUp,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useGetAdminUsersQuery, useDeleteUserMutation } from "@/lib/api";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslations } from "next-intl";
+
+export default function AdminUsersPage() {
+  const t = useTranslations("admin.users");
+  const router = useRouter();
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [roleFilter, setRoleFilter] = useState<
+    "all" | "USER" | "ADMIN" | "AGENT"
+  >("all");
+  const deferredSearch = useDeferredValue(searchQuery.trim());
+  const queryArgs = useMemo(
+    () => ({
+      page,
+      pageSize,
+      search: deferredSearch || undefined,
+      role: roleFilter,
+      sortBy: sortBy as any,
+      sortOrder: sortOrder,
+    }),
+    [page, pageSize, deferredSearch, roleFilter, sortBy, sortOrder],
+  );
+  const {
+    data: usersData,
+    isFetching,
+    refetch,
+  } = useGetAdminUsersQuery(queryArgs);
+  const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
+  const users = usersData?.users ?? [];
+  const total = usersData?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const isLoading = isFetching && !usersData;
+
+  const handleDelete = async () => {
+    if (!userToDelete) return;
+    try {
+      await deleteUser(userToDelete).unwrap();
+      toast.success(t("toast.deleted"));
+      setUserToDelete(null);
+    } catch (err: any) {
+      toast.error(err.data?.error || t("toast.deleteFailed"));
+    }
+  };
+
+  const handleViewDetails = (userId: string) => {
+    router.push(`/admin/users/${userId}`);
+  };
+
+  const getRoleIcon = (role: string) => {
+    // ... existing getRoleIcon ...
+    switch (role) {
+      case "ADMIN":
+        return <Crown className="h-3 w-3 text-amber-400" />;
+      case "AGENT":
+        return <Zap className="h-3 w-3 text-blue-400" />;
+      default:
+        return <UserIcon className="h-3 w-3 text-white/40" />;
+    }
+  };
+
+  const getRoleBadgeClass = (role: string) => {
+    // ... existing getRoleBadgeClass ...
+    switch (role) {
+      case "ADMIN":
+        return "bg-amber-500/20 text-amber-400 border-amber-500/30";
+      case "AGENT":
+        return "bg-blue-500/20 text-blue-400 border-blue-500/30";
+      default:
+        return "bg-white/5 text-white/40 border-white/10";
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <header className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div>
+            <h1 className="text-xl font-semibold flex items-center gap-2">
+              <Users className="h-5 w-5 text-primary" />
+              {t("title")}
+            </h1>
+            <p className="text-xs text-muted-foreground">{t("subtitle")}</p>
+          </div>
+        </div>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => refetch()}
+          className="h-9 w-9 rounded-lg"
+        >
+          <RefreshCw className="h-4 w-4" />
+        </Button>
+      </header>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative min-w-[260px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder={t("searchPlaceholder")}
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setPage(1);
+            }}
+            className="pl-9 h-9"
+          />
+        </div>
+        {/* Sort */}
+        <div className="flex items-center gap-1">
+          <span className="text-xs text-muted-foreground">Sort by:</span>
+          <select
+            value={sortBy}
+            onChange={(e) => {
+              setSortBy(e.target.value);
+              setPage(1);
+            }}
+            className="h-9 rounded-md border bg-background px-3 text-xs font-medium"
+          >
+            <option value="createdAt">Created At</option>
+            <option value="balance">Balance</option>
+            <option value="username">Username</option>
+          </select>
+          <Button
+            size="icon"
+            variant="outline"
+            className="h-9 w-9 rounded-md"
+            onClick={() => {
+              setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+              setPage(1);
+            }}
+          >
+            {sortOrder === "asc" ? (
+              <ArrowUp className="h-4 w-4" />
+            ) : (
+              <ArrowDown className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
+        <select
+          value={roleFilter}
+          onChange={(event) => {
+            const nextRole = event.target.value as
+              | "all"
+              | "USER"
+              | "ADMIN"
+              | "AGENT";
+            setRoleFilter(nextRole);
+            setPage(1);
+          }}
+          className="h-9 rounded-md border bg-background px-3 text-xs font-medium"
+        >
+          <option value="all">All Roles</option>
+          <option value="USER">User</option>
+          <option value="ADMIN">Admin</option>
+          <option value="AGENT">Agent</option>
+        </select>
+        <p className="text-xs text-muted-foreground">
+          {total.toLocaleString()} total
+        </p>
+      </div>
+
+      <div className="relative rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
+        {isLoading ? (
+          <div className="p-4">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b">
+                  <th className="py-2 px-3 w-[45%]">
+                    <Skeleton className="h-3 w-16" />
+                  </th>
+                  <th className="py-2 px-2 w-[20%]">
+                    <Skeleton className="h-3 w-12" />
+                  </th>
+                  <th className="py-2 px-2 w-[25%]">
+                    <Skeleton className="h-3 w-16 ml-auto" />
+                  </th>
+                  <th className="py-2 px-3 w-[10%]" />
+                </tr>
+              </thead>
+              <tbody>
+                {Array.from({ length: 10 }).map((_, i) => (
+                  <tr key={i} className="border-b">
+                    <td className="py-2 px-3">
+                      <div className="flex items-center gap-2">
+                        <Skeleton className="h-7 w-7 rounded-lg" />
+                        <div className="space-y-1">
+                          <Skeleton className="h-3 w-20" />
+                          <Skeleton className="h-2 w-16" />
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-2 px-2">
+                      <Skeleton className="h-4 w-12 rounded-md" />
+                    </td>
+                    <td className="py-2 px-2">
+                      <Skeleton className="h-3 w-14 ml-auto" />
+                    </td>
+                    <td className="py-2 px-3">
+                      <Skeleton className="h-7 w-7 rounded-lg mx-auto" />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : users.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center space-y-3">
+            <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center border">
+              <Users className="h-7 w-7 text-muted-foreground" />
+            </div>
+            <p className="text-sm font-semibold text-muted-foreground">
+              {t("empty")}
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto max-h-[80vh] overflow-y-auto">
+            <table className="w-full text-left border-separate border-spacing-0">
+              <thead className="bg-muted/50">
+                <tr>
+                  <th className="py-2.5 px-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground border-b">
+                    {t("table.user")}
+                  </th>
+                  <th className="py-2.5 px-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground border-b">
+                    {t("table.role")}
+                  </th>
+                  <th className="py-2.5 px-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground text-right border-b">
+                    {t("table.balance")}
+                  </th>
+                  <th className="py-2.5 px-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground text-center border-b">
+                    {t("table.actions")}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {users.map((user: any) => (
+                  <tr
+                    key={user.id}
+                    className="hover:bg-muted/40 transition-colors"
+                  >
+                    <td className="py-2.5 px-3">
+                      <div className="flex items-center gap-2">
+                        <div className="h-7 w-7 shrink-0 rounded-lg bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary uppercase border border-primary/20">
+                          {user.username?.[0] ||
+                            user.firstName?.[0] ||
+                            t("fallback.initial")}
+                        </div>
+                        <div className="min-w-0 max-w-[200px]">
+                          <p className="text-xs font-semibold truncate leading-tight">
+                            {user.firstName}
+                          </p>
+                          <p className="text-[11px] text-muted-foreground truncate">
+                            @{user.username || t("table.noUsername")}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-2.5 px-2">
+                      <Badge
+                        className={cn(
+                          "text-[9px] h-5 px-2 font-semibold uppercase tracking-tight flex items-center gap-1 border",
+                          getRoleBadgeClass(user.role),
+                        )}
+                      >
+                        <span className="scale-90">
+                          {getRoleIcon(user.role)}
+                        </span>
+                        {user.role}
+                      </Badge>
+                    </td>
+                    <td className="py-2.5 px-2 text-right">
+                      <p className="text-xs font-semibold text-emerald-500">
+                        {user.balance}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-tight">
+                        ETB
+                      </p>
+                    </td>
+                    <td className="py-2.5 px-3">
+                      <div className="flex justify-center">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 rounded-md"
+                            >
+                              <MoreVertical className="h-3.5 w-3.5" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-40">
+                            <DropdownMenuItem
+                              onClick={() => handleViewDetails(user.id)}
+                              className="gap-2 text-xs"
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                              {t("actions.details")}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => setUserToDelete(user.id)}
+                              className="gap-2 text-xs text-red-500 focus:bg-red-500/10"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                              {t("actions.delete")}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span>
+            Page {page} / {totalPages}
+          </span>
+          <span className="hidden sm:inline-block">
+            • {total.toLocaleString()} records
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          <label className="flex items-center gap-1 text-xs text-muted-foreground">
+            <span>Rows per page:</span>
+            <select
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setPage(1);
+              }}
+              className="h-8 rounded-md border bg-background px-2 text-xs"
+            >
+              {[10, 20, 50, 100].map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={page <= 1}
+              onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+            >
+              Prev
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={page >= totalPages}
+              onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <AlertDialog
+        open={!!userToDelete}
+        onOpenChange={() => setUserToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("confirmDelete.title")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("confirmDelete.description")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("actions.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>
+              {isDeleting ? t("actions.deleting") : t("actions.delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}

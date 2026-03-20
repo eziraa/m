@@ -36,6 +36,13 @@
       "when": 1773947348710,
       "tag": "0004_add-room-fields",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1774023556236,
+      "tag": "0005_steady_lady_bullseye",
+      "breakpoints": true
     }
   ]
 }

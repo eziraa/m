@@ -24,16 +24,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Check, Hash, Palette } from "lucide-react";
 import { cn } from "@/lib/utils";
-type Room = {
-  id: string;
-  name: string;
-  description?: string | null;
-  price: number;
-  minPlayers: number;
-  maxPlayers: number;
-  color?: string | null;
-  icon?: string | null;
-};
+import { Room } from "@/lib/types";
 
 const roomSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),

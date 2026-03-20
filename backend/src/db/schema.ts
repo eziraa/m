@@ -63,6 +63,12 @@ export const depositStatusEnum = pgEnum("deposit_status", [
   "rejected",
 ]);
 
+export const withdrawalStatusEnum = pgEnum("withdrawal_status", [
+  "pending",
+  "approved",
+  "rejected",
+]);
+
 export const bonusTypeEnum = pgEnum("bonus_type", ["percentage", "fixed"]);
 
 export const users = pgTable(
@@ -478,6 +484,41 @@ export const deposits = pgTable(
   }),
 );
 
+export const withdrawals = pgTable(
+  "withdrawals",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    amountCents: bigint("amount_cents", { mode: "number" }).notNull(),
+    phone: text("phone").notNull(),
+    status: withdrawalStatusEnum("status").default("pending").notNull(),
+    rejectionReason: text("rejection_reason"),
+    approvedAt: timestamp("approved_at", { withTimezone: true }),
+    approvedBy: uuid("approved_by").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    userStatusCreatedIdx: index("idx_withdrawals_user_status_created").on(
+      table.userId,
+      table.status,
+      table.createdAt,
+    ),
+    statusCreatedIdx: index("idx_withdrawals_status_created").on(
+      table.status,
+      table.createdAt,
+    ),
+  }),
+);
+
 export const promoCodes = pgTable(
   "promo_codes",
   {
@@ -589,5 +630,6 @@ export type Board = typeof boards.$inferSelect;
 export type BingoClaim = typeof bingoClaims.$inferSelect;
 export type SessionWinner = typeof sessionWinners.$inferSelect;
 export type Deposit = typeof deposits.$inferSelect;
+export type Withdrawal = typeof withdrawals.$inferSelect;
 export type PromoCode = typeof promoCodes.$inferSelect;
 export type PromoCodeUsage = typeof promoCodeUsages.$inferSelect;

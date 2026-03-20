@@ -16,6 +16,7 @@ import {
 } from "./http/requestContext.js";
 import authRouter from "./http/authRouter.js";
 import adminRouter from "./http/adminRouter.js";
+import agentRouter from "./http/agentRouter.js";
 import gameRouter from "./http/gameRouter.js";
 import { httpRateLimit } from "./http/rateLimitMiddleware.js";
 import telegramWebhookRouter from "./http/telegramWebhook.js";
@@ -100,6 +101,7 @@ app.get("/metrics", (_req, res) => {
 
 app.use(authRouter);
 app.use(adminRouter);
+app.use(agentRouter);
 app.use(gameRouter);
 app.use(userRouter);
 app.use(walletRouter);

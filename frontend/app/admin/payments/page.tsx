@@ -1,0 +1,368 @@
+"use client";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  useGetAdminPaymentsQuery,
+  useGetAdminPaymentStatsQuery,
+} from "@/lib/api";
+import { Payment } from "@/lib/types";
+import {
+  ArrowDownWideNarrow,
+  ArrowUpWideNarrow,
+  Calendar,
+  CreditCard,
+  Loader2,
+  Search,
+  Wallet,
+} from "lucide-react";
+import { ComponentType, useMemo, useState } from "react";
+import { SubmitPaymentDialog } from "@/components/admin/SubmitPaymentDialog";
+
+const STATUS_OPTIONS = ["all", "pending", "approved", "rejected"];
+
+export default function AdminPaymentsPage() {
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [status, setStatus] = useState("all");
+  const [source, setSource] = useState("all");
+  const [search, setSearch] = useState("");
+  const [minAmount, setMinAmount] = useState("");
+  const [maxAmount, setMaxAmount] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [sortBy, setSortBy] = useState<"amount" | "date">("date");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+
+  const filters = useMemo(
+    () => ({
+      status,
+      source,
+      search: search.trim() || undefined,
+      minAmount: minAmount ? Number(minAmount) : undefined,
+      maxAmount: maxAmount ? Number(maxAmount) : undefined,
+      startDate: startDate || undefined,
+      endDate: endDate || undefined,
+    }),
+    [status, source, search, minAmount, maxAmount, startDate, endDate],
+  );
+
+  const { data, isLoading, isFetching } = useGetAdminPaymentsQuery({
+    ...filters,
+    page,
+    pageSize,
+    sortBy,
+    sortOrder,
+  });
+
+  const { data: statsData, isFetching: statsFetching } =
+    useGetAdminPaymentStatsQuery(filters);
+
+  const payments = data?.payments ?? [];
+  const pagination = data?.pagination;
+  const stats = statsData?.stats;
+  const totalPages = pagination?.totalPages ?? 1;
+
+  const resetFilters = () => {
+    setStatus("all");
+    setSource("all");
+    setSearch("");
+    setMinAmount("");
+    setMaxAmount("");
+    setStartDate("");
+    setEndDate("");
+    setSortBy("date");
+    setSortOrder("desc");
+    setPage(1);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Payments Dashboard
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Monitor deposits with advanced search, filter, and quick trend
+            visibility.
+          </p>
+        </div>
+        <div className="flex items-center gap-4">
+          {(isFetching || statsFetching) && (
+            <div className="inline-flex items-center gap-2 rounded-md border px-3 py-2 text-xs text-muted-foreground">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" /> Updating
+            </div>
+          )}
+          <SubmitPaymentDialog />
+        </div>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <StatsCard
+          title="Total Records"
+          value={stats?.totalCount ?? 0}
+          icon={CreditCard}
+        />
+        <StatsCard
+          title="Approved"
+          value={stats?.approvedCount ?? 0}
+          icon={Wallet}
+        />
+        <StatsCard
+          title="Pending"
+          value={stats?.pendingCount ?? 0}
+          icon={Calendar}
+        />
+        <StatsCard
+          title="Total Amount"
+          value={(stats?.totalAmount ?? 0).toLocaleString()}
+          icon={sortOrder === "asc" ? ArrowUpWideNarrow : ArrowDownWideNarrow}
+        />
+      </div>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Filters</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <div className="relative xl:col-span-2">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search transaction #, phone, message, or source"
+                className="pl-9"
+                value={search}
+                onChange={(e) => {
+                  setPage(1);
+                  setSearch(e.target.value);
+                }}
+              />
+            </div>
+            <Input
+              type="number"
+              placeholder="Min amount"
+              value={minAmount}
+              onChange={(e) => {
+                setPage(1);
+                setMinAmount(e.target.value);
+              }}
+            />
+            <Input
+              type="number"
+              placeholder="Max amount"
+              value={maxAmount}
+              onChange={(e) => {
+                setPage(1);
+                setMaxAmount(e.target.value);
+              }}
+            />
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+            <select
+              value={status}
+              onChange={(e) => {
+                setPage(1);
+                setStatus(e.target.value);
+              }}
+              className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+            >
+              {STATUS_OPTIONS.map((item) => (
+                <option key={item} value={item}>
+                  Status: {item}
+                </option>
+              ))}
+            </select>
+            <Input
+              placeholder="Source (e.g. Telebirr)"
+              value={source === "all" ? "" : source}
+              onChange={(e) => {
+                setPage(1);
+                setSource(e.target.value.trim() || "all");
+              }}
+            />
+            <Input
+              type="date"
+              value={startDate}
+              onChange={(e) => {
+                setPage(1);
+                setStartDate(e.target.value);
+              }}
+            />
+            <Input
+              type="date"
+              value={endDate}
+              onChange={(e) => {
+                setPage(1);
+                setEndDate(e.target.value);
+              }}
+            />
+            <div className="flex gap-2">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as "amount" | "date")}
+                className="h-10 flex-1 rounded-md border border-input bg-background px-3 text-sm"
+              >
+                <option value="date">Sort: Date</option>
+                <option value="amount">Sort: Amount</option>
+              </select>
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
+                className="h-10 flex-1 rounded-md border border-input bg-background px-3 text-sm"
+              >
+                <option value="desc">Desc</option>
+                <option value="asc">Asc</option>
+              </select>
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <Button variant="outline" onClick={resetFilters}>
+              Reset Filters
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Payment Records</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="flex h-48 items-center justify-center text-muted-foreground">
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Loading
+              payments...
+            </div>
+          ) : (
+            <div className="overflow-x-auto max-h-[700px] overflow-y-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b text-left text-muted-foreground">
+                    <th className="px-2 py-3">ID</th>
+                    <th className="px-2 py-3">User</th>
+                    <th className="px-2 py-3">Name</th>
+                    <th className="px-2 py-3">Amount</th>
+                    <th className="px-2 py-3">Status</th>
+                    <th className="px-2 py-3">Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {payments.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={6}
+                        className="py-10 text-center text-muted-foreground"
+                      >
+                        No payments found for the selected filters.
+                      </td>
+                    </tr>
+                  ) : (
+                    payments.map((payment: Payment) => (
+                      <PaymentRow key={payment.id} payment={payment} />
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t pt-4">
+            <p className="text-xs text-muted-foreground">
+              Page {pagination?.page ?? 1} of {totalPages} •{" "}
+              {pagination?.total ?? 0} records
+            </p>
+            <div className="flex items-center gap-2">
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPage(1);
+                  setPageSize(Number(e.target.value));
+                }}
+                className="h-9 rounded-md border border-input bg-background px-2 text-xs"
+              >
+                {[10, 20, 50, 100].map((size) => (
+                  <option key={size} value={size}>
+                    {size} / page
+                  </option>
+                ))}
+              </select>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                disabled={page <= 1}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setPage((prev) => Math.min(totalPages, prev + 1))
+                }
+                disabled={page >= totalPages}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function StatsCard({
+  title,
+  value,
+  icon: Icon,
+}: {
+  title: string;
+  value: number | string;
+  icon: ComponentType<{ className?: string }>;
+}) {
+  return (
+    <Card>
+      <CardContent className="flex items-center justify-between p-4">
+        <div>
+          <p className="text-xs text-muted-foreground">{title}</p>
+          <p className="mt-1 text-2xl font-semibold">{value}</p>
+        </div>
+        <div className="rounded-lg border bg-muted/30 p-2">
+          <Icon className="h-4 w-4 text-muted-foreground" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function PaymentRow({ payment }: { payment: Payment }) {
+  return (
+    <tr className="border-b last:border-0 hover:bg-muted/30 text-xs">
+      <td className="px-2 py-3 font-medium opacity-50">{payment.id.slice(0, 8)}...</td>
+      <td className="px-2 py-3">@{payment.username || "N/A"}</td>
+      <td className="px-2 py-3">{payment.firstName || "N/A"}</td>
+      <td className="px-2 py-3 font-bold">{payment.amount}</td>
+      <td className="px-2 py-3">
+        <Badge
+          className={
+            payment.status === "approved"
+              ? "bg-green-500/10 text-green-500 border-green-500/20"
+              : payment.status === "rejected"
+                ? "bg-red-500/10 text-red-500 border-red-500/20"
+                : "bg-amber-500/10 text-amber-500 border-amber-500/20"
+          }
+        >
+          {payment.status}
+        </Badge>
+      </td>
+      <td className="px-2 py-3 text-muted-foreground">
+        {new Date(payment.createdAt).toLocaleString()}
+      </td>
+    </tr>
+  );
+}

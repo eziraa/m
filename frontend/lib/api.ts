@@ -114,12 +114,11 @@ export type RoomItem = {
   icon: string | null;
   minPlayers: number | null;
   maxPlayers: number | null;
+  botAllowed: boolean | number;
   isLive: boolean;
 };
 
-export async function fetchRooms(
-  token: string,
-): Promise<RoomItem[]> {
+export async function fetchRooms(token: string): Promise<RoomItem[]> {
   const res = await fetch(`${API_BASE}/rooms`, {
     method: "GET",
     headers: { authorization: `Bearer ${token}` },
@@ -140,9 +139,7 @@ export type WalletSummary = {
   bonusCents: number;
 };
 
-export async function fetchWallet(
-  token: string,
-): Promise<WalletSummary> {
+export async function fetchWallet(token: string): Promise<WalletSummary> {
   const res = await fetch(`${API_BASE}/me/wallet`, {
     method: "GET",
     headers: { authorization: `Bearer ${token}` },
@@ -432,8 +429,10 @@ export async function fetchTransactions(
     } as Transaction;
   });
 
-  if (tab === "in") return txs.filter((t: any) => parseFloat(String(t.amount)) > 0);
-  if (tab === "out") return txs.filter((t: any) => parseFloat(String(t.amount)) < 0);
+  if (tab === "in")
+    return txs.filter((t: any) => parseFloat(String(t.amount)) > 0);
+  if (tab === "out")
+    return txs.filter((t: any) => parseFloat(String(t.amount)) < 0);
   return txs;
 }
 
@@ -485,7 +484,11 @@ export function useGetTransactionsQuery(
     queryFn: () => fetchTransactions(token, tab),
     enabled: !options?.skip && !!token,
   });
-  return { data: query.data, isLoading: query.isLoading, refetch: query.refetch };
+  return {
+    data: query.data,
+    isLoading: query.isLoading,
+    refetch: query.refetch,
+  };
 }
 
 export function useDepositMutation() {
@@ -729,3 +732,401 @@ export function useVerifyTelegramMutation() {
   return mutation;
 }
 
+// ── AGENT DASHBOARD HOOKS ────────────────────────────────────────────
+
+export function useDeleteRoomMutation() {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`${API_BASE}/agent/rooms/${id}`, {
+        method: "DELETE",
+        headers: { authorization: `Bearer ${getAuthToken()}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw { data };
+      return { success: true };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["rooms"] });
+    },
+  });
+  const mutate = (id: string) => {
+    const promise = mutation.mutateAsync(id);
+    return Object.assign(promise, { unwrap: () => promise });
+  };
+  return [mutate, { isLoading: mutation.isPending }] as const;
+}
+
+export function useToggleRoomBotsMutation() {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: async ({
+      id,
+      botAllowed,
+    }: {
+      id: string;
+      botAllowed: boolean;
+    }) => {
+      const res = await fetch(`${API_BASE}/agent/rooms/${id}/bot-allowed`, {
+        method: "PATCH",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${getAuthToken()}`,
+        },
+        body: JSON.stringify({ botAllowed }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw { data };
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["rooms"] });
+    },
+  });
+  const mutate = (args: { id: string; botAllowed: boolean }) => {
+    const promise = mutation.mutateAsync(args);
+    return Object.assign(promise, { unwrap: () => promise });
+  };
+  return [mutate, { isLoading: mutation.isPending }] as const;
+}
+
+export function useGetAdminUsersQuery(args: any, options?: { skip?: boolean }) {
+  const token = getAuthToken();
+  const query = useQuery({
+    queryKey: ["admin-users", args],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (args.page) params.set("page", args.page.toString());
+      if (args.pageSize) params.set("limit", args.pageSize.toString());
+      if (args.search) params.set("search", args.search);
+
+      const res = await fetch(`${API_BASE}/agent/users?${params.toString()}`, {
+        headers: { authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("fetch_users_failed");
+      return res.json();
+    },
+    enabled: !!token && !options?.skip,
+  });
+  return query;
+}
+
+export function useDeleteUserMutation() {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`${API_BASE}/agent/users/${id}`, {
+        method: "DELETE",
+        headers: { authorization: `Bearer ${getAuthToken()}` },
+      });
+      if (!res.ok) throw new Error("delete_user_failed");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+    },
+  });
+  const mutate = (id: string) => {
+    const promise = mutation.mutateAsync(id);
+    return Object.assign(promise, { unwrap: () => promise });
+  };
+  return [mutate, { isLoading: mutation.isPending }] as const;
+}
+
+export function useGetAdminPaymentsQuery(
+  args: any,
+  options?: { skip?: boolean },
+) {
+  const token = getAuthToken();
+  return useQuery({
+    queryKey: ["admin-payments", args],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      Object.entries(args).forEach(([k, v]) => {
+        if (v !== undefined) params.set(k, String(v));
+      });
+      const res = await fetch(
+        `${API_BASE}/agent/payments?${params.toString()}`,
+        {
+          headers: { authorization: `Bearer ${token}` },
+        },
+      );
+      if (!res.ok) throw new Error("fetch_payments_failed");
+      return res.json();
+    },
+    enabled: !!token && !options?.skip,
+  });
+}
+
+export function useGetAdminPaymentStatsQuery(args?: any) {
+  const token = getAuthToken();
+  return useQuery({
+    queryKey: ["admin-payment-stats"],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (args) {
+        Object.entries(args).forEach(([k, v]) => {
+          if (v !== undefined) params.set(k, String(v));
+        });
+      }
+      const res = await fetch(
+        `${API_BASE}/agent/payments/stats?${params.toString()}`,
+        {
+          headers: { authorization: `Bearer ${token}` },
+        },
+      );
+      if (!res.ok) throw new Error("fetch_payment_stats_failed");
+      return res.json();
+    },
+    enabled: !!token,
+  });
+}
+
+export function useGetAdminWithdrawalsQuery(args: any) {
+  const token = getAuthToken();
+  return useQuery({
+    queryKey: ["withdrawals", args],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      Object.entries(args).forEach(([k, v]) => {
+        if (v !== undefined) params.set(k, String(v));
+      });
+      const res = await fetch(
+        `${API_BASE}/agent/withdrawals?${params.toString()}`,
+        {
+          headers: { authorization: `Bearer ${token}` },
+        },
+      );
+      if (!res.ok) throw new Error("fetch_withdrawals_failed");
+      return res.json();
+    },
+    enabled: !!token,
+  });
+}
+
+export function useApproveWithdrawalMutation() {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`${API_BASE}/agent/withdrawals/${id}/approve`, {
+        method: "POST",
+        headers: { authorization: `Bearer ${getAuthToken()}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw { data };
+      return { success: true, ...data };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["withdrawals"] });
+      queryClient.invalidateQueries({ queryKey: ["wallet"] });
+    },
+  });
+  const mutate = (id: string) => {
+    const promise = mutation.mutateAsync(id);
+    return Object.assign(promise, { unwrap: () => promise });
+  };
+  return [mutate, { isLoading: mutation.isPending }] as const;
+}
+
+export function useRejectWithdrawalMutation() {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: async ({ id, reason }: { id: string; reason?: string }) => {
+      const res = await fetch(`${API_BASE}/agent/withdrawals/${id}/reject`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${getAuthToken()}`,
+        },
+        body: JSON.stringify({ reason }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw { data };
+      return { success: true, ...data };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["withdrawals"] });
+    },
+  });
+  const mutate = (args: any) => {
+    const promise = mutation.mutateAsync(args);
+    return Object.assign(promise, { unwrap: () => promise });
+  };
+  return [mutate, { isLoading: mutation.isPending }] as const;
+}
+
+export function useGetAdminTransactionsQuery(
+  args: any,
+  options?: { skip?: boolean },
+) {
+  const token = getAuthToken();
+  return useQuery({
+    queryKey: ["admin-transactions", args],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      Object.entries(args).forEach(([k, v]) => {
+        if (v !== undefined) params.set(k, String(v));
+      });
+      const res = await fetch(
+        `${API_BASE}/agent/transactions?${params.toString()}`,
+        {
+          headers: { authorization: `Bearer ${token}` },
+        },
+      );
+      if (!res.ok) throw new Error("fetch_transactions_failed");
+      return res.json();
+    },
+    enabled: !!token && !options?.skip,
+  });
+}
+
+export function useGetAdminTransactionStatsQuery() {
+  const token = getAuthToken();
+  return useQuery({
+    queryKey: ["admin-transaction-stats"],
+    queryFn: async () => {
+      const res = await fetch(`${API_BASE}/agent/transactions/stats`, {
+        headers: { authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("fetch_transaction_stats_failed");
+      const data = await res.json();
+      return {
+        totalDeposit: Number(data.totalWins || 0), // Mock mapping to UI fields
+        totalWithdrawal: Number(data.totalLosses || 0),
+        netProfit: Number(data.totalCommissions || 0),
+        totalBonus: 0,
+        totalCommission: Number(data.totalCommissions || 0),
+        totalReward: 0,
+        totalReferralReward: 0,
+      };
+    },
+    enabled: !!token,
+  });
+}
+
+export function useDeleteAdminTransactionMutation() {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: async ({ id }: { id: string }) => {
+      // Note: Backend endpoint for deleting transaction not yet implemented in agentRouter
+      // Adding it for UI compatibility, but it will return 404 until implemented
+      const res = await fetch(`${API_BASE}/agent/transactions/${id}`, {
+        method: "DELETE",
+        headers: { authorization: `Bearer ${getAuthToken()}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw { data };
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-transactions"] });
+    },
+  });
+  const mutate = (args: any) => {
+    const promise = mutation.mutateAsync(args);
+    return Object.assign(promise, { unwrap: () => promise });
+  };
+  return [mutate, { isLoading: mutation.isPending }] as const;
+}
+
+export function useGetAdminUserDetailQuery(
+  id: string,
+  options?: { skip?: boolean },
+) {
+  const token = getAuthToken();
+  return useQuery({
+    queryKey: ["admin-user", id],
+    queryFn: async () => {
+      const res = await fetch(`${API_BASE}/agent/users/${id}`, {
+        headers: { authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("fetch_user_detail_failed");
+      return res.json();
+    },
+    enabled: !!token && !options?.skip,
+  });
+}
+
+export function useUpdateUserRoleMutation() {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: async ({ id, role }: { id: string; role: string }) => {
+      const res = await fetch(`${API_BASE}/agent/users/${id}/role`, {
+        method: "PATCH",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${getAuthToken()}`,
+        },
+        body: JSON.stringify({ role }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw { data };
+      return data;
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-user", variables.id] });
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+    },
+  });
+  const mutate = (args: any) => {
+    const promise = mutation.mutateAsync(args);
+    return Object.assign(promise, { unwrap: () => promise });
+  };
+  return [mutate, { isLoading: mutation.isPending }] as const;
+}
+
+export function useSubmitTelebirrPaymentMutation() {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: async ({ sms_content }: { sms_content: string }) => {
+      const res = await fetch(`${API_BASE}/agent/payments/submit-telebirr`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${getAuthToken()}`,
+        },
+        body: JSON.stringify({ sms_content }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw { data };
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-payments"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-transactions"] });
+    },
+  });
+  const mutate = (args: any) => {
+    const promise = mutation.mutateAsync(args);
+    return Object.assign(promise, { unwrap: () => promise });
+  };
+  return [mutate, { isLoading: mutation.isPending }] as const;
+}
+
+export function useSubmitCBEPaymentMutation() {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: async ({ sms_content }: { sms_content: string }) => {
+      const res = await fetch(`${API_BASE}/agent/payments/submit-cbe`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${getAuthToken()}`,
+        },
+        body: JSON.stringify({ sms_content }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw { data };
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-payments"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-transactions"] });
+    },
+  });
+  const mutate = (args: any) => {
+    const promise = mutation.mutateAsync(args);
+    return Object.assign(promise, { unwrap: () => promise });
+  };
+  return [mutate, { isLoading: mutation.isPending }] as const;
+}

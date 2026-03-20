@@ -1,9 +1,9 @@
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { Router } from "express";
 import { z } from "zod";
 
 import { db } from "../db/client.js";
-import { walletLedger } from "../db/schema.js";
+import { walletLedger, withdrawals } from "../db/schema.js";
 import { asyncHandler } from "./asyncHandler.js";
 import { requireAuth } from "./authMiddleware.js";
 import {
@@ -87,8 +87,14 @@ router.post(
       return;
     }
 
+    if (!phone) {
+      res.status(400).json({ error: "phone_required" });
+      return;
+    }
+
     try {
       await db.transaction(async (tx) => {
+        // Calculate current posted balance
         const [summary] = await tx
           .select({
             balanceCents: sql<number>`coalesce(sum(case when ${walletLedger.status} = 'posted' then ${walletLedger.amountCents} else 0 end), 0)`,
@@ -96,18 +102,31 @@ router.post(
           .from(walletLedger)
           .where(eq(walletLedger.userId, req.identity!.userId));
 
-        const currentBalance = summary?.balanceCents ?? 0;
-        if (currentBalance < amountCents) {
+        // Calculate pending withdrawals to "lock" those funds
+        const [pendingSummary] = await tx
+          .select({
+            amountCents: sql<number>`coalesce(sum(${withdrawals.amountCents}), 0)`,
+          })
+          .from(withdrawals)
+          .where(
+            and(
+              eq(withdrawals.userId, req.identity!.userId),
+              eq(withdrawals.status, "pending"),
+            ),
+          );
+
+        const availableBalance =
+          (summary?.balanceCents ?? 0) - (pendingSummary?.amountCents ?? 0);
+
+        if (availableBalance < amountCents) {
           throw new Error("insufficient_funds");
         }
 
-        await tx.insert(walletLedger).values({
+        await tx.insert(withdrawals).values({
           userId: req.identity!.userId,
-          entryType: "withdrawal",
-          amountCents: -amountCents,
-          idempotencyKey: `withdraw_${Date.now()}_${req.identity!.userId}`,
-          metadata: { phone },
-          status: "posted",
+          amountCents,
+          phone,
+          status: "pending",
         });
       });
 
