@@ -58,11 +58,11 @@ export function BottomNav() {
   return (
     <div
       className={
-        "fixed bottom-0 left-0 right-0 z-50 px-4  flex justify-center pointer-events-none" +
+        "fixed bottom-2 left-0 right-0 z-50 px-4  flex justify-center pointer-events-none" +
         (pathname.startsWith("/admin") ? " md:hidden" : "")
       }
     >
-      <div className="relative w-full max-w-[440px] flex items-center justify-between bg-zinc-950/80 backdrop-blur-3xl border border-white/5 rounded-[32px] px-2 py-3 shadow-[0_20px_50px_rgba(0,0,0,0.5)] pointer-events-auto">
+      <div className="relative w-full max-w-[440px] flex items-center justify-between bg-zinc-950/80 backdrop-blur-3xl border border-white/5 rounded-[32px] px-2 py-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] pointer-events-auto">
         {/* Active Background Notch/Glow (Simulated) */}
         <div className="absolute inset-0 rounded-[32px] overflow-hidden pointer-events-none">
           <div className="absolute inset-0 bg-linear-to-b from-white/2 to-transparent" />
