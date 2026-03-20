@@ -11,13 +11,13 @@ import {
 import { requireAuth } from "./authMiddleware.js";
 import { requireAgent } from "./agentGuard.js";
 import { asyncHandler } from "./asyncHandler.js";
-import { centsToAmount, amountToCents } from "../wallet/depositService.js";
+import { amountToCents } from "../wallet/depositService.js";
 
 const router = Router();
 
 // Apply middleware to all agent routes
 router.use(requireAuth);
-// router.use(requireAgent);
+router.use(requireAgent);
 
 // ── ROOMS ────────────────────────────────────────────────────────────
 
@@ -476,11 +476,9 @@ router.post(
     // This is a common problem with manual SMS submission.
     // For now, I'll return an error saying user lookup failed until I have a better way.
 
-    res
-      .status(400)
-      .json({
-        error: "manual_cbe_requires_user_identification_logic_not_implemented",
-      });
+    res.status(400).json({
+      error: "manual_cbe_requires_user_identification_logic_not_implemented",
+    });
   }),
 );
 

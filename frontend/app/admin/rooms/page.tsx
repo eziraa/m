@@ -11,6 +11,7 @@ import {
   useGetRoomsQuery,
   useDeleteRoomMutation,
   useToggleRoomBotsMutation,
+  useGetRoomsForAgentQuery,
 } from "@/lib/api";
 import { Room } from "@/lib/types";
 import { RoomDialog } from "@/components/room-dialog";
@@ -31,7 +32,7 @@ import { useTranslations } from "next-intl";
 export default function AdminRoomsPage() {
   const t = useTranslations("admin.rooms");
   const router = useRouter();
-  const { data: rooms, isLoading, refetch } = useGetRoomsQuery();
+  const { data: rooms, isLoading, refetch } = useGetRoomsForAgentQuery();
   const [deleteRoom, { isLoading: isDeleting }] = useDeleteRoomMutation();
   const [toggleRoomBots] = useToggleRoomBotsMutation();
 

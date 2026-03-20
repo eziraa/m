@@ -1,10 +1,11 @@
 import { Router } from "express";
-import { eq, asc, inArray } from "drizzle-orm";
+import { eq, asc, inArray, and } from "drizzle-orm";
 
 import { db } from "../db/client.js";
 import { gameSessions, rooms } from "../db/schema.js";
 import { requireAuth } from "./authMiddleware.js";
 import { requireAdmin } from "./adminGuard.js";
+import { requireAgent } from "./agentGuard.js";
 
 const router = Router();
 
@@ -101,7 +102,8 @@ router.get("/rooms", requireAuth, async (_req, res) => {
       })),
     });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "list_rooms_failed";
+    const message =
+      error instanceof Error ? error.message : "list_rooms_failed";
     return res.status(500).json({ error: message });
   }
 });
@@ -174,7 +176,8 @@ router.post("/rooms", requireAuth, requireAdmin, async (req, res) => {
 });
 
 // ── PUT /rooms/:id ──────────────────────────────────────────────────
-router.put("/rooms/:id", requireAuth, requireAdmin, async (req, res) => {
+router.put("/rooms/:id", requireAuth, requireAgent, async (req, res) => {
+  console.log("@@ req body", req.body);
   const {
     name,
     price,
@@ -189,13 +192,18 @@ router.put("/rooms/:id", requireAuth, requireAdmin, async (req, res) => {
   try {
     const patch: Record<string, unknown> = { updatedAt: new Date() };
     if (name !== undefined) patch.name = name;
-    if (price !== undefined) patch.boardPriceCents = priceToCents(Number(price));
+    if (price !== undefined)
+      patch.boardPriceCents = priceToCents(Number(price));
     if (description !== undefined) patch.description = description;
     if (minPlayers !== undefined) patch.minPlayers = minPlayers;
     if (maxPlayers !== undefined) patch.maxPlayers = maxPlayers;
     if (color !== undefined) patch.color = color;
     if (icon !== undefined) patch.icon = icon;
     if (botAllowed !== undefined) patch.botAllowed = botAllowed;
+
+    const agentId = req.identity!.userId;
+
+    console.log("@@ patch", patch);
 
     const [room] = await db
       .update(rooms)

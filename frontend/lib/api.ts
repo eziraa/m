@@ -133,6 +133,21 @@ export async function fetchRooms(token: string): Promise<RoomItem[]> {
   return json.rooms;
 }
 
+export async function fetchRoomsForAgent(token: string): Promise<RoomItem[]> {
+  const res = await fetch(`${API_BASE}/agent/rooms`, {
+    method: "GET",
+    headers: { authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error("rooms_fetch_failed");
+  }
+
+  const json = (await res.json()) as { rooms: RoomItem[] };
+  return json.rooms;
+}
+
 export type WalletSummary = {
   currency: string;
   balanceCents: number;
@@ -463,6 +478,22 @@ export function useGetRoomsQuery(options?: { skip?: boolean }) {
   const query = useQuery({
     queryKey: ["rooms"],
     queryFn: () => fetchRooms(token),
+    enabled: !options?.skip && !!token,
+  });
+  return {
+    data: query.data,
+    isLoading: query.isLoading,
+    isError: query.isError,
+    error: query.error,
+    refetch: query.refetch,
+  };
+}
+
+export function useGetRoomsForAgentQuery(options?: { skip?: boolean }) {
+  const token = getAuthToken();
+  const query = useQuery({
+    queryKey: ["rooms", "agent"],
+    queryFn: () => fetchRoomsForAgent(token),
     enabled: !options?.skip && !!token,
   });
   return {
@@ -828,7 +859,10 @@ export function useCreateRoomMutation() {
 export function useUpdateRoomMutation() {
   const queryClient = useQueryClient();
   const mutation = useMutation({
-    mutationFn: async ({ id, ...input }: {
+    mutationFn: async ({
+      id,
+      ...input
+    }: {
       id: string;
       name?: string;
       description?: string;
@@ -839,7 +873,7 @@ export function useUpdateRoomMutation() {
       icon?: string;
     }) => {
       const res = await fetch(`${API_BASE}/agent/rooms/${id}`, {
-        method: "PATCH",
+        method: "PUT",
         headers: {
           "content-type": "application/json",
           authorization: `Bearer ${getAuthToken()}`,
