@@ -21,7 +21,6 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       </div>
 
       {/* Mobile Bottom Nav */}
-      <AdminBottomNav />
     </div>
   );
 }
