@@ -167,11 +167,11 @@ export default function TransactionsPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: Math.min(idx * 0.05, 0.5) }}
                 >
-                  <Card className="p-4 bg-zinc-950/40 border-white/5 rounded-2xl flex flex-row items-center justify-between group active:scale-[0.98] transition-all hover:bg-zinc-900/40">
-                    <div className="flex items-center gap-4">
+                  <Card className="p-3 sm:p-4 bg-zinc-950/40 border-white/5 rounded-2xl flex flex-row items-center justify-between group active:scale-[0.98] transition-all hover:bg-zinc-900/40 gap-2">
+                    <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                       <div
                         className={cn(
-                          "size-11 rounded-xl flex items-center justify-center border",
+                          "size-10 sm:size-11 shrink-0 rounded-xl flex items-center justify-center border",
                           tx.type === "withdrawal"
                             ? "bg-rose-500/10 border-rose-500/10"
                             : tx.type === "deposit"
@@ -184,18 +184,18 @@ export default function TransactionsPage() {
                         {getTransactionIcon(tx.type)}
                       </div>
 
-                      <div className="flex flex-col gap-0.5">
-                        <span className="text-xs font-black uppercase tracking-wider text-zinc-400">
+                      <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                        <span className="text-xs font-black uppercase tracking-wider text-zinc-400 truncate">
                           {t(`types.${tx.type}`) || tx.type.replace("_", " ")}
                         </span>
-                        <span className="text-[10px] text-zinc-500 font-medium">
+                        <span className="text-[10px] text-zinc-500 font-medium truncate">
                           {format(new Date(tx.createdAt), "MMM d, h:mm a")} •{" "}
                           {tx.description || "System"}
                         </span>
                       </div>
                     </div>
 
-                    <div className="flex flex-col items-end gap-1">
+                    <div className="flex flex-col items-end gap-1 shrink-0 ml-2">
                       <span
                         className={cn(
                           "text-sm font-black tracking-tight",

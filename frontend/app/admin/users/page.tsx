@@ -258,8 +258,8 @@ export default function AdminUsersPage() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto max-h-[80vh] overflow-y-auto">
-            <table className="w-full text-left border-separate border-spacing-0">
+          <div className="overflow-x-auto max-h-[80vh] overflow-y-auto custom-scrollbar">
+            <table className="w-full text-left border-separate border-spacing-0 hidden md:table">
               <thead className="bg-muted/50">
                 <tr>
                   <th className="py-2.5 px-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground border-b">
@@ -355,6 +355,77 @@ export default function AdminUsersPage() {
                 ))}
               </tbody>
             </table>
+
+            {/* Mobile View */}
+            <div className="md:hidden flex flex-col gap-3 p-4">
+              {users.map((user: any) => (
+                <div
+                  key={user.id}
+                  className="rounded-xl border bg-card text-card-foreground shadow-sm p-4 flex flex-col gap-3"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="h-10 w-10 shrink-0 rounded-xl bg-primary/10 flex items-center justify-center text-sm font-bold text-primary uppercase border border-primary/20">
+                        {user.username?.[0] || user.firstName?.[0] || t("fallback.initial")}
+                      </div>
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <span className="font-semibold text-sm truncate">
+                          {user.firstName || t("table.noUsername")}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground truncate">
+                          @{user.username || t("table.noUsername")}
+                        </span>
+                      </div>
+                    </div>
+                    <Badge
+                      className={cn(
+                        "shrink-0 ml-2 text-[10px] h-5 px-2 font-semibold uppercase tracking-tight flex items-center gap-1 border",
+                        getRoleBadgeClass(user.role),
+                      )}
+                    >
+                      <span className="scale-90">{getRoleIcon(user.role)}</span>
+                      {user.role}
+                    </Badge>
+                  </div>
+
+                  <div className="flex items-center justify-between mt-1">
+                    <div className="flex flex-col">
+                      <span className="font-black tracking-tight text-emerald-500 text-lg">
+                        {user.balance} <span className="text-[10px] text-muted-foreground uppercase font-medium">ETB</span>
+                      </span>
+                    </div>
+
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 rounded-md shrink-0 ml-2"
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-40">
+                        <DropdownMenuItem
+                          onClick={() => handleViewDetails(user.id)}
+                          className="gap-2 text-xs"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          {t("actions.details")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => setUserToDelete(user.id)}
+                          className="gap-2 text-xs text-red-500 focus:bg-red-500/10"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                          {t("actions.delete")}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>

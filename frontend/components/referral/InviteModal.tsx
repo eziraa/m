@@ -5,6 +5,7 @@ import { Copy, Check, Share2, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AnimatePresence, motion } from "framer-motion";
+import { useGetReferralCodeQuery } from "@/lib/api";
 
 interface InviteModalProps {
   isOpen: boolean;
@@ -20,9 +21,8 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
 
   const { t } = { t: (key: string) => key }; // mock translations since we don't know the keys
 
-  // Mocking the referral query since useGetReferralCodeQuery is missing in this codebase
-  const isLoading = false;
-  const codeData = { referralCode: "DEVAGENT" };
+  const { data: referralData, isLoading } = useGetReferralCodeQuery();
+  const codeData = referralData || { referralCode: "" };
 
   const botUsername = process.env.NEXT_PUBLIC_BOT_USERNAME || "mella_agent_bot";
   const referralCode = codeData?.referralCode || "";

@@ -137,7 +137,7 @@ export default function AdminWithdrawalsPage() {
           )}
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div className="relative max-w-sm">
             <Search
               size={14}
@@ -152,7 +152,7 @@ export default function AdminWithdrawalsPage() {
           </div>
 
           {/* Sorting */}
-          <div className="flex items-center gap-2 mt-2">
+          <div className="flex items-center gap-2">
             <select
               value={orderBy}
               onChange={(event) => {
@@ -420,7 +420,7 @@ export default function AdminWithdrawalsPage() {
             })}
           </div>
           {/* Pagination Controls */}
-          <div className="flex items-center justify-between mt-6 px-2">
+          <div className="flex flex-wrap items-center justify-between gap-3 mt-6 px-2">
             <div className="text-sm text-muted-foreground">
               Page {page} of{" "}
               {Math.max(1, Math.ceil((data?.total ?? 0) / limit))} •{" "}

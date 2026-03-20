@@ -178,5 +178,48 @@ router.get(
     res.status(200).json({ ok: true, dashboard: summary });
   }),
 );
+router.get(
+  "/me/referral",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    if (!req.identity) {
+      res.status(401).json({ error: "unauthorized" });
+      return;
+    }
+
+    const [user] = await db
+      .select({
+        role: users.role,
+        referralCode: users.referralCode,
+        referredByAgentId: users.referredByAgentId,
+      })
+      .from(users)
+      .where(eq(users.id, req.identity.userId))
+      .limit(1);
+
+    if (!user) {
+      res.status(404).json({ error: "user_not_found" });
+      return;
+    }
+
+    let codeToUse = null;
+
+    if (user.role === "AGENT" || user.role === "ADMIN") {
+      codeToUse = user.referralCode;
+    } else if (user.referredByAgentId) {
+      const [agent] = await db
+        .select({ referralCode: users.referralCode })
+        .from(users)
+        .where(eq(users.id, user.referredByAgentId))
+        .limit(1);
+      
+      if (agent) {
+        codeToUse = agent.referralCode;
+      }
+    }
+
+    res.status(200).json({ ok: true, referralCode: codeToUse });
+  }),
+);
 
 export default router;

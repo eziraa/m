@@ -763,6 +763,37 @@ export function useVerifyTelegramMutation() {
   return mutation;
 }
 
+export async function fetchReferralCode(token: string): Promise<{ referralCode: string | null }> {
+  const res = await fetch(`${API_BASE}/me/referral`, {
+    method: "GET",
+    headers: { authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error("referral_fetch_failed");
+  }
+
+  const json = await res.json();
+  return json;
+}
+
+export function useGetReferralCodeQuery(options?: { skip?: boolean }) {
+  const token = getAuthToken();
+  const query = useQuery({
+    queryKey: ["referral-code"],
+    queryFn: () => fetchReferralCode(token),
+    enabled: !options?.skip && !!token,
+  });
+  return {
+    data: query.data,
+    isLoading: query.isLoading,
+    isError: query.isError,
+    error: query.error,
+    refetch: query.refetch,
+  };
+}
+
 // ── AGENT DASHBOARD HOOKS ────────────────────────────────────────────
 
 export function useDeleteRoomMutation() {

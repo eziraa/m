@@ -86,7 +86,7 @@ export default function TransactionTable() {
   return (
     <div className="w-full overflow-hidden">
       {/* Table Header */}
-      <div className="border-b bg-muted/40 p-4 flex justify-between items-center">
+      <div className="border-b bg-muted/40 p-4 flex flex-col md:flex-row gap-4 justify-between md:items-center">
         <div>
           <h3 className="text-sm font-medium text-muted-foreground">
             Recent Transactions
@@ -95,7 +95,7 @@ export default function TransactionTable() {
             Showing {transactions.length} of {total} records
           </p>
         </div>
-        <div className="flex gap-2 items-center">
+        <div className="flex flex-wrap gap-2 items-center">
           <input
             placeholder="Search..."
             value={search}
@@ -103,7 +103,7 @@ export default function TransactionTable() {
               setSearch(event.target.value);
               setPage(1);
             }}
-            className="h-8 w-37.5 lg:w-62.5 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-8 w-full sm:w-auto lg:w-62.5 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
           />
           {/* Sorting */}
           <select
@@ -163,8 +163,8 @@ export default function TransactionTable() {
         </div>
       </div>
 
-      <div className="relative w-full max-h-120 overflow-y-auto custom-scrollbar">
-        <table className="w-full caption-bottom text-sm">
+      <div className="relative w-full max-h-[30rem] overflow-y-auto custom-scrollbar">
+        <table className="w-full caption-bottom text-sm hidden md:table">
           <thead className="[&_tr]:border-b">
             <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
               <th className="h-10 px-4 text-left align-middle font-medium text-muted-foreground">
@@ -260,6 +260,72 @@ export default function TransactionTable() {
             ))}
           </tbody>
         </table>
+
+        {/* Mobile View */}
+        <div className="md:hidden flex flex-col gap-3 p-4">
+          {transactions.map((tx: Transaction) => (
+            <div
+              key={tx.id}
+              className="rounded-xl border bg-card text-card-foreground shadow-sm p-4 flex flex-col gap-3"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex flex-col min-w-0 flex-1">
+                  <span className="font-semibold text-sm truncate">
+                    {tx.user?.firstName || tx.user?.username || "Unknown"}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground truncate">
+                    @{tx.user?.username || tx.user?.id?.slice(0, 8)} • {new Date(tx.createdAt).toLocaleDateString()} {new Date(tx.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+                <Badge variant="outline" className="capitalize shrink-0 ml-2 text-[10px]">
+                  {tx.type.replace("_", " ")}
+                </Badge>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <span
+                    className={`font-black tracking-tight text-lg ${
+                      Number(tx.amount) > 0 ? "text-success" : "text-foreground"
+                    }`}
+                  >
+                    {Number(tx.amount) > 0 ? "+" : ""}{Number(tx.amount).toLocaleString()}
+                  </span>
+                  {tx.description && (
+                    <span className="text-[10px] text-muted-foreground truncate ml-2 border-l pl-2">
+                       {tx.description}
+                    </span>
+                  )}
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 p-0 shrink-0 ml-2">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuItem onClick={() => setSelected(tx)}>
+                      View Details
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
+                      onClick={() => setDeleteTarget(tx)}
+                    >
+                      Delete
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => navigator.clipboard.writeText(tx.id)}
+                    >
+                      Copy ID
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Pagination */}

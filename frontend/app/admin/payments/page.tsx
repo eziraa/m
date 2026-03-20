@@ -100,7 +100,7 @@ export default function AdminPaymentsPage() {
         </div>
       </div>
 
-      <div className=" hidden gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatsCard
           title="Total Records"
           value={stats?.totalCount ?? 0}
@@ -238,8 +238,8 @@ export default function AdminPaymentsPage() {
               payments...
             </div>
           ) : (
-            <div className="overflow-x-auto max-h-[700px] overflow-y-auto">
-              <table className="w-full text-sm">
+            <div className="overflow-x-auto max-h-[700px] overflow-y-auto custom-scrollbar">
+              <table className="w-full text-sm hidden md:table">
                 <thead>
                   <tr className="border-b text-left text-muted-foreground">
                     <th className="px-2 py-3">ID</th>
@@ -267,6 +267,60 @@ export default function AdminPaymentsPage() {
                   )}
                 </tbody>
               </table>
+
+              {/* Mobile View */}
+              <div className="md:hidden flex flex-col gap-3 py-2">
+                {payments.length === 0 ? (
+                  <div className="py-10 text-center text-muted-foreground text-sm">
+                    No payments found for the selected filters.
+                  </div>
+                ) : (
+                  payments.map((payment: Payment) => (
+                    <div
+                      key={payment.id}
+                      className="rounded-xl border bg-card text-card-foreground shadow-sm p-4 flex flex-col gap-3"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <span className="font-semibold text-sm truncate">
+                            {payment.firstName || payment.username || "Unknown"}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground truncate">
+                            @{payment.username || payment.id.slice(0, 8)} • ID: {payment.id.slice(0, 8)}
+                          </span>
+                        </div>
+                        <Badge
+                          className={`shrink-0 ml-2 text-[10px] capitalize ${
+                            payment.status === "approved"
+                              ? "bg-green-500/10 text-green-500 border-green-500/20"
+                              : payment.status === "rejected"
+                                ? "bg-red-500/10 text-red-500 border-red-500/20"
+                                : "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                          }`}
+                          variant="outline"
+                        >
+                          {payment.status}
+                        </Badge>
+                      </div>
+
+                      <div className="flex items-center justify-between mt-1">
+                        <span className="font-black tracking-tight text-lg">
+                          {payment.amount} <span className="text-xs text-muted-foreground font-normal">ETB</span>
+                        </span>
+                        
+                        <div className="flex flex-col items-end min-w-0 flex-1 ml-4 justify-center">
+                          <span className="text-xs text-muted-foreground font-medium">
+                            {new Date(payment.createdAt).toLocaleDateString()}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground/70">
+                            {new Date(payment.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           )}
 

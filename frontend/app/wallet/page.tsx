@@ -468,10 +468,10 @@ export default function WalletPage() {
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: groupIndex * 0.1 + i * 0.05 }}
                         >
-                          <Card className="flex flex-row items-center  justify-between p-4 bg-blue-600/5 border-blue-600/50 hover:bg-blue-600/10 hover:border-blue-600/10 transition-all cursor-pointer group rounded-[10px] backdrop-blur-md">
-                            <div className="flex  items-center gap-4">
+                          <Card className="flex flex-row items-center justify-between p-3 sm:p-4 bg-blue-600/5 border-blue-600/50 hover:bg-blue-600/10 hover:border-blue-600/10 transition-all cursor-pointer group rounded-[10px] backdrop-blur-md gap-2">
+                            <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                               <div
-                                className={`w-12 h-12 rounded-2xl flex items-center justify-center border transition-transform group-hover:scale-105 shadow-inner ${
+                                className={`w-10 h-10 sm:w-12 sm:h-12 shrink-0 rounded-[12px] sm:rounded-2xl flex items-center justify-center border transition-transform group-hover:scale-105 shadow-inner ${
                                   +tx.amount > 0
                                     ? "bg-emerald-500/10 border-emerald-500/20"
                                     : "bg-foreground/5 border-foreground/10"
@@ -479,11 +479,11 @@ export default function WalletPage() {
                               >
                                 {getIcon(tx.type)}
                               </div>
-                              <div>
-                                <div className="font-bold text-sm tracking-tight text-foreground">
+                              <div className="min-w-0 flex-1">
+                                <div className="font-bold text-sm tracking-tight text-foreground truncate">
                                   {formatTitle(tx.type)}
                                 </div>
-                                <div className="text-[10px] text-muted-foreground line-clamp-1 font-medium flex items-center gap-1">
+                                <div className="text-[10px] text-muted-foreground truncate font-medium flex items-center gap-1">
                                   {tx.description || tx.type}
                                 </div>
                                 <span className="text-xs text-muted-foreground font-medium flex items-center gap-1">
@@ -491,9 +491,9 @@ export default function WalletPage() {
                                 </span>
                               </div>
                             </div>
-                            <div className="text-right">
+                            <div className="text-right shrink-0 ml-2">
                               <div
-                                className={`font-black text-base mb-1 ${
+                                className={`font-black text-sm sm:text-base mb-1 ${
                                   +tx.amount > 0
                                     ? "text-emerald-400"
                                     : "text-red-500"
