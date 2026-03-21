@@ -61,19 +61,16 @@ export function InsufficientBalanceModal({
               </div>
               <div>
                 <p className="text-xs uppercase tracking-[0.4em] text-white/50 mb-3">
-                  Badge
+                  Insufficient Balance
                 </p>
                 <h1 className="text-xl font-semibold text-white tracking-tight">
-                  Title
+                  You don't have enough balance to play this game.
                 </h1>
               </div>
             </div>
 
-            <p className="text-white/70 hidden font-medium text-base mb-3 px-4 leading-relaxed">
-              Subtitle
-            </p>
             <p className="text-white/60 text-sm mb-8 px-6 leading-relaxed">
-              Description
+              Please deposit funds to your wallet to play this game.
             </p>
 
             {/* Action Buttons */}

@@ -29,7 +29,7 @@ const bingoSchema = z.object({
   boardId: z.string().uuid(),
   markedCells: z.array(z.number().int()).max(25),
   winningPattern: z.object({
-    type: z.enum(["row", "column", "diagonal", "full_house"]),
+    type: z.enum(["row", "column", "diagonal", "full_house", "corners"]),
     index: z.number().int().min(0).max(4).optional(),
     diagonal: z.enum(["main", "anti"]).optional(),
   }),

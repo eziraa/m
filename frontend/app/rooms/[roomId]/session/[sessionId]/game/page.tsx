@@ -98,6 +98,12 @@ function winningPatternFromBoard(
     return { type: "diagonal", diagonal: "anti" };
   }
 
+  // Corners: (0,0), (0,4), (4,0), (4,4)
+  const cornerIndices = [0, 4, 20, 24]; // Indices for top-left, top-right, bottom-left, bottom-right
+  if (cornerIndices.every(isSatisfied)) {
+    return { type: "corners" };
+  }
+
   const fullHouse = Array.from({ length: 25 }, (_, idx) => idx);
   if (fullHouse.every(isSatisfied)) {
     return { type: "full_house" };

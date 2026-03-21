@@ -1,6 +1,6 @@
 import type { BoardMatrix } from "./boardGenerator.js";
 
-export type Pattern = "row" | "column" | "diagonal" | "full_house";
+export type Pattern = "row" | "column" | "diagonal" | "full_house" | "corners";
 
 function numbersForRow(board: BoardMatrix, rowIndex: number): number[] {
   return board[rowIndex] ?? [];
@@ -22,6 +22,15 @@ function numbersForDiagonal(
   return [0, 1, 2, 3, 4]
     .map((i) => board[i]?.[4 - i])
     .filter((n) => Number.isFinite(n));
+}
+
+function numbersForCorners(board: BoardMatrix): number[] {
+  return [
+    board[0]?.[0],
+    board[0]?.[4],
+    board[4]?.[0],
+    board[4]?.[4],
+  ].filter((n) => Number.isFinite(n));
 }
 
 export type WinningPatternInput = {
@@ -57,6 +66,10 @@ export function requiredNumbersForPattern(
 
   if (input.type === "full_house") {
     return board.flat();
+  }
+
+  if (input.type === "corners") {
+    return numbersForCorners(board);
   }
 
   throw new Error("unsupported_pattern");

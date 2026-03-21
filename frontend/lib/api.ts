@@ -358,7 +358,7 @@ export async function fetchSessionState(
 }
 
 export type WinningPatternInput = {
-  type: "row" | "column" | "diagonal" | "full_house";
+  type: "row" | "column" | "diagonal" | "full_house" | "corners";
   index?: number;
   diagonal?: "main" | "anti";
 };

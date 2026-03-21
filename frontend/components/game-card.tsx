@@ -39,15 +39,16 @@ export function GameCard({
           !canAfford && "cursor-not-allowed",
         )}
         onClick={() => {
-          if (!canAfford) {
-            setShowModal(true);
-            return;
-          }
           if (isLive) {
             router.push(`/rooms/${id}/room-full`);
             return;
           }
-          router.push(`/rooms/${id}`);
+          if (!canAfford) {
+            setShowModal(true);
+            return;
+          } else {
+            router.push(`/rooms/${id}`);
+          }
         }}
       >
         {/* Live Indicator */}
