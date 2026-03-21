@@ -1,8 +1,8 @@
 "use client";
 import React, { useDeferredValue, useMemo, useState } from "react";
 import {
-  useDeleteAdminTransactionMutation,
-  useGetAdminTransactionsQuery,
+  useDeleteAgentTransactionMutation,
+  useGetAgentTransactionsQuery,
 } from "@/lib/api";
 import { Loader2, MoreHorizontal, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -41,7 +41,7 @@ export default function TransactionTable() {
   const [selected, setSelected] = useState<Transaction | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Transaction | null>(null);
   const [deleteTransaction, { isLoading: isDeleting }] =
-    useDeleteAdminTransactionMutation();
+    useDeleteAgentTransactionMutation();
 
   const confirmDelete = async () => {
     if (!deleteTarget) return;
@@ -68,7 +68,7 @@ export default function TransactionTable() {
     }),
     [page, pageSize, deferredSearch, type, status, sortOrder, orderBy],
   );
-  const { data, isLoading, isFetching } = useGetAdminTransactionsQuery(
+  const { data, isLoading, isFetching } = useGetAgentTransactionsQuery(
     queryArgs,
     { skip: false },
   );
@@ -529,7 +529,7 @@ function TransactionDetail({
           <Button variant="ghost" onClick={onClose}>
             Close
           </Button>
-          <Button onClick={() => router.push(`/admin/users/` + tx.userId)}>
+          <Button onClick={() => router.push(`/Agent/users/` + tx.userId)}>
             View User Profile
           </Button>
         </div>

@@ -35,14 +35,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useGetAdminUsersQuery, useDeleteUserMutation } from "@/lib/api";
+import { useGetAgentUsersQuery, useDeleteUserMutation } from "@/lib/api";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslations } from "next-intl";
 
-export default function AdminUsersPage() {
-  const t = useTranslations("admin.users");
+export default function AgentUsersPage() {
+  const t = useTranslations("agent.users");
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -50,7 +50,7 @@ export default function AdminUsersPage() {
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [roleFilter, setRoleFilter] = useState<
-    "all" | "USER" | "ADMIN" | "AGENT"
+    "all" | "USER" | "Agent" | "AGENT"
   >("all");
   const deferredSearch = useDeferredValue(searchQuery.trim());
   const queryArgs = useMemo(
@@ -68,7 +68,7 @@ export default function AdminUsersPage() {
     data: usersData,
     isFetching,
     refetch,
-  } = useGetAdminUsersQuery(queryArgs);
+  } = useGetAgentUsersQuery(queryArgs);
   const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const users = usersData?.users ?? [];
@@ -88,13 +88,13 @@ export default function AdminUsersPage() {
   };
 
   const handleViewDetails = (userId: string) => {
-    router.push(`/admin/users/${userId}`);
+    router.push(`/Agent/users/${userId}`);
   };
 
   const getRoleIcon = (role: string) => {
     // ... existing getRoleIcon ...
     switch (role) {
-      case "ADMIN":
+      case "Agent":
         return <Crown className="h-3 w-3 text-amber-400" />;
       case "AGENT":
         return <Zap className="h-3 w-3 text-blue-400" />;
@@ -106,7 +106,7 @@ export default function AdminUsersPage() {
   const getRoleBadgeClass = (role: string) => {
     // ... existing getRoleBadgeClass ...
     switch (role) {
-      case "ADMIN":
+      case "Agent":
         return "bg-amber-500/20 text-amber-400 border-amber-500/30";
       case "AGENT":
         return "bg-blue-500/20 text-blue-400 border-blue-500/30";
@@ -187,7 +187,7 @@ export default function AdminUsersPage() {
             const nextRole = event.target.value as
               | "all"
               | "USER"
-              | "ADMIN"
+              | "Agent"
               | "AGENT";
             setRoleFilter(nextRole);
             setPage(1);
@@ -196,7 +196,7 @@ export default function AdminUsersPage() {
         >
           <option value="all">All Roles</option>
           <option value="USER">User</option>
-          <option value="ADMIN">Admin</option>
+          <option value="Agent">Agent</option>
           <option value="AGENT">Agent</option>
         </select>
         <p className="text-xs text-muted-foreground">

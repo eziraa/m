@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
-  useGetAdminWithdrawalsQuery,
+  useGetAgentWithdrawalsQuery,
   useApproveWithdrawalMutation,
   useRejectWithdrawalMutation,
 } from "@/lib/api";
@@ -23,11 +23,11 @@ import {
   User,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import type { AdminWithdrawal, WithdrawalStatus } from "@/lib/types";
+import type { AgentWithdrawal, WithdrawalStatus } from "@/lib/types";
 import { useTranslations } from "next-intl";
 
-export default function AdminWithdrawalsPage() {
-  const t = useTranslations("admin.withdrawals");
+export default function AgentWithdrawalsPage() {
+  const t = useTranslations("agent.withdrawals");
   const [statusFilter, setStatusFilter] = useState("pending");
   const [search, setSearch] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -50,7 +50,7 @@ export default function AdminWithdrawalsPage() {
     { label: t("status.rejected"), value: "rejected" },
   ];
 
-  const { data, isLoading, isFetching } = useGetAdminWithdrawalsQuery({
+  const { data, isLoading, isFetching } = useGetAgentWithdrawalsQuery({
     status: statusFilter,
     search: search || undefined,
     page,
@@ -225,7 +225,7 @@ export default function AdminWithdrawalsPage() {
       ) : (
         <>
           <div className="space-y-2.5">
-            {withdrawals.map((w: AdminWithdrawal, i: number) => {
+            {withdrawals.map((w: AgentWithdrawal, i: number) => {
               const isExpanded = expandedId === w.id;
               const isConfirming = confirmAction?.id === w.id;
               return (

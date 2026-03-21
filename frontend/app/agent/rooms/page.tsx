@@ -29,8 +29,8 @@ import {
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 
-export default function AdminRoomsPage() {
-  const t = useTranslations("admin.rooms");
+export default function AgentRoomsPage() {
+  const t = useTranslations("agent.rooms");
   const router = useRouter();
   const { data: rooms, isLoading, refetch } = useGetRoomsForAgentQuery();
   const [deleteRoom, { isLoading: isDeleting }] = useDeleteRoomMutation();

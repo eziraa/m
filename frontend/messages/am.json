@@ -572,7 +572,7 @@
     "history": "ታሪክ",
     "profile": "መገለጫ",
     "settings": "ቅንብሮች",
-    "admin": {
+    "agent": {
       "rooms": "ክፍሎች",
       "users": "ተጠቃሚዎች",
       "manage": "ማስተዳደር",
@@ -709,7 +709,7 @@
     "bingo": "ቢንጎ",
     "free": "ነፃ"
   },
-  "admin": {
+  "agent": {
     "nav": {
       "posts": "ፖስቶች",
       "manage": "ማስተዳደር",

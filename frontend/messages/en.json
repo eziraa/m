@@ -572,7 +572,7 @@
     "history": "History",
     "profile": "Profile",
     "settings": "Settings",
-    "admin": {
+    "agent": {
       "rooms": "Rooms",
       "users": "Users",
       "posts": "Posts",
@@ -709,7 +709,7 @@
       "page": "Page {page}"
     }
   },
-  "admin": {
+  "agent": {
     "nav": {
       "posts": "Posts",
       "scheduled": "Scheduled",
@@ -916,7 +916,7 @@
     },
     "bonuses": {
       "title": "Bonuses",
-      "subtitle": "Manage welcome and admin bonuses",
+      "subtitle": "Manage welcome and Agent bonuses",
       "welcome": {
         "title": "Welcome Bonus",
         "description": "Applied automatically when new users register.",
@@ -927,7 +927,7 @@
         "messageHint": "Supports {name} and {amount} placeholders."
       },
       "bonus": {
-        "title": "Admin Bonus",
+        "title": "Agent Bonus",
         "description": "Grant a one-time bonus to a user or everyone.",
         "amountLabel": "Default bonus amount",
         "amountPlaceholder": "Enter bonus amount",
@@ -951,29 +951,29 @@
       "actions": {
         "save": "Save settings",
         "saveWelcome": "Save welcome bonus",
-        "saveBonus": "Save admin bonus",
+        "saveBonus": "Save Agent bonus",
         "saving": "Saving...",
         "grant": "Grant bonus",
         "granting": "Granting..."
       },
       "tabs": {
         "welcome": "Welcome Bonus",
-        "bonus": "Admin Bonus",
+        "bonus": "Agent Bonus",
         "grant": "Grant Bonus"
       },
       "fields": {
         "active": "Active",
         "activeHint": "Disable to pause this bonus without deleting it.",
         "description": "Description",
-        "descriptionPlaceholder": "Short note shown in admin"
+        "descriptionPlaceholder": "Short note shown in Agent"
       },
       "toast": {
         "settingsSaved": "Bonus settings updated",
         "settingsFailed": "Failed to update bonus settings",
         "welcomeSaved": "Welcome bonus updated",
         "welcomeFailed": "Failed to update welcome bonus",
-        "bonusSaved": "Admin bonus updated",
-        "bonusFailed": "Failed to update admin bonus",
+        "bonusSaved": "Agent bonus updated",
+        "bonusFailed": "Failed to update Agent bonus",
         "grantedAll": "Bonus granted to all users",
         "grantedOne": "Bonus granted",
         "grantFailed": "Failed to grant bonus"

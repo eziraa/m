@@ -16,34 +16,34 @@ interface SidebarProps {
   className?: string;
 }
 
-export function AdminSidebar({ className }: SidebarProps) {
+export function AgentSidebar({ className }: SidebarProps) {
   const pathname = usePathname();
 
   const navItems = [
     {
       label: "Rooms",
-      href: "/admin/rooms",
+      href: "/agent/rooms",
       icon: Activity,
     },
     {
       label: "Transactions",
-      href: "/admin/transactions",
+      href: "/agent/transactions",
       icon: ArrowRightLeft,
     },
     {
       label: "Users",
-      href: "/admin/users",
+      href: "/agent/users",
       icon: Users,
     },
     {
       label: "Payments",
-      href: "/admin/payments",
+      href: "/agent/payments",
       icon: Landmark,
     },
 
     {
       label: "Withdrawals",
-      href: "/admin/withdrawals",
+      href: "/agent/withdrawals",
       icon: Wallet,
     },
   ];
@@ -57,11 +57,11 @@ export function AdminSidebar({ className }: SidebarProps) {
     >
       <div className="flex h-16 items-center border-b px-6">
         <Link
-          href="/admin"
+          href="/agent"
           className="flex items-center gap-2 font-bold text-xl tracking-tight"
         >
           <span className="text-primary text-2xl">⚡</span>
-          <span>Bingo Admin</span>
+          <span>Bingo Agent</span>
         </Link>
       </div>
 

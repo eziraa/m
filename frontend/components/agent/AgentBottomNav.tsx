@@ -13,16 +13,16 @@ import {
   Landmark,
 } from "lucide-react";
 
-const adminNavItems = [
+const agentNavItems = [
   { label: "Back", href: "/", icon: ArrowLeft },
-  { label: "Rooms", href: "/admin/rooms", icon: Activity },
-  { label: "Transactions", href: "/admin/transactions", icon: ArrowRightLeft },
-  { label: "Users", href: "/admin/users", icon: Users },
-  { label: "Payments", href: "/admin/payments", icon: Landmark },
-  { label: "Withdrawals", href: "/admin/withdrawals", icon: Wallet },
+  { label: "Rooms", href: "/agent/rooms", icon: Activity },
+  { label: "Transactions", href: "/agent/transactions", icon: ArrowRightLeft },
+  { label: "Users", href: "/agent/users", icon: Users },
+  { label: "Payments", href: "/agent/payments", icon: Landmark },
+  { label: "Withdrawals", href: "/agent/withdrawals", icon: Wallet },
 ];
 
-export function AdminBottomNav() {
+export function AgentBottomNav() {
   const pathname = usePathname() || "";
 
   return (
@@ -33,7 +33,7 @@ export function AdminBottomNav() {
           <div className="absolute inset-0 bg-linear-to-b from-white/2 to-transparent" />
         </div>
 
-        {adminNavItems.map((item) => {
+        {agentNavItems.map((item) => {
           const isBack = item.href === "/";
           const isActive =
             !isBack &&
@@ -49,7 +49,7 @@ export function AdminBottomNav() {
               {/* Active Indicator Circle */}
               {isActive && (
                 <motion.div
-                  layoutId="adminActiveCircle"
+                  layoutId="agentActiveCircle"
                   className="absolute -top-8 size-14 bg-blue-600 rounded-full flex flex-col p-2 items-center justify-center shadow-[0_8px_20px_rgba(37,99,235,0.4)] z-20"
                   transition={{ type: "spring", bounce: 0.25, duration: 0.5 }}
                 >

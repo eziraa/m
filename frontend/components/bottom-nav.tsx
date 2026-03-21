@@ -33,33 +33,33 @@ export function BottomNav() {
     { label: t("history"), href: "/transactions", icon: History },
     { label: t("profile"), href: "/profile", icon: User },
     ...(isAgent
-      ? [{ label: "Dashboard", href: "/admin/rooms", icon: LayoutDashboard }]
+      ? [{ label: "Dashboard", href: "/agent/rooms", icon: LayoutDashboard }]
       : [{ label: t("settings"), href: "/settings", icon: Settings }]),
   ];
 
-  const adminNavItems = [
+  const agentNavItems = [
     { label: "Back", href: "/", icon: ArrowLeft },
-    { label: "Rooms", href: "/admin/rooms", icon: Activity },
+    { label: "Rooms", href: "/agent/rooms", icon: Activity },
     {
       label: "Transactions",
-      href: "/admin/transactions",
+      href: "/agent/transactions",
       icon: ArrowRightLeft,
     },
-    { label: "Users", href: "/admin/users", icon: Users },
-    { label: "Payments", href: "/admin/payments", icon: Landmark },
-    { label: "Withdrawals", href: "/admin/withdrawals", icon: Wallet },
+    { label: "Users", href: "/agent/users", icon: Users },
+    { label: "Payments", href: "/agent/payments", icon: Landmark },
+    { label: "Withdrawals", href: "/agent/withdrawals", icon: Wallet },
   ];
 
   if (!user) return null;
 
   if (pathname.includes("game")) return null;
-  if (pathname.startsWith("/admin")) navItems = adminNavItems;
+  if (pathname.startsWith("/agent")) navItems = agentNavItems;
 
   return (
     <div
       className={
         "fixed bottom-2 left-0 right-0 z-50 px-4  flex justify-center pointer-events-none" +
-        (pathname.startsWith("/admin") ? " md:hidden" : "")
+        (pathname.startsWith("/agent") ? " md:hidden" : "")
       }
     >
       <div className="relative w-full max-w-[440px] flex items-center justify-between bg-zinc-950/80 backdrop-blur-3xl border border-white/5 rounded-[32px] px-2 py-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] pointer-events-auto">

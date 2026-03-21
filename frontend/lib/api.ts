@@ -926,10 +926,10 @@ export function useUpdateRoomMutation() {
   return [mutate, { isLoading: mutation.isPending }] as const;
 }
 
-export function useGetAdminUsersQuery(args: any, options?: { skip?: boolean }) {
+export function useGetAgentUsersQuery(args: any, options?: { skip?: boolean }) {
   const token = getAuthToken();
   const query = useQuery({
-    queryKey: ["admin-users", args],
+    queryKey: ["agent-users", args],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (args.page) params.set("page", args.page.toString());
@@ -959,7 +959,7 @@ export function useDeleteUserMutation() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      queryClient.invalidateQueries({ queryKey: ["agent-users"] });
     },
   });
   const mutate = (id: string) => {
@@ -969,13 +969,13 @@ export function useDeleteUserMutation() {
   return [mutate, { isLoading: mutation.isPending }] as const;
 }
 
-export function useGetAdminPaymentsQuery(
+export function useGetAgentPaymentsQuery(
   args: any,
   options?: { skip?: boolean },
 ) {
   const token = getAuthToken();
   return useQuery({
-    queryKey: ["admin-payments", args],
+    queryKey: ["agent-payments", args],
     queryFn: async () => {
       const params = new URLSearchParams();
       Object.entries(args).forEach(([k, v]) => {
@@ -994,10 +994,10 @@ export function useGetAdminPaymentsQuery(
   });
 }
 
-export function useGetAdminPaymentStatsQuery(args?: any) {
+export function useGetAgentPaymentStatsQuery(args?: any) {
   const token = getAuthToken();
   return useQuery({
-    queryKey: ["admin-payment-stats"],
+    queryKey: ["agent-payment-stats"],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (args) {
@@ -1018,7 +1018,7 @@ export function useGetAdminPaymentStatsQuery(args?: any) {
   });
 }
 
-export function useGetAdminWithdrawalsQuery(args: any) {
+export function useGetAgentWithdrawalsQuery(args: any) {
   const token = getAuthToken();
   return useQuery({
     queryKey: ["withdrawals", args],
@@ -1091,13 +1091,13 @@ export function useRejectWithdrawalMutation() {
   return [mutate, { isLoading: mutation.isPending }] as const;
 }
 
-export function useGetAdminTransactionsQuery(
+export function useGetAgentTransactionsQuery(
   args: any,
   options?: { skip?: boolean },
 ) {
   const token = getAuthToken();
   return useQuery({
-    queryKey: ["admin-transactions", args],
+    queryKey: ["agent-transactions", args],
     queryFn: async () => {
       const params = new URLSearchParams();
       Object.entries(args).forEach(([k, v]) => {
@@ -1116,10 +1116,10 @@ export function useGetAdminTransactionsQuery(
   });
 }
 
-export function useGetAdminTransactionStatsQuery() {
+export function useGetAgentTransactionStatsQuery() {
   const token = getAuthToken();
   return useQuery({
-    queryKey: ["admin-transaction-stats"],
+    queryKey: ["agent-transaction-stats"],
     queryFn: async () => {
       const res = await fetch(`${API_BASE}/agent/transactions/stats`, {
         headers: { authorization: `Bearer ${token}` },
@@ -1140,7 +1140,7 @@ export function useGetAdminTransactionStatsQuery() {
   });
 }
 
-export function useDeleteAdminTransactionMutation() {
+export function useDeleteAgentTransactionMutation() {
   const queryClient = useQueryClient();
   const mutation = useMutation({
     mutationFn: async ({ id }: { id: string }) => {
@@ -1155,7 +1155,7 @@ export function useDeleteAdminTransactionMutation() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["agent-transactions"] });
     },
   });
   const mutate = (args: any) => {
@@ -1165,13 +1165,13 @@ export function useDeleteAdminTransactionMutation() {
   return [mutate, { isLoading: mutation.isPending }] as const;
 }
 
-export function useGetAdminUserDetailQuery(
+export function useGetAgentUserDetailQuery(
   id: string,
   options?: { skip?: boolean },
 ) {
   const token = getAuthToken();
   return useQuery({
-    queryKey: ["admin-user", id],
+    queryKey: ["agent-user", id],
     queryFn: async () => {
       const res = await fetch(`${API_BASE}/agent/users/${id}`, {
         headers: { authorization: `Bearer ${token}` },
@@ -1200,8 +1200,8 @@ export function useUpdateUserRoleMutation() {
       return data;
     },
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["admin-user", variables.id] });
-      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      queryClient.invalidateQueries({ queryKey: ["agent-user", variables.id] });
+      queryClient.invalidateQueries({ queryKey: ["agent-users"] });
     },
   });
   const mutate = (args: any) => {
@@ -1228,8 +1228,8 @@ export function useSubmitTelebirrPaymentMutation() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-payments"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["agent-payments"] });
+      queryClient.invalidateQueries({ queryKey: ["agent-transactions"] });
     },
   });
   const mutate = (args: any) => {
@@ -1256,8 +1256,8 @@ export function useSubmitCBEPaymentMutation() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-payments"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["agent-payments"] });
+      queryClient.invalidateQueries({ queryKey: ["agent-transactions"] });
     },
   });
   const mutate = (args: any) => {

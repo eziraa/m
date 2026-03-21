@@ -1,12 +1,12 @@
 import { Suspense } from "react";
-import TransactionTable from "@/components/admin/transactions/TransactionTable";
-import TransactionStats from "@/components/admin/transactions/TransactionStats";
+import TransactionTable from "@/components/agent/transactions/TransactionTable";
+import TransactionStats from "@/components/agent/transactions/TransactionStats";
 import { Loader2 } from "lucide-react";
 
 import { useTranslations } from "next-intl";
 
-export default function AdminTransactionsPage() {
-  const t = useTranslations("admin.nav");
+export default function AgentTransactionsPage() {
+  const t = useTranslations("agent.nav");
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">

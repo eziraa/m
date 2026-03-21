@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
-  useGetAdminPaymentsQuery,
-  useGetAdminPaymentStatsQuery,
+  useGetAgentPaymentsQuery,
+  useGetAgentPaymentStatsQuery,
 } from "@/lib/api";
 import { Payment } from "@/lib/types";
 import {
@@ -19,13 +19,13 @@ import {
   Wallet,
 } from "lucide-react";
 import { ComponentType, useMemo, useState } from "react";
-import { SubmitPaymentDialog } from "@/components/admin/SubmitPaymentDialog";
+import { SubmitPaymentDialog } from "@/components/agent/SubmitPaymentDialog";
 import { useTranslations } from "next-intl";
 
 const STATUS_OPTIONS = ["all", "pending", "approved", "rejected"];
 
-export default function AdminPaymentsPage() {
-  const t = useTranslations("admin.payments");
+export default function AgentPaymentsPage() {
+  const t = useTranslations("agent.payments");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [status, setStatus] = useState("all");
@@ -51,7 +51,7 @@ export default function AdminPaymentsPage() {
     [status, source, search, minAmount, maxAmount, startDate, endDate],
   );
 
-  const { data, isLoading, isFetching } = useGetAdminPaymentsQuery({
+  const { data, isLoading, isFetching } = useGetAgentPaymentsQuery({
     ...filters,
     page,
     pageSize,
@@ -60,7 +60,7 @@ export default function AdminPaymentsPage() {
   });
 
   const { data: statsData, isFetching: statsFetching } =
-    useGetAdminPaymentStatsQuery(filters);
+    useGetAgentPaymentStatsQuery(filters);
 
   const payments = data?.payments ?? [];
   const pagination = data?.pagination;
@@ -394,7 +394,7 @@ function StatsCard({
 }
 
 function PaymentRow({ payment }: { payment: Payment }) {
-  const t = useTranslations("admin.payments");
+  const t = useTranslations("agent.payments");
   return (
     <tr className="border-b last:border-0 hover:bg-muted/30 text-xs">
       <td className="px-2 py-3 font-medium opacity-50">

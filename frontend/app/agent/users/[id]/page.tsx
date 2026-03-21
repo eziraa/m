@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import {
-  useGetAdminUserDetailQuery,
+  useGetAgentUserDetailQuery,
   useUpdateUserRoleMutation,
 } from "@/lib/api";
 import {
@@ -42,11 +42,11 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 
 export default function UserDetailPage() {
-  const t = useTranslations("admin.userDetail");
+  const t = useTranslations("agent.userDetail");
   const { id: userId } = useParams() as { id: string };
   const router = useRouter();
 
-  const { data: user, isLoading } = useGetAdminUserDetailQuery(userId || "", {
+  const { data: user, isLoading } = useGetAgentUserDetailQuery(userId || "", {
     skip: !userId,
   });
 

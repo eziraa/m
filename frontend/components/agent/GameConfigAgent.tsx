@@ -126,7 +126,7 @@
 //   );
 // }
 
-// export default function GameConfigAdmin() {
+// export default function GameConfigAgent() {
 //   const { data, isLoading, refetch } = useGetGameConfigQuery();
 //   const [updateGameConfig, { isLoading: updateLoading }] =
 //     useUpdateGameConfigMutation();

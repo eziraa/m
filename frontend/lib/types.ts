@@ -61,7 +61,7 @@ export type WithdrawalEligibility = {
   hasPending: boolean;
 };
 
-export type AdminUser = {
+export type AgentUser = {
   id: string;
   username: string | null;
   firstName: string | null;
@@ -72,7 +72,7 @@ export type AdminUser = {
   createdAt: string;
 };
 
-export type AdminUserDetail = AdminUser & {
+export type AgentUserDetail = AgentUser & {
   invitees: {
     id: string;
     username: string | null;
@@ -101,7 +101,7 @@ export type Payment = {
   datetime?: string;
 };
 
-export type AdminWithdrawal = {
+export type AgentWithdrawal = {
   id: string;
   userId: string;
   username: string;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useGetAdminTransactionStatsQuery } from "@/lib/api";
+import { useGetAgentTransactionStatsQuery } from "@/lib/api";
 import {
   Loader2,
   Gift,
@@ -11,7 +11,7 @@ import {
 import { StatCard } from "@/components/ui/stat-card";
 
 export default function TransactionStats() {
-  const { data: stats, isLoading, error } = useGetAdminTransactionStatsQuery();
+  const { data: stats, isLoading, error } = useGetAgentTransactionStatsQuery();
 
   if (isLoading)
     return (
