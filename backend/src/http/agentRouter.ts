@@ -178,6 +178,7 @@ router.get(
       .from(users)
       .where(whereClause);
 
+    // Fetch users and calculate balance from walletLedger
     const agentUsers = await db
       .select({
         id: users.id,
@@ -188,7 +189,6 @@ router.get(
         isActive: users.isActive,
         createdAt: users.createdAt,
         role: users.role,
-        balanceCents: sql<number>`coalesce((select sum(case when status = 'posted' then amount_cents else 0 end) from ${walletLedger} where user_id = ${users.id}), 0)`,
       })
       .from(users)
       .where(whereClause)
@@ -196,10 +196,29 @@ router.get(
       .offset(offset)
       .orderBy(desc(users.createdAt));
 
+    // For each user, fetch balance from walletLedger
+    const userIds = agentUsers.map((u) => u.id);
+    let balances: Record<string, number> = {};
+    if (userIds.length > 0) {
+      const balanceRows = await db
+        .select({
+          userId: walletLedger.userId,
+          balanceCents: sql<number>`coalesce(sum(case when ${walletLedger.status} = 'posted' then ${walletLedger.amountCents} else 0 end), 0)`,
+        })
+        .from(walletLedger)
+        .where(
+          sql`${walletLedger.userId} in (${userIds.map((id) => `'${id}'`).join(",")})`,
+        )
+        .groupBy(walletLedger.userId);
+      for (const row of balanceRows) {
+        balances[row.userId] = row.balanceCents;
+      }
+    }
+
     res.json({
       users: agentUsers.map((u) => ({
         ...u,
-        balance: (u.balanceCents / 100).toFixed(2),
+        balance: ((balances[u.id] ?? 0) / 100).toFixed(2),
       })),
       total: totalRes.count,
     });
