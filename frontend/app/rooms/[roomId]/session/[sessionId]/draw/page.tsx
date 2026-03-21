@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { Suspense, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { prepareGameResult } from "@/lib/game-result";
 import { ResultBoard } from "@/components/result-board";
 import { RotateCcw } from "lucide-react";
@@ -12,6 +13,8 @@ function DrawContent() {
     roomId: string;
     sessionId: string;
   };
+  const t = useTranslations("drawResult");
+  const tLive = useTranslations("liveResult");
 
   // Fast, memoized result preparation
   const result = useMemo(() => {
@@ -26,14 +29,14 @@ function DrawContent() {
 
       <div className="relative z-10 max-w-[430px] w-full pt-8 pb-20 flex flex-col items-center">
         <div className="text-center">
-          <h1 className="text-xl font-bold line-clamp-1">Draw</h1>
+          <h1 className="text-xl font-bold line-clamp-1">{t("title")}</h1>
           <p className="text-gray-400 text-sm mt-2 line-clamp-1">
-            No winner this round.
+            {t("subtitle")}
           </p>
         </div>
 
         <div className="mt-4 mb-4 bg-white/5 backdrop-blur-md rounded-[10px] mx-auto p-4 py-2 w-[80%] text-sm text-gray-300 border border-white/10 text-center">
-          <p>Round finished with no winner.</p>
+          <p>{t("message")}</p>
         </div>
 
         <ResultBoard
@@ -48,14 +51,14 @@ function DrawContent() {
             onClick={() => router.replace(`/rooms/${roomId}`)}
             className="w-full h-10 rounded-[12px] font-medium flex items-center justify-center text-lg bg-gradient-to-r from-blue-500 to-indigo-600 shadow-lg"
           >
-            <RotateCcw size={18} className="mr-2" /> Play Again
+            <RotateCcw size={18} className="mr-2" /> {tLive("playAgainBtn")}
           </button>
 
           <button
             onClick={() => router.replace(`/rooms`)}
             className="w-full h-10 rounded-[12px] font-medium flex items-center justify-center text-lg bg-white/5 backdrop-blur-md border border-white/10"
           >
-            Go Home
+            {tLive("goHomeBtn")}
           </button>
         </div>
       </div>

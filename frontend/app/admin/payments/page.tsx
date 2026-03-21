@@ -20,10 +20,12 @@ import {
 } from "lucide-react";
 import { ComponentType, useMemo, useState } from "react";
 import { SubmitPaymentDialog } from "@/components/admin/SubmitPaymentDialog";
+import { useTranslations } from "next-intl";
 
 const STATUS_OPTIONS = ["all", "pending", "approved", "rejected"];
 
 export default function AdminPaymentsPage() {
+  const t = useTranslations("admin.payments");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [status, setStatus] = useState("all");
@@ -83,11 +85,10 @@ export default function AdminPaymentsPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            Payments Dashboard
+            {t("title")}
           </h1>
           <p className="text-sm text-muted-foreground">
-            Monitor deposits with advanced search, filter, and quick trend
-            visibility.
+            {t("subtitle")}
           </p>
         </div>
         <div className="flex items-center gap-4">
@@ -102,22 +103,22 @@ export default function AdminPaymentsPage() {
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatsCard
-          title="Total Records"
+          title={t("stats.totalRecords")}
           value={stats?.totalCount ?? 0}
           icon={CreditCard}
         />
         <StatsCard
-          title="Approved"
+          title={t("stats.approved")}
           value={stats?.approvedCount ?? 0}
           icon={Wallet}
         />
         <StatsCard
-          title="Pending"
+          title={t("stats.pending")}
           value={stats?.pendingCount ?? 0}
           icon={Calendar}
         />
         <StatsCard
-          title="Total Amount"
+          title={t("stats.totalAmount")}
           value={(stats?.totalAmount ?? 0).toLocaleString()}
           icon={sortOrder === "asc" ? ArrowUpWideNarrow : ArrowDownWideNarrow}
         />
@@ -125,14 +126,14 @@ export default function AdminPaymentsPage() {
 
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Filters</CardTitle>
+          <CardTitle className="text-base">{t("filters.title")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
             <div className="relative xl:col-span-2">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search transaction #, phone, message, or source"
+                placeholder={t("filters.searchPlaceholder")}
                 className="pl-9"
                 value={search}
                 onChange={(e) => {
@@ -143,7 +144,7 @@ export default function AdminPaymentsPage() {
             </div>
             <Input
               type="number"
-              placeholder="Min amount"
+              placeholder={t("filters.minAmount")}
               value={minAmount}
               onChange={(e) => {
                 setPage(1);
@@ -152,7 +153,7 @@ export default function AdminPaymentsPage() {
             />
             <Input
               type="number"
-              placeholder="Max amount"
+              placeholder={t("filters.maxAmount")}
               value={maxAmount}
               onChange={(e) => {
                 setPage(1);
@@ -172,12 +173,12 @@ export default function AdminPaymentsPage() {
             >
               {STATUS_OPTIONS.map((item) => (
                 <option key={item} value={item}>
-                  Status: {item}
+                  {t("filters.statusPrefix")}{item}
                 </option>
               ))}
             </select>
             <Input
-              placeholder="Source (e.g. Telebirr)"
+              placeholder={t("filters.sourcePlaceholder")}
               value={source === "all" ? "" : source}
               onChange={(e) => {
                 setPage(1);
@@ -206,22 +207,22 @@ export default function AdminPaymentsPage() {
                 onChange={(e) => setSortBy(e.target.value as "amount" | "date")}
                 className="h-10 flex-1 rounded-md border border-input bg-background px-3 text-sm"
               >
-                <option value="date">Sort: Date</option>
-                <option value="amount">Sort: Amount</option>
+                <option value="date">{t("filters.sortDate")}</option>
+                <option value="amount">{t("filters.sortAmount")}</option>
               </select>
               <select
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
                 className="h-10 flex-1 rounded-md border border-input bg-background px-3 text-sm"
               >
-                <option value="desc">Desc</option>
-                <option value="asc">Asc</option>
+                <option value="desc">{t("filters.sortDesc")}</option>
+                <option value="asc">{t("filters.sortAsc")}</option>
               </select>
             </div>
           </div>
           <div className="flex justify-end">
             <Button variant="outline" onClick={resetFilters}>
-              Reset Filters
+              {t("filters.reset")}
             </Button>
           </div>
         </CardContent>
@@ -229,25 +230,24 @@ export default function AdminPaymentsPage() {
 
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">Payment Records</CardTitle>
+          <CardTitle className="text-base">{t("records.title")}</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <div className="flex h-48 items-center justify-center text-muted-foreground">
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Loading
-              payments...
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" /> {t("records.loading")}
             </div>
           ) : (
             <div className="overflow-x-auto max-h-[700px] overflow-y-auto custom-scrollbar">
               <table className="w-full text-sm hidden md:table">
                 <thead>
                   <tr className="border-b text-left text-muted-foreground">
-                    <th className="px-2 py-3">ID</th>
-                    <th className="px-2 py-3">User</th>
-                    <th className="px-2 py-3">Name</th>
-                    <th className="px-2 py-3">Amount</th>
-                    <th className="px-2 py-3">Status</th>
-                    <th className="px-2 py-3">Date</th>
+                    <th className="px-2 py-3">{t("records.columns.id")}</th>
+                    <th className="px-2 py-3">{t("records.columns.user")}</th>
+                    <th className="px-2 py-3">{t("records.columns.name")}</th>
+                    <th className="px-2 py-3">{t("records.columns.amount")}</th>
+                    <th className="px-2 py-3">{t("records.columns.status")}</th>
+                    <th className="px-2 py-3">{t("records.columns.date")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -257,7 +257,7 @@ export default function AdminPaymentsPage() {
                         colSpan={6}
                         className="py-10 text-center text-muted-foreground"
                       >
-                        No payments found for the selected filters.
+                        {t("records.empty")}
                       </td>
                     </tr>
                   ) : (
@@ -272,7 +272,7 @@ export default function AdminPaymentsPage() {
               <div className="md:hidden flex flex-col gap-3 py-2">
                 {payments.length === 0 ? (
                   <div className="py-10 text-center text-muted-foreground text-sm">
-                    No payments found for the selected filters.
+                    {t("records.empty")}
                   </div>
                 ) : (
                   payments.map((payment: Payment) => (
@@ -283,7 +283,7 @@ export default function AdminPaymentsPage() {
                       <div className="flex items-start justify-between">
                         <div className="flex flex-col min-w-0 flex-1">
                           <span className="font-semibold text-sm truncate">
-                            {payment.firstName || payment.username || "Unknown"}
+                            {payment.firstName || payment.username || t("records.unknown")}
                           </span>
                           <span className="text-[10px] text-muted-foreground truncate">
                             @{payment.username || payment.id.slice(0, 8)} • ID: {payment.id.slice(0, 8)}
@@ -326,8 +326,7 @@ export default function AdminPaymentsPage() {
 
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t pt-4">
             <p className="text-xs text-muted-foreground">
-              Page {pagination?.page ?? 1} of {totalPages} •{" "}
-              {pagination?.total ?? 0} records
+              {t("records.pagination", { page: pagination?.page ?? 1, totalPages, total: pagination?.total ?? 0 })}
             </p>
             <div className="flex items-center gap-2">
               <select
@@ -340,7 +339,7 @@ export default function AdminPaymentsPage() {
               >
                 {[10, 20, 50, 100].map((size) => (
                   <option key={size} value={size}>
-                    {size} / page
+                    {t("records.perPage", { size })}
                   </option>
                 ))}
               </select>
@@ -350,7 +349,7 @@ export default function AdminPaymentsPage() {
                 onClick={() => setPage((prev) => Math.max(1, prev - 1))}
                 disabled={page <= 1}
               >
-                Previous
+                {t("records.previous")}
               </Button>
               <Button
                 variant="outline"
@@ -360,7 +359,7 @@ export default function AdminPaymentsPage() {
                 }
                 disabled={page >= totalPages}
               >
-                Next
+                {t("records.next")}
               </Button>
             </div>
           </div>
@@ -395,13 +394,14 @@ function StatsCard({
 }
 
 function PaymentRow({ payment }: { payment: Payment }) {
+  const t = useTranslations("admin.payments");
   return (
     <tr className="border-b last:border-0 hover:bg-muted/30 text-xs">
       <td className="px-2 py-3 font-medium opacity-50">
         {payment.id.slice(0, 8)}...
       </td>
-      <td className="px-2 py-3">@{payment.username || "N/A"}</td>
-      <td className="px-2 py-3">{payment.firstName || "N/A"}</td>
+      <td className="px-2 py-3">@{payment.username || t("records.unknown")}</td>
+      <td className="px-2 py-3">{payment.firstName || t("records.unknown")}</td>
       <td className="px-2 py-3 font-bold">{payment.amount}</td>
       <td className="px-2 py-3">
         <Badge

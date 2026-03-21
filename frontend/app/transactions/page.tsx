@@ -102,7 +102,7 @@ export default function TransactionsPage() {
   const currentTransactions = allTransactions?.slice(0, displayedItems) || [];
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="bg-background  pb-18 custom-scrollbar overflow-y-auto max-h-screen px-4 w-full items-stretch justify-start mx-auto flex flex-col py-4">
       <MobileHeader
         title={t("title")}
         showBack
@@ -110,7 +110,7 @@ export default function TransactionsPage() {
         refetch={handleRefresh}
       />
 
-      <div className="px-4 py-4 space-y-4">
+      <div className="px-4 w-full py-4 space-y-4">
         {/* Tabs */}
         <Tabs
           defaultValue="all"
@@ -143,7 +143,7 @@ export default function TransactionsPage() {
         </Tabs>
 
         {/* Content */}
-        <div className="space-y-3">
+        <div className="space-y-3 w-full ">
           {isLoading ? (
             Array.from({ length: 8 }).map((_, i) => (
               <div
@@ -167,7 +167,7 @@ export default function TransactionsPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: Math.min(idx * 0.05, 0.5) }}
                 >
-                  <Card className="p-3 sm:p-4 bg-zinc-950/40 border-white/5 rounded-2xl flex flex-row items-center justify-between group active:scale-[0.98] transition-all hover:bg-zinc-900/40 gap-2">
+                  <Card className="p-3 sm:p-4 w-full  bg-zinc-950/40 border-white/5 rounded-2xl flex flex-row items-center justify-between group active:scale-[0.98] transition-all hover:bg-zinc-900/40 gap-2">
                     <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                       <div
                         className={cn(
@@ -184,13 +184,13 @@ export default function TransactionsPage() {
                         {getTransactionIcon(tx.type)}
                       </div>
 
-                      <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                      <div className="flex justify-start   flex-col gap-0.5 min-w-0 flex-1">
                         <span className="text-xs font-black uppercase tracking-wider text-zinc-400 truncate">
                           {t(`types.${tx.type}`) || tx.type.replace("_", " ")}
                         </span>
                         <span className="text-[10px] text-zinc-500 font-medium truncate">
-                          {format(new Date(tx.createdAt), "MMM d, h:mm a")} •{" "}
-                          {tx.description || "System"}
+                          {format(new Date(tx.createdAt), "MMM d, h:mm a")}{" "}
+                          •{" "}
                         </span>
                       </div>
                     </div>

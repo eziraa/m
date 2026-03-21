@@ -120,7 +120,17 @@
     "congratulations": "እንኳን ደስ አለዎት! አሸንፈዋል።",
     "encouragement": "አዲስ ዙር አዲስ ዕድል 💪",
     "playAgain": "እንደገና ይጫወቱ",
-    "goHome": "ወደ ክፍሎች ተመለስ"
+    "goHome": "ወደ ክፍሎች ተመለስ",
+    "almostThereTitle": "ጥቂት ቀረዎ",
+    "keepGoing": "ይቀጥሉ፣ ቀጣዩ ካርድዎ ሊያሸንፍ ይችላል።",
+    "winnerIs": "አሸናፊ: {name}",
+    "playAgainBtn": "ዳግም ይጫወቱ",
+    "goHomeBtn": "ወደ ዋናው ገጽ"
+  },
+  "drawResult": {
+    "title": "እኩል ደርሰዋል",
+    "subtitle": "በዚህ ዙር አሸናፊ የለም።",
+    "message": "ዙሩ ያለ አሸናፊ ተጠናቋል።"
   },
   "liveGame": {
     "you": "እርስዎ",
@@ -296,7 +306,15 @@
       "birr": "ብር"
     },
     "errors": {
-      "joinFailed": "ቦርድ መቀላቀል አልተሳካም"
+      "joinFailed": "ቦርድ መቀላቀል አልተሳካም",
+      "missingAuth": "የምስክር ወረቀት ጠፍቷል። ከዋናው ገጽ ይክፈቱ።",
+      "failedLoad": "የክፍል ክፍለ-ጊዜ መጫን አልተሳካም።",
+      "joinSuccessNoBoard": "መቀላቀል ተሳክቷል ነገር ግን ቦርድ አልተመለሰም።",
+      "joinFailedTryAgain": "መቀላቀል አልተቻለም። እንደገና ይሞክሩ።"
+    },
+    "selection": {
+      "oneSelected": "1 ቦርድ ተመርጧል",
+      "selectOne": "አንድ ቦርድ ይምረጡ"
     }
   },
   "roomFull": {
@@ -703,6 +721,47 @@
       "gameConfig": "ማስተካክያ",
       "back": "ተመለስ"
     },
+    "payments": {
+      "title": "የክፍያዎች ዳሽቦርድ",
+      "subtitle": "ተቀማጮችን በላቀ ፍለጋ ፣ ማጣሪያ እና ፈጣን የአዝማሚያ እይታ ይከታተሉ።",
+      "stats": {
+        "totalRecords": "ጠቅላላ መዝገቦች",
+        "approved": "ፀድቋል",
+        "pending": "በመጠባበቅ ላይ",
+        "totalAmount": "ጠቅላላ መጠን"
+      },
+      "filters": {
+        "title": "ማጣሪያዎች",
+        "searchPlaceholder": "ግብይት ይፈልጉ #፣ ስልክ፣ መልእክት፣ ወይም ምንጭ",
+        "minAmount": "አነስተኛ መጠን",
+        "maxAmount": "ከፍተኛ መጠን",
+        "statusPrefix": "ሁኔታ: ",
+        "sourcePlaceholder": "ምንጭ (ል. ቴሌብር)",
+        "sortDate": "ደርድር: ቀን",
+        "sortAmount": "ደርድር: መጠን",
+        "sortDesc": "ቁልቁል",
+        "sortAsc": "ወደላይ",
+        "reset": "ማጣሪያዎችን ዳግም አስጀምር"
+      },
+      "records": {
+        "title": "የክፍያ መዝገቦች",
+        "loading": "ክፍያዎችን በመጫን ላይ...",
+        "columns": {
+          "id": "መለያ",
+          "user": "ተጠቃሚ",
+          "name": "ስም",
+          "amount": "መጠን",
+          "status": "ሁኔታ",
+          "date": "ቀን"
+        },
+        "empty": "ለተመረጡት ማጣሪያዎች ምንም ክፍያዎች አልተገኙም።",
+        "pagination": "ገጽ {page} ከ {totalPages} • {total} መዝገቦች",
+        "perPage": "{size} / በገጽ",
+        "previous": "ቀዳሚ",
+        "next": "ቀጣይ",
+        "unknown": "ያልታወቀ"
+      }
+    },
     "withdrawals": {
       "title": "ክፍያዎች",
       "totalRequests": "{count} ጠቅላላ ጥያቄዎች",
@@ -735,7 +794,21 @@
         "approved": "የተፈቀደ",
         "rejected": "የተሰረዘ",
         "all": "ሁሉም"
-      }
+      },
+      "filters": {
+        "sortDate": "ቀን",
+        "sortAmount": "መጠን",
+        "sortDesc": "ቁልቁል",
+        "sortAsc": "ወደላይ"
+      },
+      "pagination": {
+        "info": "ገጽ {page} ከ {totalPages} • {total} መዝገቦች",
+        "rowsPerPage": "ረድፎች በገጽ:",
+        "previous": "ቀዳሚ",
+        "next": "ቀጣይ"
+      },
+      "unknown": "ያልታወቀ ተጠቃሚ",
+      "na": "—"
     },
     "bonuses": {
       "title": "ቦነሶች",

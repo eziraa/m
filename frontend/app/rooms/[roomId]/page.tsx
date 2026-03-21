@@ -12,6 +12,7 @@ import {
 import { closeSocket, connectSocket } from "@/lib/socket";
 import LiveGameLoader from "@/components/live-game-loader";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "next-intl";
 
 const TOKEN_KEY = "mella_token";
 const BOARD_KEY_PREFIX = "mella_board_";
@@ -30,6 +31,7 @@ export default function RoomPage() {
   const router = useRouter();
   const params = useParams() as { roomId: string };
   const redirectedRef = useRef(false);
+  const t = useTranslations("roomSelect");
 
   const [state, setState] = useState<BoardSelectionState | null>(null);
   const [sessionLoading, setSessionLoading] = useState(true);
@@ -49,7 +51,7 @@ export default function RoomPage() {
   const loadActiveSession = useCallback(async () => {
     const token = localStorage.getItem(TOKEN_KEY) || "";
     if (!token) {
-      setMsg("Missing auth token. Open from home screen.");
+      setMsg(t("errors.missingAuth"));
       setSessionLoading(false);
       return;
     }
@@ -69,7 +71,7 @@ export default function RoomPage() {
       setStakeLabelLive(nextState.stakeLabel);
       setMsg("");
     } catch {
-      setMsg("Failed to load room session.");
+      setMsg(t("errors.failedLoad"));
     } finally {
       setSessionLoading(false);
     }
@@ -81,7 +83,7 @@ export default function RoomPage() {
     async function load() {
       const token = localStorage.getItem(TOKEN_KEY) || "";
       if (!token) {
-        setMsg("Missing auth token. Open from home screen.");
+        setMsg(t("errors.missingAuth"));
         setSessionLoading(false);
         return;
       }
@@ -101,7 +103,7 @@ export default function RoomPage() {
         setStakeLabelLive(nextState.stakeLabel);
       } catch {
         if (!alive) return;
-        setMsg("Failed to load room session.");
+        setMsg(t("errors.failedLoad"));
       } finally {
         if (alive) setSessionLoading(false);
       }
@@ -205,7 +207,7 @@ export default function RoomPage() {
 
     const token = localStorage.getItem(TOKEN_KEY) || "";
     if (!token) {
-      setMsg("Missing auth token.");
+      setMsg(t("errors.missingAuth"));
       return;
     }
 
@@ -221,7 +223,7 @@ export default function RoomPage() {
       });
       const board = result.boards[0];
       if (!board) {
-        setMsg("Join succeeded but board was not returned.");
+        setMsg(t("errors.joinSuccessNoBoard"));
         return;
       }
 
@@ -237,7 +239,7 @@ export default function RoomPage() {
 
       router.push(`/rooms/${params.roomId}/session/${state.sessionId}/game`);
     } catch {
-      setMsg("Could not join. Try again.");
+      setMsg(t("errors.joinFailedTryAgain"));
     } finally {
       setBusy(false);
     }
@@ -261,7 +263,7 @@ export default function RoomPage() {
 
       <div className="relative z-10 flex flex-col flex-1 pb-24 px-4 pt-4">
         <header className="flex items-center justify-between mb-2">
-          <h1 className="text-2xl font-black tracking-tight">Choose board</h1>
+          <h1 className="text-2xl font-black tracking-tight">{t("title")}</h1>
           <div className="flex items-center gap-4">
             <button
               onClick={() => {
@@ -280,7 +282,7 @@ export default function RoomPage() {
         <div className="flex w-full items-stretch justify-between gap-2 mb-4">
           <div className="bg-blue-500 rounded-[8px] min-w-20 p-2.5 pb-2 flex flex-col shadow-lg">
             <span className="text-[11px] font-bold text-foreground/70 uppercase">
-              Earn
+              {t("stats.earn")}
             </span>
             <span className="text-lg flex items-end font-black">
               {prizePool.toFixed(2)}
@@ -289,7 +291,7 @@ export default function RoomPage() {
           </div>
           <div className="bg-indigo-500 rounded-[8px] min-w-20 flex-1 p-2.5 pb-2 flex flex-col shadow-lg">
             <span className="text-[11px] font-bold text-foreground/70 uppercase">
-              Stake
+              {t("stats.stake")}
             </span>
             <span className="text-lg flex items-end font-black">
               {stakeLabelLive}
@@ -298,9 +300,9 @@ export default function RoomPage() {
           </div>
           <div className="bg-red-500 rounded-[8px] min-w-20 p-2.5 pb-2 flex flex-col shadow-lg">
             <span className="text-[11px] font-bold text-foreground/70 uppercase leading-tight">
-              Starts In
+              {t("stats.startsIn")}
             </span>
-            <span className="text-lg font-black">{Math.max(startsIn, 0)}s</span>
+            <span className="text-lg font-black">{t("seconds", { value: Math.max(startsIn, 0) })}</span>
           </div>
         </div>
 
@@ -330,14 +332,14 @@ export default function RoomPage() {
 
       <div className="fixed bottom-16 left-0 right-0 p-4 bg-linear-to-t from-[#121212] via-[#121212] to-transparent z-20 max-w-[430px] mx-auto">
         <p className="mb-2 text-center text-[11px] font-bold uppercase tracking-wider text-foreground/60">
-          {picked ? "1 board selected" : "Select one board"}
+          {picked ? t("selection.oneSelected") : t("selection.selectOne")}
         </p>
         <Button
           onClick={onJoin}
           disabled={!picked || busy || !canJoin || sessionLoading}
           className="w-full bg-blue-500 h-10 rounded-[12px] text-foreground font-black shadow-[0_4px_20px_rgba(234,179,8,0.3)] active:scale-95 transition-all"
         >
-          {busy ? "Joining..." : "Join"}
+          {busy ? t("joining") : t("join")}
         </Button>
         {msg ? (
           <p className="mt-2 text-center text-xs text-red-300">{msg}</p>

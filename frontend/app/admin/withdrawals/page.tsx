@@ -160,8 +160,8 @@ export default function AdminWithdrawalsPage() {
               }}
               className="h-8 rounded-md border border-input bg-background px-2 text-xs"
             >
-              <option value="createdAt">Date</option>
-              <option value="amount">Amount</option>
+              <option value="createdAt">{t("filters.sortDate")}</option>
+              <option value="amount">{t("filters.sortAmount")}</option>
             </select>
             <select
               value={sortOrder}
@@ -170,8 +170,8 @@ export default function AdminWithdrawalsPage() {
               }}
               className="h-8 rounded-md border border-input bg-background px-2 text-xs"
             >
-              <option value="desc">Descending</option>
-              <option value="asc">Ascending</option>
+              <option value="desc">{t("filters.sortDesc")}</option>
+              <option value="asc">{t("filters.sortAsc")}</option>
             </select>
           </div>
         </div>
@@ -257,7 +257,7 @@ export default function AdminWithdrawalsPage() {
                         </div>
                         <div className="min-w-0">
                           <div className="font-bold text-sm text-foreground truncate">
-                            {w.firstName || w.username || "Unknown User"}
+                            {w.firstName || w.username || t("unknown")}
                           </div>
                           <div className="text-[10px] text-foreground/40 font-medium truncate">
                             {w.phone} • {new Date(w.createdAt).toLocaleString()}
@@ -296,7 +296,7 @@ export default function AdminWithdrawalsPage() {
                           <div className="grid grid-cols-2 gap-2 text-[11px]">
                             <div className="flex items-center gap-1.5 text-foreground/50">
                               <User size={12} />
-                              <span>{w.username || "N/A"}</span>
+                              <span>{w.username || t("na")}</span>
                             </div>
                             <div className="flex items-center gap-1.5 text-foreground/50">
                               <Badge>{w.phone}</Badge>
@@ -422,13 +422,15 @@ export default function AdminWithdrawalsPage() {
           {/* Pagination Controls */}
           <div className="flex flex-wrap items-center justify-between gap-3 mt-6 px-2">
             <div className="text-sm text-muted-foreground">
-              Page {page} of{" "}
-              {Math.max(1, Math.ceil((data?.total ?? 0) / limit))} •{" "}
-              {data?.total ?? 0} records
+              {t("pagination.info", {
+                page,
+                totalPages: Math.max(1, Math.ceil((data?.total ?? 0) / limit)),
+                total: data?.total ?? 0
+              })}
             </div>
             <div className="flex items-center gap-3">
               <label className="flex items-center gap-1 text-xs text-muted-foreground">
-                <span>Rows per page:</span>
+                <span>{t("pagination.rowsPerPage")}</span>
                 <select
                   value={limit}
                   onChange={(e) => {
@@ -451,7 +453,7 @@ export default function AdminWithdrawalsPage() {
                   disabled={page === 1}
                   onClick={() => setPage((prev) => Math.max(1, prev - 1))}
                 >
-                  Previous
+                  {t("pagination.previous")}
                 </Button>
                 <Button
                   variant="outline"
@@ -459,7 +461,7 @@ export default function AdminWithdrawalsPage() {
                   disabled={page * limit >= (data?.total ?? 0)}
                   onClick={() => setPage((prev) => prev + 1)}
                 >
-                  Next
+                  {t("pagination.next")}
                 </Button>
               </div>
             </div>

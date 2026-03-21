@@ -121,7 +121,17 @@
     "almostThere": "You were close!",
     "encouragement": "Every round is a fresh chance to win big ",
     "playAgain": "Try Again",
-    "goHome": "Back to Rooms"
+    "goHome": "Back to Rooms",
+    "almostThereTitle": "Almost there",
+    "keepGoing": "Keep going, your next card can win.",
+    "winnerIs": "Winner: {name}",
+    "playAgainBtn": "Play Again",
+    "goHomeBtn": "Go Home"
+  },
+  "drawResult": {
+    "title": "Draw",
+    "subtitle": "No winner this round.",
+    "message": "Round finished with no winner."
   },
   "liveGame": {
     "you": "You",
@@ -296,7 +306,15 @@
       "birr": "Birr"
     },
     "errors": {
-      "joinFailed": "Failed to join board"
+      "joinFailed": "Failed to join board",
+      "missingAuth": "Missing auth token. Open from home screen.",
+      "failedLoad": "Failed to load room session.",
+      "joinSuccessNoBoard": "Join succeeded but board was not returned.",
+      "joinFailedTryAgain": "Could not join. Try again."
+    },
+    "selection": {
+      "oneSelected": "1 board selected",
+      "selectOne": "Select one board"
     }
   },
   "roomFull": {
@@ -734,6 +752,61 @@
         "approved": "Approved",
         "rejected": "Rejected",
         "all": "All"
+      },
+      "filters": {
+        "sortDate": "Date",
+        "sortAmount": "Amount",
+        "sortDesc": "Descending",
+        "sortAsc": "Ascending"
+      },
+      "pagination": {
+        "info": "Page {page} of {totalPages} • {total} records",
+        "rowsPerPage": "Rows per page:",
+        "previous": "Previous",
+        "next": "Next"
+      },
+      "unknown": "Unknown User",
+      "na": "N/A"
+    },
+    "payments": {
+      "title": "Payments Dashboard",
+      "subtitle": "Monitor deposits with advanced search, filter, and quick trend visibility.",
+      "stats": {
+        "totalRecords": "Total Records",
+        "approved": "Approved",
+        "pending": "Pending",
+        "totalAmount": "Total Amount"
+      },
+      "filters": {
+        "title": "Filters",
+        "searchPlaceholder": "Search transaction #, phone, message, or source",
+        "minAmount": "Min amount",
+        "maxAmount": "Max amount",
+        "statusPrefix": "Status: ",
+        "sourcePlaceholder": "Source (e.g. Telebirr)",
+        "sortDate": "Sort: Date",
+        "sortAmount": "Sort: Amount",
+        "sortDesc": "Desc",
+        "sortAsc": "Asc",
+        "reset": "Reset Filters"
+      },
+      "records": {
+        "title": "Payment Records",
+        "loading": "Loading payments...",
+        "columns": {
+          "id": "ID",
+          "user": "User",
+          "name": "Name",
+          "amount": "Amount",
+          "status": "Status",
+          "date": "Date"
+        },
+        "empty": "No payments found for the selected filters.",
+        "pagination": "Page {page} of {totalPages} • {total} records",
+        "perPage": "{size} / page",
+        "previous": "Previous",
+        "next": "Next",
+        "unknown": "Unknown"
       }
     },
     "deliveryLog": {
