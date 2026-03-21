@@ -30,11 +30,11 @@ export function BottomNav() {
   let navItems = [
     { label: t("play"), href: "/", icon: Gamepad2 },
     { label: t("wallet"), href: "/wallet", icon: Wallet },
-    { label: t("history"), href: "/transactions", icon: History },
     { label: t("profile"), href: "/profile", icon: User },
+    { label: t("settings"), href: "/settings", icon: Settings },
     ...(isAgent
       ? [{ label: "Dashboard", href: "/agent/rooms", icon: LayoutDashboard }]
-      : [{ label: t("settings"), href: "/settings", icon: Settings }]),
+      : []),
   ];
 
   const agentNavItems = [
