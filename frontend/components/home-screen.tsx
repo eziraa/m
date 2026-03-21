@@ -242,7 +242,7 @@ export function HomeScreen() {
             </div>
           ) : (
             rooms.map((room) => (
-              <div key={room.id} onClick={() => openRoom(room)}>
+              <div key={room.id}>
                 <GameCard
                   name={room.name}
                   price={room.price}

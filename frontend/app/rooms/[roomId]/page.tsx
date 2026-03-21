@@ -7,6 +7,7 @@ import { RotateCcw, Volume2 } from "lucide-react";
 import {
   buyBoard,
   resolveActiveSessionByRoomId,
+  useGetWalletQuery,
   type BoardSelectionState,
 } from "@/lib/api";
 import { closeSocket, connectSocket } from "@/lib/socket";
@@ -42,6 +43,8 @@ export default function RoomPage() {
   const [prizePoolCents, setPrizePoolCents] = useState(0);
   const [stakeLabelLive, setStakeLabelLive] = useState("0.00");
 
+  const { data: walletData } = useGetWalletQuery();
+
   function redirectToResult(targetPath: string) {
     if (redirectedRef.current) return;
     redirectedRef.current = true;
@@ -62,6 +65,16 @@ export default function RoomPage() {
         token,
         params.roomId,
       );
+
+      // Balance guard
+      if (walletData) {
+        const balanceCents = (walletData.balance || 0) * 100;
+        if (balanceCents < nextState.stakeCents) {
+          router.replace("/");
+          return;
+        }
+      }
+
       if (nextState.viewerResult) {
         redirectToResult(nextState.viewerResult.targetPath);
         return;
