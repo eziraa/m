@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Star, Volume2 } from "lucide-react";
+import { Star, Volume2, VolumeX } from "lucide-react";
 
 import {
   fetchSessionState,
@@ -14,6 +14,7 @@ import {
 } from "@/lib/api";
 import { saveStoredGameResult } from "@/lib/game-result";
 import { closeSocket, connectSocket } from "@/lib/socket";
+import { AudioController } from "@/lib/audio-controller";
 import LiveGameLoader from "@/components/live-game-loader";
 
 const TOKEN_KEY = "mella_token";
@@ -116,6 +117,9 @@ export default function GameSessionPage() {
   const [showStartSplash, setShowStartSplash] = useState(false);
   const [claimingBingo, setClaimingBingo] = useState(false);
   const [msg, setMsg] = useState("");
+  const [isMuted, setIsMuted] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const audioController = useRef<AudioController | null>(null);
   const redirectedToResultRef = useRef(false);
   const sessionStateRef = useRef<SessionState | null>(null);
   const markedRef = useRef<Set<number>>(new Set([12]));
@@ -216,6 +220,11 @@ export default function GameSessionPage() {
           }
         }
 
+        const blockedKey = `bingo_blocked_${params.sessionId}`;
+        if (localStorage.getItem(blockedKey) === "true") {
+          setIsBlocked(true);
+        }
+
         const ss = await fetchSessionState(token, params.sessionId);
         if (!alive) return;
         if (ss.viewerResult) {
@@ -234,6 +243,9 @@ export default function GameSessionPage() {
         setMsg("Failed to load game session state.");
       }
     }
+
+    audioController.current = AudioController.getInstance();
+    setIsMuted(audioController.current.isMuted());
 
     void boot();
 
@@ -318,6 +330,7 @@ export default function GameSessionPage() {
           { seq: payload.seq, number: payload.number },
         ].slice(-200),
       }));
+      playNumberSound(payload.number);
     };
 
     const onParticipantsUpdated = (payload: {
@@ -374,6 +387,12 @@ export default function GameSessionPage() {
             }
           : prev,
       );
+      if (audioController.current) {
+        audioController.current.unlock();
+        void audioController.current.play("/audio/Chewataw tejemerual.m4a", {
+          restart: true,
+        });
+      }
     };
 
     const onBingoVerified = (payload: {
@@ -434,6 +453,16 @@ export default function GameSessionPage() {
       potCents: number;
     }) => {
       if (payload.sessionId !== params.sessionId) return;
+
+      if (audioController.current) {
+        audioController.current.unlock();
+        const soundPath =
+          payload.outcome === "won"
+            ? "/audio/Good bingo.m4a"
+            : "/audio/chewataw komual.m4a";
+        void audioController.current.play(soundPath, { restart: true });
+      }
+
       persistAndRedirect(
         myBoard,
         payload,
@@ -464,6 +493,32 @@ export default function GameSessionPage() {
       closeSocket();
     };
   }, [myBoard, params.roomId, params.sessionId, router]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !audioController.current) return;
+    // Preload all sounds 1-75
+    for (let i = 1; i <= 75; i++) {
+      const letter = letterForNumber(i);
+      audioController.current.preload(`/audio/sm/${letter}${i}.m4a`, {
+        preload: "auto",
+      });
+    }
+    // Preload game start sound
+    audioController.current.preload("/audio/Chewataw tejemerual.m4a", {
+      preload: "auto",
+    });
+    // Preload winner/loser sounds
+    audioController.current.preload("/audio/Good bingo.m4a", {
+      preload: "auto",
+    });
+    audioController.current.preload("/audio/chewataw komual.m4a", {
+      preload: "auto",
+    });
+    audioController.current.preload("/audio/No bingo.m4a", { preload: "auto" });
+    audioController.current.preload("/audio/Board blocked.m4a", {
+      preload: "auto",
+    });
+  }, []);
 
   useEffect(() => {
     if (!myBoard) return;
@@ -522,6 +577,8 @@ export default function GameSessionPage() {
   }
 
   async function onCallBingo() {
+    audioController.current?.unlock();
+    if (isBlocked) return;
     if (!myBoard || !sessionState || !isPlaying) {
       setMsg("You can call Bingo only while the game is live.");
       return;
@@ -539,7 +596,35 @@ export default function GameSessionPage() {
       calledSet,
     );
     if (!pattern) {
-      setMsg("No valid winning pattern yet. Keep marking called numbers.");
+      const blockedKey = `bingo_blocked_${params.sessionId}`;
+      const clicksKey = `bingo_clicks_${params.sessionId}`;
+      const currentClicks =
+        parseInt(localStorage.getItem(clicksKey) || "0", 10) + 1;
+
+      localStorage.setItem(clicksKey, currentClicks.toString());
+
+      if (currentClicks >= 3) {
+        localStorage.setItem(blockedKey, "true");
+        setIsBlocked(true);
+        setMsg(
+          "You have been blocked from calling Bingo for too many invalid attempts.",
+        );
+        if (audioController.current) {
+          void audioController.current.play("/audio/Board blocked.m4a", {
+            restart: true,
+          });
+        }
+      } else {
+        setMsg(
+          `No valid winning pattern yet. Attempt ${currentClicks}/3. Keep marking.`,
+        );
+      }
+
+      if (audioController.current) {
+        void audioController.current.play("/audio/No bingo.m4a", {
+          restart: true,
+        });
+      }
       return;
     }
 
@@ -569,6 +654,14 @@ export default function GameSessionPage() {
     }
   }
 
+  function toggleMute() {
+    if (audioController.current) {
+      audioController.current.unlock();
+      const nextMuted = audioController.current.toggleMuted();
+      setIsMuted(nextMuted);
+    }
+  }
+
   async function onLeave() {
     const token = localStorage.getItem(TOKEN_KEY) || "";
     if (!token) {
@@ -593,6 +686,13 @@ export default function GameSessionPage() {
     } catch {
       setMsg("Could not leave session right now. Try again.");
     }
+  }
+
+  function playNumberSound(n: number) {
+    if (!audioController.current) return;
+    const letter = letterForNumber(n);
+    const src = `/audio/sm/${letter}${n}.m4a`;
+    void audioController.current.play(src, { restart: true });
   }
 
   if (!myBoard) {
@@ -623,8 +723,15 @@ export default function GameSessionPage() {
                 </div>
               ) : null}
 
-              <button className="rounded-full bg-[#1d63ff] p-3 text-sm font-bold">
-                <Volume2 size={16} />
+              <button
+                onClick={toggleMute}
+                className={`rounded-full p-3 text-sm font-bold transition-colors ${
+                  isMuted
+                    ? "bg-red-500/20 text-red-500"
+                    : "bg-[#1d63ff] text-white"
+                }`}
+              >
+                {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
               </button>
             </div>
           </div>
@@ -775,22 +882,28 @@ export default function GameSessionPage() {
                 })}
               </div>
 
-              <span className="mt-2 font-bold uppercase leading-tight text-white/70">
+              <span className="mt-2 text-sm font-medium uppercase leading-tight text-white/70">
                 Board #{myBoard.boardNo}
               </span>
 
               <div className="flex w-full flex-col items-center">
                 <button
                   onClick={onCallBingo}
-                  disabled={isWaiting || !isPlaying || claimingBingo}
-                  className="mt-2 h-10 w-full rounded-[8px] bg-blue-600 font-black tracking-widest text-white shadow-md shadow-blue-500/20 transition-all active:scale-95 hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-55"
+                  disabled={
+                    isWaiting || !isPlaying || claimingBingo || isBlocked
+                  }
+                  className={`mt-2 h-10 w-full text-sm rounded-[8px] font-black tracking-widest text-white shadow-md shadow-blue-500/20 transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-55 ${
+                    isBlocked
+                      ? "bg-red-600 hover:bg-red-700"
+                      : "bg-blue-600 hover:bg-blue-700"
+                  }`}
                 >
-                  {claimingBingo ? "Checking" : "Bingo"}
+                  {isBlocked ? "Blocked" : claimingBingo ? "Checking" : "Bingo"}
                 </button>
 
                 <button
                   onClick={onLeave}
-                  className="mt-2 h-10 w-full rounded-[8px] bg-gray-600/50 font-black tracking-widest text-white shadow-md transition-all active:scale-95 hover:bg-gray-700/30"
+                  className="mt-2 h-10 w-full text-sm rounded-[8px] bg-gray-600/50 font-black tracking-widest text-white shadow-md transition-all active:scale-95 hover:bg-gray-700/30"
                 >
                   Leave
                 </button>
