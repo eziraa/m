@@ -586,7 +586,9 @@ export default function GameSessionPage() {
     audioController.current?.unlock();
     if (isBlocked) {
       if (audioController.current) {
-        void audioController.current.play("/audio/Board blocked.m4a", { restart: true });
+        void audioController.current.play("/audio/Board blocked.m4a", {
+          restart: true,
+        });
       }
       return;
     }
