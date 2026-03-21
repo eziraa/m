@@ -160,16 +160,18 @@ async function tick(sessionId: string) {
 }
 
 async function runCountdown(sessionId: string) {
-  const [session] = await db
+  let session = await db
     .select({
       id: gameSessions.id,
       status: gameSessions.status,
       countdownSeconds: gameSessions.countdownSeconds,
+      countdownResets: gameSessions.countdownResets,
       roomId: gameSessions.roomId,
     })
     .from(gameSessions)
     .where(eq(gameSessions.id, sessionId))
-    .limit(1);
+    .limit(1)
+    .then((rows) => rows[0]);
 
   if (!session || session.status !== "countdown") {
     return;
@@ -194,6 +196,49 @@ async function runCountdown(sessionId: string) {
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 
+  // Check if any players joined (boards exist for this session)
+  const playerCount = await db
+    .select({ count: sql`count(*)` })
+    .from(boards)
+    .where(eq(boards.sessionId, sessionId))
+    .then((rows) => Number(rows[0]?.count ?? 0));
+
+  if (playerCount === 0) {
+    // No players, increment countdownResets
+    const newResets = (session.countdownResets ?? 0) + 1;
+    if (newResets > 3) {
+      // Close and delete session
+      await db
+        .update(gameSessions)
+        .set({
+          status: "cancelled",
+          finishedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(gameSessions.id, sessionId));
+      await db.delete(gameSessions).where(eq(gameSessions.id, sessionId));
+      io?.to(`session:${sessionId}`).emit("session_cancelled", {
+        sessionId,
+        reason: "no_players",
+      });
+      return;
+    } else {
+      // Reset countdown
+      await db
+        .update(gameSessions)
+        .set({ countdownResets: newResets, updatedAt: new Date() })
+        .where(eq(gameSessions.id, sessionId));
+      io?.to(`session:${sessionId}`).emit("session_countdown_reset", {
+        sessionId,
+        resets: newResets,
+      });
+      // Restart countdown
+      await runCountdown(sessionId);
+      return;
+    }
+  }
+
+  // Players joined, start game
   await db
     .update(gameSessions)
     .set({ status: "playing", startedAt: new Date(), updatedAt: new Date() })
@@ -609,6 +654,7 @@ export async function resolveOrCreateActiveSessionByRoomName(
     .limit(1);
 
   if (!room) {
+    console.log("@@ room not found with ID ", roomFilters);
     throw new Error("room_not_found");
   }
 

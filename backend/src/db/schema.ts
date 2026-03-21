@@ -159,7 +159,8 @@ export const gameSessions = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "restrict" }),
     status: sessionStatusEnum("status").default("waiting").notNull(),
-    countdownSeconds: integer("countdown_seconds").default(15).notNull(),
+    countdownSeconds: integer("countdown_seconds").default(45).notNull(),
+    countdownResets: integer("countdown_resets").default(0).notNull(),
     callIntervalMs: integer("call_interval_ms").default(3000).notNull(),
     totalNumbers: integer("total_numbers").default(75).notNull(),
     currentSeq: integer("current_seq").default(0).notNull(),

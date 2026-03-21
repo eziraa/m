@@ -85,6 +85,7 @@ export async function canJoinSession(
 
 export async function listAvailableRooms(identity: RequestIdentity) {
   if (identity.role === "ADMIN") {
+    // Admin sees all active rooms
     return db
       .select({
         id: rooms.id,
@@ -100,6 +101,7 @@ export async function listAvailableRooms(identity: RequestIdentity) {
   }
 
   if (identity.role === "AGENT") {
+    // Agent sees only their own rooms
     return db
       .select({
         id: rooms.id,
@@ -116,22 +118,42 @@ export async function listAvailableRooms(identity: RequestIdentity) {
       .orderBy(desc(rooms.createdAt));
   }
 
-  if (!identity.agentId) {
-    return [];
+  if (identity.role === "USER") {
+    if (identity.agentId) {
+      // User with agent: see only rooms of their agent
+      return db
+        .select({
+          id: rooms.id,
+          name: rooms.name,
+          description: rooms.description,
+          boardPriceCents: rooms.boardPriceCents,
+          agentId: rooms.agentId,
+          color: rooms.color,
+        })
+        .from(rooms)
+        .where(
+          and(eq(rooms.status, "active"), eq(rooms.agentId, identity.agentId)),
+        )
+        .orderBy(desc(rooms.createdAt));
+    } else {
+      // User without agent: see only rooms with agentId null
+      return db
+        .select({
+          id: rooms.id,
+          name: rooms.name,
+          description: rooms.description,
+          boardPriceCents: rooms.boardPriceCents,
+          agentId: rooms.agentId,
+          color: rooms.color,
+        })
+        .from(rooms)
+        .where(and(eq(rooms.status, "active"), sql`${rooms.agentId} IS NULL`))
+        .orderBy(desc(rooms.createdAt));
+    }
   }
 
-  return db
-    .select({
-      id: rooms.id,
-      name: rooms.name,
-      description: rooms.description,
-      boardPriceCents: rooms.boardPriceCents,
-      agentId: rooms.agentId,
-      color: rooms.color,
-    })
-    .from(rooms)
-    .where(and(eq(rooms.status, "active"), eq(rooms.agentId, identity.agentId)))
-    .orderBy(desc(rooms.createdAt));
+  // Fallback: no rooms
+  return [];
 }
 
 type HomeRoomTheme = {
@@ -371,9 +393,9 @@ export async function buyBoards(
 ): Promise<{ created: Board[] }> {
   incCounter("board_purchase_requests_total");
 
-  if (identity.role !== "USER") {
-    throw new Error("only_user_can_buy_board");
-  }
+  // if (identity.role !== "USER") {
+  //   throw new Error("only_user_can_buy_board");
+  // }
 
   const [session] = await db
     .select({
@@ -394,7 +416,7 @@ export async function buyBoards(
   if (!(session.status === "waiting" || session.status === "countdown")) {
     throw new Error("session_not_open_for_purchase");
   }
-  if (!identity.agentId || identity.agentId !== session.sessionAgentId) {
+  if (identity.role === "USER" && identity.agentId !== session.sessionAgentId) {
     throw new Error("forbidden_agent_scope");
   }
 
@@ -545,7 +567,7 @@ export async function leaveSessionBeforeStart(
   if (!(session.status === "waiting" || session.status === "countdown")) {
     throw new Error("session_not_open_for_leave");
   }
-  if (!identity.agentId || identity.agentId !== session.sessionAgentId) {
+  if (identity.role === "USER" && identity.agentId !== session.sessionAgentId) {
     throw new Error("forbidden_agent_scope");
   }
 
@@ -624,7 +646,10 @@ export async function callBingo(identity: RequestIdentity, input: ClaimInput) {
 
     if (!session) throw new Error("session_not_found");
     if (session.status !== "playing") throw new Error("session_not_playing");
-    if (!identity.agentId || identity.agentId !== session.sessionAgentId) {
+    if (
+      identity.role === "USER" &&
+      identity.agentId !== session.sessionAgentId
+    ) {
       throw new Error("forbidden_agent_scope");
     }
 

@@ -584,7 +584,12 @@ export default function GameSessionPage() {
 
   async function onCallBingo() {
     audioController.current?.unlock();
-    if (isBlocked) return;
+    if (isBlocked) {
+      if (audioController.current) {
+        void audioController.current.play("/audio/Board blocked.m4a", { restart: true });
+      }
+      return;
+    }
     if (!myBoard || !sessionState || !isPlaying) {
       setMsg("You can call Bingo only while the game is live.");
       return;
@@ -697,7 +702,7 @@ export default function GameSessionPage() {
   function playNumberSound(n: number) {
     if (!audioController.current) return;
     const letter = letterForNumber(n);
-    const src = `/audio/sm/${letter}${n}.m4a`;
+    const src = `/audio/am/${letter}${n}.m4a`;
     void audioController.current.play(src, { restart: true });
   }
 

@@ -47,15 +47,14 @@ function priceToCents(price: number): number {
 // ── GET /rooms ──────────────────────────────────────────────────────
 router.get("/rooms", requireAuth, async (_req, res) => {
   try {
-    let allRooms = await db
-      .select()
-      .from(rooms)
-      .where(eq(rooms.status, "active"))
-      .orderBy(asc(rooms.boardPriceCents));
+    // Use new logic for available rooms based on user type/agent
+    const { listAvailableRooms } = await import("../game/gameService.js");
+    const identity = _req.identity;
+    let allRooms = identity ? await listAvailableRooms(identity) : [];
 
     // Seed default rooms if empty (for demo purposes)
-    if (allRooms.length === 0 && _req.identity) {
-      const agentId = _req.identity.userId;
+    if (allRooms.length === 0 && identity) {
+      const agentId = identity.userId;
       await db.insert(rooms).values([
         {
           agentId,
@@ -85,11 +84,7 @@ router.get("/rooms", requireAuth, async (_req, res) => {
           color: "from-blue-700 to-blue-900",
         },
       ]);
-      allRooms = await db
-        .select()
-        .from(rooms)
-        .where(eq(rooms.status, "active"))
-        .orderBy(asc(rooms.boardPriceCents));
+      allRooms = await listAvailableRooms(identity);
     }
 
     const liveRoomIds = await getLiveRoomIdsCached();
