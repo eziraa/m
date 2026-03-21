@@ -60,11 +60,8 @@ export function InsufficientBalanceModal({
                 <WalletAlertIcon />
               </div>
               <div>
-                <p className="text-xs uppercase tracking-[0.4em] text-white/50 mb-3">
-                  Insufficient Balance
-                </p>
                 <h1 className="text-xl font-semibold text-white tracking-tight">
-                  You don't have enough balance to play this game.
+                  Insufficient Balance{" "}
                 </h1>
               </div>
             </div>
