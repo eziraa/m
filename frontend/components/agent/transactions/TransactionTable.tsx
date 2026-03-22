@@ -322,7 +322,7 @@ export default function TransactionTable() {
               ))}
             </select>
           </label>
-          <div className="space-x-2 flex items-center flex-wrap flex-col sm:flex-row ">
+          <div className="space-x-2 flex items-center  ">
             <Button
               variant="outline"
               size="sm"
