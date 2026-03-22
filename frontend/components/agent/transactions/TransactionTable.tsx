@@ -54,7 +54,7 @@ export default function TransactionTable() {
   }
 
   return (
-    <div className="w-full overflow-hidden">
+    <div className="w-full ">
       {/* Table Header */}
       <div className="border-b bg-muted/40 p-4 flex flex-col md:flex-row gap-4 justify-between md:items-center">
         <div>

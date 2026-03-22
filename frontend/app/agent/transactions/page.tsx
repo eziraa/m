@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import TransactionTable from "@/components/agent/transactions/TransactionTable";
-import TransactionStats from "@/components/agent/transactions/TransactionStats";
 import { Loader2 } from "lucide-react";
 
 import { useTranslations } from "next-intl";
