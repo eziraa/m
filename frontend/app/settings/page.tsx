@@ -71,7 +71,11 @@ export default function SettingsPage() {
     const nextLocale = value as Locale;
     setStoredLocale(nextLocale);
     setLocaleCookie(nextLocale);
-    router.refresh();
+    // Get current path without locale prefix
+    const path = window.location.pathname;
+    const pathWithoutLocale = path.replace(/^\/(en|am)(\/|$)/, "/");
+    // Navigate to the same path with new locale
+    router.push(`/${nextLocale}${pathWithoutLocale}${window.location.search}`);
   }
 
   const sections = [
