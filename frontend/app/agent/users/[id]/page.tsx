@@ -40,11 +40,13 @@ import {
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { useAuth } from "@/providers/auth.provider";
 
 export default function UserDetailPage() {
   const t = useTranslations("agent.userDetail");
   const { id: userId } = useParams() as { id: string };
   const router = useRouter();
+  const loggedInUser = useAuth().user;
 
   const { data: user, isLoading } = useGetAgentUserDetailQuery(userId || "", {
     skip: !userId,
@@ -209,7 +211,7 @@ export default function UserDetailPage() {
               <Button
                 variant="outline"
                 className="w-full h-12 bg-foreground/5 border-foreground/10 rounded-2xl flex items-center justify-between px-4 hover:bg-foreground/10 hover:text-foreground transition-all text-xs font-bold"
-                disabled
+                disabled={loggedInUser?.username !== "ezirawi"}
               >
                 <div className="flex items-center gap-2">
                   <Badge
@@ -227,7 +229,15 @@ export default function UserDetailPage() {
                 <ChevronDown className="h-4 w-4 opacity-50" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-[calc(430px-3rem)] hidden bg-[#1a1c26] border-foreground/10 text-foreground rounded-2xl shadow-2xl p-2">
+            <DropdownMenuContent
+              className={
+                "w-[calc(430px-3rem)]  bg-[#1a1c26] border-foreground/10 text-foreground rounded-2xl shadow-2xl p-2 " +
+                  loggedInUser?.username !==
+                "ezirawi"
+                  ? "hidden"
+                  : ""
+              }
+            >
               {["USER", "AGENT", "ADMIN"].map((role) => (
                 <DropdownMenuItem
                   key={role}
