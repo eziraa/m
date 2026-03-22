@@ -335,7 +335,9 @@ export default function AgentUsersPage() {
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3 min-w-0 flex-1">
                       <div className="h-10 w-10 shrink-0 rounded-xl bg-primary/10 flex items-center justify-center text-sm font-bold text-primary uppercase border border-primary/20">
-                        {user.username?.[0] || user.firstName?.[0] || t("fallback.initial")}
+                        {user.username?.[0] ||
+                          user.firstName?.[0] ||
+                          t("fallback.initial")}
                       </div>
                       <div className="flex flex-col min-w-0 flex-1">
                         <span className="font-semibold text-sm truncate">
@@ -360,7 +362,10 @@ export default function AgentUsersPage() {
                   <div className="flex items-center justify-between mt-1">
                     <div className="flex flex-col">
                       <span className="font-black tracking-tight text-emerald-500 text-lg">
-                        {user.balance} <span className="text-[10px] text-muted-foreground uppercase font-medium">ETB</span>
+                        {user.balance}{" "}
+                        <span className="text-[10px] text-muted-foreground uppercase font-medium">
+                          ETB
+                        </span>
                       </span>
                     </div>
 
@@ -403,7 +408,7 @@ export default function AgentUsersPage() {
         </div>
         <div className="flex items-center gap-3">
           <label className="flex items-center gap-1 text-xs text-muted-foreground">
-            <span>Rows per page:</span>
+            <span>Per page:</span>
             <select
               value={pageSize}
               onChange={(e) => {
@@ -441,7 +446,6 @@ export default function AgentUsersPage() {
           </div>
         </div>
       </div>
-
     </div>
   );
 }
