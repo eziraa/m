@@ -200,15 +200,14 @@ router.get(
     const userIds = agentUsers.map((u) => u.id);
     let balances: Record<string, number> = {};
     if (userIds.length > 0) {
+      const { inArray } = await import("drizzle-orm");
       const balanceRows = await db
         .select({
           userId: walletLedger.userId,
           balanceCents: sql<number>`coalesce(sum(case when ${walletLedger.status} = 'posted' then ${walletLedger.amountCents} else 0 end), 0)`,
         })
         .from(walletLedger)
-        .where(
-          sql`${walletLedger.userId} in (${userIds.map((id) => `'${id}'`).join(",")})`,
-        )
+        .where(inArray(walletLedger.userId, userIds))
         .groupBy(walletLedger.userId);
       for (const row of balanceRows) {
         balances[row.userId] = row.balanceCents;

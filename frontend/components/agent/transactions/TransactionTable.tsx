@@ -1,8 +1,6 @@
 "use client";
 import React, { useDeferredValue, useMemo, useState } from "react";
-import {
-  useGetAgentTransactionsQuery,
-} from "@/lib/api";
+import { useGetAgentTransactionsQuery } from "@/lib/api";
 import { Loader2, MoreHorizontal, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Transaction } from "@/lib/types";
@@ -240,10 +238,18 @@ export default function TransactionTable() {
                     {tx.user?.firstName || tx.user?.username || "Unknown"}
                   </span>
                   <span className="text-[10px] text-muted-foreground truncate">
-                    @{tx.user?.username || tx.user?.id?.slice(0, 8)} • {new Date(tx.createdAt).toLocaleDateString()} {new Date(tx.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    @{tx.user?.username || tx.user?.id?.slice(0, 8)} •{" "}
+                    {new Date(tx.createdAt).toLocaleDateString()}{" "}
+                    {new Date(tx.createdAt).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </span>
                 </div>
-                <Badge variant="outline" className="capitalize shrink-0 ml-2 text-[10px]">
+                <Badge
+                  variant="outline"
+                  className="capitalize shrink-0 ml-2 text-[10px]"
+                >
                   {tx.type.replace("_", " ")}
                 </Badge>
               </div>
@@ -255,17 +261,21 @@ export default function TransactionTable() {
                       Number(tx.amount) > 0 ? "text-success" : "text-foreground"
                     }`}
                   >
-                    {Number(tx.amount) > 0 ? "+" : ""}{Number(tx.amount).toLocaleString()}
+                    {Number(tx.amount) > 0 ? "+" : ""}
+                    {Number(tx.amount).toLocaleString()}
                   </span>
                   {tx.description && (
                     <span className="text-[10px] text-muted-foreground truncate ml-2 border-l pl-2">
-                       {tx.description}
+                      {tx.description}
                     </span>
                   )}
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0 shrink-0 ml-2">
+                    <Button
+                      variant="ghost"
+                      className="h-8 w-8 p-0 shrink-0 ml-2"
+                    >
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -296,7 +306,7 @@ export default function TransactionTable() {
         </div>
         <div className="flex items-center gap-3">
           <label className="flex items-center gap-1 text-xs text-muted-foreground">
-            <span>Rows per page:</span>
+            <span>Per page:</span>
             <select
               value={pageSize}
               onChange={(e) => {
@@ -312,14 +322,14 @@ export default function TransactionTable() {
               ))}
             </select>
           </label>
-          <div className="space-x-2">
+          <div className="space-x-2 flex items-center flex-wrap flex-col sm:flex-row ">
             <Button
               variant="outline"
               size="sm"
               disabled={page === 1}
               onClick={() => setPage((prev) => Math.max(1, prev - 1))}
             >
-              Previous
+              Prev
             </Button>
             <Button
               variant="outline"
@@ -336,7 +346,6 @@ export default function TransactionTable() {
       {selected && (
         <TransactionDetail tx={selected} onClose={() => setSelected(null)} />
       )}
-
     </div>
   );
 }
