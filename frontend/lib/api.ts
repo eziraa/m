@@ -49,9 +49,10 @@ async function readJson(res: Response) {
   return text ? JSON.parse(text) : {};
 }
 
-export async function verifyTelegramAndGetToken(
-  input: { initData: string; startParam?: string },
-): Promise<string> {
+export async function verifyTelegramAndGetToken(input: {
+  initData: string;
+  startParam?: string;
+}): Promise<string> {
   const res = await fetch(`${API_BASE}/auth/telegram/verify-init-data`, {
     method: "POST",
     headers: {
@@ -845,7 +846,9 @@ export function useVerifyTelegramMutation() {
   return mutation;
 }
 
-export async function fetchReferralCode(token: string): Promise<{ referralCode: string | null }> {
+export async function fetchReferralCode(
+  token: string,
+): Promise<{ referralCode: string | null }> {
   const res = await fetch(`${API_BASE}/me/referral`, {
     method: "GET",
     headers: { authorization: `Bearer ${token}` },
@@ -885,8 +888,8 @@ export function useDeleteRoomMutation() {
       const res = await fetch(
         `${API_BASE}${getScopedEndpoint(`/rooms/${id}`, `/agent/rooms/${id}`)}`,
         {
-        method: "DELETE",
-        headers: { authorization: `Bearer ${getAuthToken()}` },
+          method: "DELETE",
+          headers: { authorization: `Bearer ${getAuthToken()}` },
         },
       );
       const data = await readJson(res);
@@ -920,12 +923,12 @@ export function useToggleRoomBotsMutation() {
           `/agent/rooms/${id}/bot-allowed`,
         )}`,
         {
-        method: "PATCH",
-        headers: {
-          "content-type": "application/json",
-          authorization: `Bearer ${getAuthToken()}`,
-        },
-        body: JSON.stringify({ botAllowed }),
+          method: "PATCH",
+          headers: {
+            "content-type": "application/json",
+            authorization: `Bearer ${getAuthToken()}`,
+          },
+          body: JSON.stringify({ botAllowed }),
         },
       );
       const data = await readJson(res);
@@ -958,12 +961,12 @@ export function useCreateRoomMutation() {
       const res = await fetch(
         `${API_BASE}${getScopedEndpoint("/rooms", "/agent/rooms")}`,
         {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          authorization: `Bearer ${getAuthToken()}`,
-        },
-        body: JSON.stringify(input),
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            authorization: `Bearer ${getAuthToken()}`,
+          },
+          body: JSON.stringify(input),
         },
       );
       const data = await readJson(res);
@@ -1000,12 +1003,12 @@ export function useUpdateRoomMutation() {
       const res = await fetch(
         `${API_BASE}${getScopedEndpoint(`/rooms/${id}`, `/agent/rooms/${id}`)}`,
         {
-        method: "PUT",
-        headers: {
-          "content-type": "application/json",
-          authorization: `Bearer ${getAuthToken()}`,
-        },
-        body: JSON.stringify(input),
+          method: "PUT",
+          headers: {
+            "content-type": "application/json",
+            authorization: `Bearer ${getAuthToken()}`,
+          },
+          body: JSON.stringify(input),
         },
       );
       const data = await readJson(res);
@@ -1051,8 +1054,8 @@ export function useDeleteUserMutation() {
       const res = await fetch(
         `${API_BASE}${getScopedEndpoint(`/admin/users/${id}`, `/agent/users/${id}`)}`,
         {
-        method: "DELETE",
-        headers: { authorization: `Bearer ${getAuthToken()}` },
+          method: "DELETE",
+          headers: { authorization: `Bearer ${getAuthToken()}` },
         },
       );
       if (!res.ok) throw new Error("delete_user_failed");
@@ -1151,8 +1154,8 @@ export function useApproveWithdrawalMutation() {
           `/agent/withdrawals/${id}/approve`,
         )}`,
         {
-        method: "POST",
-        headers: { authorization: `Bearer ${getAuthToken()}` },
+          method: "POST",
+          headers: { authorization: `Bearer ${getAuthToken()}` },
         },
       );
       const data = await readJson(res);
@@ -1182,12 +1185,12 @@ export function useRejectWithdrawalMutation() {
           `/agent/withdrawals/${id}/reject`,
         )}`,
         {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          authorization: `Bearer ${getAuthToken()}`,
-        },
-        body: JSON.stringify({ reason }),
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            authorization: `Bearer ${getAuthToken()}`,
+          },
+          body: JSON.stringify({ reason }),
         },
       );
       const data = await readJson(res);
@@ -1308,12 +1311,12 @@ export function useUpdateUserRoleMutation() {
           `/agent/users/${id}/role`,
         )}`,
         {
-        method: "PATCH",
-        headers: {
-          "content-type": "application/json",
-          authorization: `Bearer ${getAuthToken()}`,
-        },
-        body: JSON.stringify({ role }),
+          method: "PATCH",
+          headers: {
+            "content-type": "application/json",
+            authorization: `Bearer ${getAuthToken()}`,
+          },
+          body: JSON.stringify({ role }),
         },
       );
       const data = await readJson(res);
@@ -1729,7 +1732,10 @@ export function useGetScheduledPostsQuery(args?: {
   });
 }
 
-export function useGetPostDetailQuery(id: string, options?: { skip?: boolean }) {
+export function useGetPostDetailQuery(
+  id: string,
+  options?: { skip?: boolean },
+) {
   const token = getAuthToken();
   return useQuery({
     queryKey: ["post", id],
@@ -1776,13 +1782,19 @@ export function useGetPostDeliveriesQuery(args: {
         },
       );
       if (!res.ok) throw new Error("fetch_post_deliveries_failed");
-      return res.json() as Promise<{ deliveries: PostDelivery[]; total: number }>;
+      return res.json() as Promise<{
+        deliveries: PostDelivery[];
+        total: number;
+      }>;
     },
     enabled: !!token && !!args.postId,
   });
 }
 
-export function useGetDeliveryLogQuery(args?: { page?: number; limit?: number }) {
+export function useGetDeliveryLogQuery(args?: {
+  page?: number;
+  limit?: number;
+}) {
   const token = getAuthToken();
   return useQuery({
     queryKey: ["delivery-log", args],
@@ -1797,7 +1809,10 @@ export function useGetDeliveryLogQuery(args?: { page?: number; limit?: number })
         cache: "no-store",
       });
       if (!res.ok) throw new Error("fetch_delivery_log_failed");
-      return res.json() as Promise<{ deliveries: PostDelivery[]; total: number }>;
+      return res.json() as Promise<{
+        deliveries: PostDelivery[];
+        total: number;
+      }>;
     },
     enabled: !!token,
   });
@@ -1811,10 +1826,13 @@ export function useGetBroadcastStatusQuery(
   return useQuery({
     queryKey: ["broadcast-status", postId],
     queryFn: async () => {
-      const res = await fetch(`${API_BASE}/admin/posts/${postId}/broadcast-status`, {
-        headers: { authorization: `Bearer ${token}` },
-        cache: "no-store",
-      });
+      const res = await fetch(
+        `${API_BASE}/admin/posts/${postId}/broadcast-status`,
+        {
+          headers: { authorization: `Bearer ${token}` },
+          cache: "no-store",
+        },
+      );
       if (!res.ok) throw new Error("fetch_broadcast_status_failed");
       return res.json();
     },
@@ -1853,7 +1871,11 @@ export function useCreatePostMutation() {
 
 export function useUpdatePostMutation() {
   const queryClient = useQueryClient();
-  const mutation = useMutation({
+  const mutation = useMutation<
+    unknown,
+    unknown,
+    { id: string; data: Partial<Post> }
+  >({
     mutationFn: async ({ id, data }: { id: string; data: Partial<Post> }) => {
       const res = await fetch(`${API_BASE}/admin/posts/${id}`, {
         method: "PATCH",
@@ -1923,7 +1945,9 @@ export function useSendPostMutation() {
       queryClient.invalidateQueries({ queryKey: ["post", variables.id] });
       queryClient.invalidateQueries({ queryKey: ["post-deliveries"] });
       queryClient.invalidateQueries({ queryKey: ["delivery-log"] });
-      queryClient.invalidateQueries({ queryKey: ["broadcast-status", variables.id] });
+      queryClient.invalidateQueries({
+        queryKey: ["broadcast-status", variables.id],
+      });
     },
   });
   const mutate = (args: { id: string }) => {
@@ -1961,7 +1985,10 @@ export function useGetPostRecipientsQuery(args: {
         },
       );
       if (!res.ok) throw new Error("fetch_post_recipients_failed");
-      return res.json() as Promise<{ recipients: PostRecipient[]; total: number }>;
+      return res.json() as Promise<{
+        recipients: PostRecipient[];
+        total: number;
+      }>;
     },
     enabled: !!token && !!args.postId,
   });
@@ -1980,14 +2007,17 @@ export function useDeleteBroadcastMutation() {
       fromDate?: string;
       toDate?: string;
     }) => {
-      const res = await fetch(`${API_BASE}/admin/posts/${id}/delete-broadcast`, {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          authorization: `Bearer ${getAuthToken()}`,
+      const res = await fetch(
+        `${API_BASE}/admin/posts/${id}/delete-broadcast`,
+        {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            authorization: `Bearer ${getAuthToken()}`,
+          },
+          body: JSON.stringify(input),
         },
-        body: JSON.stringify(input),
-      });
+      );
       const data = await readJson(res);
       if (!res.ok) throw { data };
       return data;

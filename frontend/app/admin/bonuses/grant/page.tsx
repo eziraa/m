@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Key, useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Users, User } from "lucide-react";
 import { toast } from "sonner";
@@ -57,13 +57,15 @@ export default function AdminGrantBonusPage() {
   const filteredUsers = useMemo(() => {
     const query = userSearch.trim().toLowerCase();
     if (!query) return users;
-    return users.filter((user) => {
-      return (
-        user.username?.toLowerCase().includes(query) ||
-        user.firstName?.toLowerCase().includes(query) ||
-        user.email?.toLowerCase().includes(query)
-      );
-    });
+    return users.filter(
+      (user: { username: string; firstName: string; email: string }) => {
+        return (
+          user.username?.toLowerCase().includes(query) ||
+          user.firstName?.toLowerCase().includes(query) ||
+          user.email?.toLowerCase().includes(query)
+        );
+      },
+    );
   }, [users, userSearch]);
 
   const toggleUserSelection = (userId: string) => {
@@ -173,20 +175,30 @@ export default function AdminGrantBonusPage() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="max-h-64 w-[320px]">
-                  {filteredUsers.map((user) => {
-                    const label =
-                      user.username || user.firstName || user.email || user.id;
-                    return (
-                      <DropdownMenuCheckboxItem
-                        key={user.id}
-                        checked={selectedUserIds.includes(user.id)}
-                        onCheckedChange={() => toggleUserSelection(user.id)}
-                        className="text-white"
-                      >
-                        {label}
-                      </DropdownMenuCheckboxItem>
-                    );
-                  })}
+                  {filteredUsers.map(
+                    (user: {
+                      username: string;
+                      firstName: string;
+                      email: string;
+                      id: string;
+                    }) => {
+                      const label =
+                        user.username ||
+                        user.firstName ||
+                        user.email ||
+                        user.id;
+                      return (
+                        <DropdownMenuCheckboxItem
+                          key={user.id}
+                          checked={selectedUserIds.includes(user.id)}
+                          onCheckedChange={() => toggleUserSelection(user.id)}
+                          className="text-white"
+                        >
+                          {label}
+                        </DropdownMenuCheckboxItem>
+                      );
+                    },
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>

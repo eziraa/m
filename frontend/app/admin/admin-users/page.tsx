@@ -1,6 +1,15 @@
 "use client";
 
-import { useDeferredValue, useMemo, useState } from "react";
+import {
+  AwaitedReactNode,
+  JSXElementConstructor,
+  ReactElement,
+  ReactNode,
+  ReactPortal,
+  useDeferredValue,
+  useMemo,
+  useState,
+} from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -45,7 +54,9 @@ export default function AdminUsersPage() {
   const [page, setPage] = useState(1);
   const pageSize = 20;
   const [searchQuery, setSearchQuery] = useState("");
-  const [roleFilter, setRoleFilter] = useState<"all" | "USER" | "ADMIN" | "AGENT">("all");
+  const [roleFilter, setRoleFilter] = useState<
+    "all" | "USER" | "ADMIN" | "AGENT"
+  >("all");
   const deferredSearch = useDeferredValue(searchQuery.trim());
   const queryArgs = useMemo(
     () => ({
@@ -164,7 +175,11 @@ export default function AdminUsersPage() {
             <select
               value={roleFilter}
               onChange={(event) => {
-                const nextRole = event.target.value as "all" | "USER" | "ADMIN" | "AGENT";
+                const nextRole = event.target.value as
+                  | "all"
+                  | "USER"
+                  | "ADMIN"
+                  | "AGENT";
                 setRoleFilter(nextRole);
                 setPage(1);
               }}
@@ -255,85 +270,94 @@ export default function AdminUsersPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
-                    {users.map((user) => (
-                      <tr
-                        key={user.id}
-                        className="hover:bg-white/2 transition-colors group"
-                      >
-                        <td className="py-3 px-3">
-                          <div className="flex items-center gap-2">
-                            <div className="h-7 w-7 shrink-0 rounded-lg bg-primary/20 flex items-center justify-center text-[10px] font-black text-primary uppercase border border-primary/10">
-                              {user.username?.[0] ||
-                                user.firstName?.[0] ||
-                                t("fallback.initial")}
+                    {users.map(
+                      (user: {
+                        id: string;
+                        username: string;
+                        firstName: string;
+
+                        role: string;
+                        balance: string;
+                      }) => (
+                        <tr
+                          key={user.id}
+                          className="hover:bg-white/2 transition-colors group"
+                        >
+                          <td className="py-3 px-3">
+                            <div className="flex items-center gap-2">
+                              <div className="h-7 w-7 shrink-0 rounded-lg bg-primary/20 flex items-center justify-center text-[10px] font-black text-primary uppercase border border-primary/10">
+                                {user.username?.[0] ||
+                                  user.firstName?.[0] ||
+                                  t("fallback.initial")}
+                              </div>
+                              <div className="min-w-0 max-w-[80px]">
+                                <p className="text-[11px] font-bold truncate leading-tight">
+                                  {user.firstName}
+                                </p>
+                                <p className="text-[9px] text-white/30 truncate">
+                                  @{user.username || t("table.noUsername")}
+                                </p>
+                              </div>
                             </div>
-                            <div className="min-w-0 max-w-[80px]">
-                              <p className="text-[11px] font-bold truncate leading-tight">
-                                {user.firstName}
-                              </p>
-                              <p className="text-[9px] text-white/30 truncate">
-                                @{user.username || t("table.noUsername")}
-                              </p>
+                          </td>
+                          <td className="py-3 px-2">
+                            <Badge
+                              className={cn(
+                                "text-[8px] h-4 px-1 font-black uppercase tracking-tighter flex items-center gap-0.5 w-fit border-[0.5px]",
+                                getRoleBadgeClass(user.role),
+                              )}
+                            >
+                              <span className="scale-[0.8]">
+                                {getRoleIcon(user.role)}
+                              </span>
+                              {user.role}
+                            </Badge>
+                          </td>
+                          <td className="py-3 px-2 text-right">
+                            <p className="text-[11px] font-black text-emerald-500">
+                              {user.balance}
+                            </p>
+                            <p className="text-[8px] text-white/20 font-bold uppercase tracking-tighter">
+                              ETB
+                            </p>
+                          </td>
+                          <td className="py-3 px-3">
+                            <div className="flex justify-center">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7 rounded-lg bg-white/5 hover:bg-white/10 text-white/40 hover:text-white"
+                                  >
+                                    <MoreVertical className="h-3.5 w-3.5" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent
+                                  align="end"
+                                  className="w-32 bg-[#1a1c26] border-white/10 text-white rounded-[8px] shadow-2xl p-1"
+                                >
+                                  <DropdownMenuItem
+                                    onClick={() => handleViewDetails(user.id)}
+                                    className="rounded-[6px] gap-2 text-[10px] font-bold py-2 focus:bg-white/10"
+                                  >
+                                    <ExternalLink className="h-3 w-3" />
+                                    {t("actions.details")}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => setUserToDelete(user.id)}
+                                    className="rounded-[6px] gap-2 text-[10px] font-bold py-2 text-red-400 focus:bg-red-500/10 focus:text-red-400"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                    {t("actions.delete")}
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </div>
-                          </div>
-                        </td>
-                        <td className="py-3 px-2">
-                          <Badge
-                            className={cn(
-                              "text-[8px] h-4 px-1 font-black uppercase tracking-tighter flex items-center gap-0.5 w-fit border-[0.5px]",
-                              getRoleBadgeClass(user.role),
-                            )}
-                          >
-                            <span className="scale-[0.8]">
-                              {getRoleIcon(user.role)}
-                            </span>
-                            {user.role}
-                          </Badge>
-                        </td>
-                        <td className="py-3 px-2 text-right">
-                          <p className="text-[11px] font-black text-emerald-500">
-                            {user.balance}
-                          </p>
-                          <p className="text-[8px] text-white/20 font-bold uppercase tracking-tighter">
-                            ETB
-                          </p>
-                        </td>
-                        <td className="py-3 px-3">
-                          <div className="flex justify-center">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-7 w-7 rounded-lg bg-white/5 hover:bg-white/10 text-white/40 hover:text-white"
-                                >
-                                  <MoreVertical className="h-3.5 w-3.5" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent
-                                align="end"
-                                className="w-32 bg-[#1a1c26] border-white/10 text-white rounded-[8px] shadow-2xl p-1"
-                              >
-                                <DropdownMenuItem
-                                  onClick={() => handleViewDetails(user.id)}
-                                  className="rounded-[6px] gap-2 text-[10px] font-bold py-2 focus:bg-white/10"
-                                >
-                                  <ExternalLink className="h-3 w-3" />
-                                  {t("actions.details")}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => setUserToDelete(user.id)}
-                                  className="rounded-[6px] gap-2 text-[10px] font-bold py-2 text-red-400 focus:bg-red-500/10 focus:text-red-400"
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                  {t("actions.delete")}
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                        </tr>
+                      ),
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -359,7 +383,9 @@ export default function AdminUsersPage() {
                 variant="ghost"
                 size="sm"
                 disabled={page >= totalPages}
-                onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+                onClick={() =>
+                  setPage((prev) => Math.min(totalPages, prev + 1))
+                }
                 className="h-8 rounded-lg bg-white/5 border border-white/10 text-white/70"
               >
                 Next

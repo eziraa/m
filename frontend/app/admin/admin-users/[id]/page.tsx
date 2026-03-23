@@ -38,7 +38,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ChevronDown } from "lucide-react";
-import { useState } from "react";
+import {
+  AwaitedReactNode,
+  JSXElementConstructor,
+  Key,
+  ReactElement,
+  ReactNode,
+  ReactPortal,
+  useState,
+} from "react";
 import { useTranslations } from "next-intl";
 
 export default function UserDetailPage() {
@@ -299,56 +307,64 @@ export default function UserDetailPage() {
                 </p>
               </div>
             ) : (
-              user.transactions.map((tx) => (
-                <div
-                  key={tx.id}
-                  className="flex items-center justify-between p-4 rounded-2xl bg-foreground/5 border border-foreground/5 hover:border-foreground/10 transition-colors"
-                >
-                  <div className="flex items-center gap-4">
-                    <div
-                      className={cn(
-                        "h-10 w-10 rounded-xl flex items-center justify-center",
-                        parseFloat(tx.amount.toString()) >= 0
-                          ? "bg-emerald-500/10 text-emerald-500"
-                          : "bg-red-500/10 text-red-500",
-                      )}
-                    >
-                      {parseFloat(tx.amount.toString()) >= 0 ? (
-                        <ArrowUpRight className="h-5 w-5" />
-                      ) : (
-                        <ArrowDownLeft className="h-5 w-5" />
-                      )}
+              user.transactions.map(
+                (tx: {
+                  id: Key | null | undefined;
+                  amount: string | number;
+
+                  type: string;
+                  createdAt: string | number | Date;
+                }) => (
+                  <div
+                    key={tx.id}
+                    className="flex items-center justify-between p-4 rounded-2xl bg-foreground/5 border border-foreground/5 hover:border-foreground/10 transition-colors"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div
+                        className={cn(
+                          "h-10 w-10 rounded-xl flex items-center justify-center",
+                          parseFloat(tx.amount.toString()) >= 0
+                            ? "bg-emerald-500/10 text-emerald-500"
+                            : "bg-red-500/10 text-red-500",
+                        )}
+                      >
+                        {parseFloat(tx.amount.toString()) >= 0 ? (
+                          <ArrowUpRight className="h-5 w-5" />
+                        ) : (
+                          <ArrowDownLeft className="h-5 w-5" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-xs font-black uppercase tracking-wide leading-none mb-1">
+                          {t("activity.type", {
+                            type: tx.type.replace("_", " "),
+                          })}
+                        </p>
+                        <p className="text-[10px] text-foreground/30 flex items-center gap-1 font-medium">
+                          <Clock className="h-2.5 w-2.5" />{" "}
+                          {format(new Date(tx.createdAt), "MMM d, h:mm a")}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs font-black uppercase tracking-wide leading-none mb-1">
-                        {t("activity.type", {
-                          type: tx.type.replace("_", " "),
-                        })}
+                    <div className="text-right">
+                      <p
+                        className={cn(
+                          "text-sm font-black",
+                          parseFloat(tx.amount.toString()) >= 0
+                            ? "text-emerald-500"
+                            : "text-red-500",
+                        )}
+                      >
+                        {parseFloat(tx.amount.toString()) >= 0 ? "+" : ""}
+                        {tx.amount}
                       </p>
-                      <p className="text-[10px] text-foreground/30 flex items-center gap-1 font-medium">
-                        <Clock className="h-2.5 w-2.5" />{" "}
-                        {format(new Date(tx.createdAt), "MMM d, h:mm a")}
+                      <p className="text-[9px] text-foreground/20 font-black uppercase tracking-tighter">
+                        {t("currency")}
                       </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p
-                      className={cn(
-                        "text-sm font-black",
-                        parseFloat(tx.amount.toString()) >= 0
-                          ? "text-emerald-500"
-                          : "text-red-500",
-                      )}
-                    >
-                      {parseFloat(tx.amount.toString()) >= 0 ? "+" : ""}
-                      {tx.amount}
-                    </p>
-                    <p className="text-[9px] text-foreground/20 font-black uppercase tracking-tighter">
-                      {t("currency")}
-                    </p>
-                  </div>
-                </div>
-              ))
+                ),
+              )
             )}
           </div>
         </div>
@@ -370,37 +386,43 @@ export default function UserDetailPage() {
                 </p>
               </div>
             ) : (
-              user.invitees.map((invitee) => (
-                <div
-                  key={invitee.id}
-                  className="flex items-center justify-between p-4 rounded-2xl bg-foreground/5 border border-foreground/5"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-sm font-black uppercase">
-                      {invitee.username?.[0] || "?"}
-                    </div>
-                    <div>
-                      <p className="text-xs font-black">
-                        @{invitee.username || t("referrals.unknownUser")}
-                      </p>
-                      <p className="text-[10px] text-foreground/30 font-medium">
-                        {t("referrals.joined", {
-                          date: format(
-                            new Date(invitee.createdAt),
-                            "MMM d, yyyy",
-                          ),
-                        })}
-                      </p>
-                    </div>
-                  </div>
-                  <Badge
-                    variant="outline"
-                    className="border-foreground/10 text-[9px] text-foreground/40 h-5 px-2 font-black uppercase tracking-tighter"
+              user.invitees.map(
+                (invitee: {
+                  id: Key | null | undefined;
+                  username: any[];
+                  createdAt: string | number | Date;
+                }) => (
+                  <div
+                    key={invitee.id}
+                    className="flex items-center justify-between p-4 rounded-2xl bg-foreground/5 border border-foreground/5"
                   >
-                    {t("referrals.active")}
-                  </Badge>
-                </div>
-              ))
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-sm font-black uppercase">
+                        {invitee.username?.[0] || "?"}
+                      </div>
+                      <div>
+                        <p className="text-xs font-black">
+                          @{invitee.username || t("referrals.unknownUser")}
+                        </p>
+                        <p className="text-[10px] text-foreground/30 font-medium">
+                          {t("referrals.joined", {
+                            date: format(
+                              new Date(invitee.createdAt),
+                              "MMM d, yyyy",
+                            ),
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className="border-foreground/10 text-[9px] text-foreground/40 h-5 px-2 font-black uppercase tracking-tighter"
+                    >
+                      {t("referrals.active")}
+                    </Badge>
+                  </div>
+                ),
+              )
             )}
           </div>
         </div>

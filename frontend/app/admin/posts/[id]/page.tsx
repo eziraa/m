@@ -55,7 +55,9 @@ export default function PostDetailPage({
 
   const handleSend = async () => {
     try {
-      const result = await sendPost({ id }).unwrap();
+      const result = (await sendPost({ id }).unwrap()) as {
+        messageId?: number;
+      };
       if (result.messageId) {
         toast.success(t("toast.published", { id: result.messageId }));
       } else {

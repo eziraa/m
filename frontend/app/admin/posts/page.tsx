@@ -48,11 +48,7 @@ export default function AdminPostsListPage() {
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
-  const {
-    data,
-    isLoading,
-    refetch,
-  } = useGetPostsQuery({
+  const { data, isLoading, refetch } = useGetPostsQuery({
     status: statusFilter !== "all" ? statusFilter : undefined,
     search: searchQuery || undefined,
     page,
@@ -81,7 +77,9 @@ export default function AdminPostsListPage() {
   const confirmSend = async () => {
     if (!sendTarget) return;
     try {
-      const result = await sendPost({ id: sendTarget.id }).unwrap();
+      const result = (await sendPost({ id: sendTarget.id }).unwrap()) as {
+        messageId?: number;
+      };
       if (result.messageId) {
         toast.success(t("toast.published", { id: result.messageId }));
       } else {
