@@ -1327,5 +1327,539 @@
       "pending": "Pending",
       "failed": "Failed"
     }
+  },
+  "admin": {
+    "nav": {
+      "posts": "Posts",
+      "scheduled": "Scheduled",
+      "analytics": "Analytics",
+      "bonuses": "Bonuses",
+      "promocodes": "Promo Codes",
+      "withdrawals": "Withdrawals",
+      "transactions": "Transactions",
+      "gameConfig": "Config",
+      "back": "Back"
+    },
+    "withdrawals": {
+      "title": "Withdrawals",
+      "totalRequests": "{count} total requests",
+      "searchPlaceholder": "Search by name, phone, or ID...",
+      "noWithdrawals": "No withdrawals found",
+      "tryDifferentSearch": "Try a different search",
+      "noStatusRequests": "No {status} requests",
+      "amount": "Amount",
+      "userBalance": "Bal: {amount} ETB",
+      "actions": {
+        "approve": "Approve",
+        "reject": "Reject",
+        "confirm": "Confirm",
+        "cancel": "Cancel",
+        "approving": "Approving...",
+        "rejecting": "Rejecting..."
+      },
+      "confirmApprove": "Approve {amount} ETB withdrawal?",
+      "confirmReject": "Reject this withdrawal?",
+      "reasonPlaceholder": "Reason (optional)",
+      "rejectionReasonLabel": "Reason: {reason}",
+      "toast": {
+        "approved": "Withdrawal approved ✓",
+        "rejected": "Withdrawal rejected",
+        "approveFailed": "Failed to approve",
+        "rejectFailed": "Failed to reject"
+      },
+      "status": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "all": "All"
+      }
+    },
+    "deliveryLog": {
+      "title": "Delivery Log",
+      "subtitle": "{total} total deliveries",
+      "empty": {
+        "title": "No deliveries yet",
+        "subtitle": "Send a post to see delivery logs here."
+      },
+      "untitled": "Untitled",
+      "chat": "Chat: {chatId}",
+      "pagination": "Page {page} of {totalPages}"
+    },
+    "posts": {
+      "title": "Posts",
+      "subtitle": "Manage announcements for your Telegram users",
+      "actions": {
+        "newPost": "New Post",
+        "createPost": "Create Post"
+      },
+      "empty": {
+        "title": "No posts yet",
+        "subtitle": "Create your first announcement to reach your users."
+      },
+      "menu": {
+        "view": "View",
+        "edit": "Edit",
+        "send": "Send",
+        "delete": "Delete"
+      },
+      "toast": {
+        "deleted": "Post deleted",
+        "deleteFailed": "Failed to delete post",
+        "published": "Published to channel (#{id})",
+        "queued": "Broadcast queued!",
+        "queueFailed": "Failed to queue broadcast"
+      }
+    },
+    "scheduled": {
+      "title": "Scheduled Posts",
+      "subtitle": "Posts queued for automatic delivery",
+      "empty": {
+        "title": "No scheduled posts",
+        "subtitle": "Schedule a post to have it sent automatically at a specific time."
+      },
+      "actions": {
+        "createPost": "Create Post"
+      }
+    },
+    "createPost": {
+      "title": "New Post",
+      "subtitle": "Create an announcement for your users",
+      "toast": {
+        "created": "Post created successfully",
+        "failed": "Failed to create post"
+      }
+    },
+    "editPost": {
+      "title": "Edit Post",
+      "subtitle": "Update your announcement",
+      "toast": {
+        "updated": "Post updated",
+        "failed": "Failed to update post"
+      },
+      "notFound": "Post not found"
+    },
+    "postDetail": {
+      "notFound": "Post not found",
+      "actions": {
+        "backToPosts": "Back to Posts",
+        "edit": "Edit",
+        "send": "Send"
+      },
+      "tabs": {
+        "overview": "Overview",
+        "recipients": "Recipients"
+      },
+      "analytics": {
+        "title": "Delivery Analytics",
+        "deliveryRate": "Delivery Rate",
+        "recipients": "Recipients",
+        "sent": "Sent",
+        "failed": "Failed",
+        "pending": "Pending"
+      },
+      "preview": {
+        "title": "Message Preview"
+      },
+      "details": {
+        "title": "Details",
+        "format": "Format",
+        "images": "Images",
+        "buttons": "Buttons",
+        "scheduled": "Scheduled",
+        "sent": "Sent",
+        "created": "Created"
+      },
+      "recentDeliveries": {
+        "title": "Recent Deliveries",
+        "viewAll": "View All"
+      },
+      "toast": {
+        "published": "Published to channel (#{id})",
+        "queued": "Broadcast queued!",
+        "queueFailed": "Failed to queue broadcast"
+      }
+    },
+    "bonuses": {
+      "title": "Bonuses",
+      "subtitle": "Manage welcome and admin bonuses",
+      "welcome": {
+        "title": "Welcome Bonus",
+        "description": "Applied automatically when new users register.",
+        "amountLabel": "Welcome amount",
+        "amountPlaceholder": "Enter welcome bonus",
+        "messageLabel": "Welcome message",
+        "messagePlaceholder": "Default message for new users",
+        "messageHint": "Supports {name} and {amount} placeholders."
+      },
+      "bonus": {
+        "title": "Admin Bonus",
+        "description": "Grant a one-time bonus to a user or everyone.",
+        "amountLabel": "Default bonus amount",
+        "amountPlaceholder": "Enter bonus amount",
+        "messageLabel": "Bonus message",
+        "messagePlaceholder": "Default message when granting bonuses",
+        "messageHint": "Supports {name} and {amount} placeholders.",
+        "grantAll": "Grant to all users",
+        "grantAllHint": "Applies to {count} users",
+        "userSearch": "Find user",
+        "userSearchPlaceholder": "Search by name, username, or email",
+        "userSelect": "Select user",
+        "userSelectPlaceholder": "Choose users",
+        "userSelected": "Selected {count} users",
+        "grantAmountLabel": "Grant amount",
+        "grantAmountPlaceholder": "Optional override amount",
+        "grantAmountHint": "Leave blank to use the default bonus amount.",
+        "grantMessageLabel": "Bonus message",
+        "grantMessagePlaceholder": "Optional message sent to users",
+        "grantMessageHint": "Shown in Telegram and the wallet transaction."
+      },
+      "actions": {
+        "save": "Save settings",
+        "saveWelcome": "Save welcome bonus",
+        "saveBonus": "Save admin bonus",
+        "saving": "Saving...",
+        "grant": "Grant bonus",
+        "granting": "Granting..."
+      },
+      "tabs": {
+        "welcome": "Welcome Bonus",
+        "bonus": "Admin Bonus",
+        "grant": "Grant Bonus"
+      },
+      "fields": {
+        "active": "Active",
+        "activeHint": "Disable to pause this bonus without deleting it.",
+        "description": "Description",
+        "descriptionPlaceholder": "Short note shown in admin"
+      },
+      "toast": {
+        "settingsSaved": "Bonus settings updated",
+        "settingsFailed": "Failed to update bonus settings",
+        "welcomeSaved": "Welcome bonus updated",
+        "welcomeFailed": "Failed to update welcome bonus",
+        "bonusSaved": "Admin bonus updated",
+        "bonusFailed": "Failed to update admin bonus",
+        "grantedAll": "Bonus granted to all users",
+        "grantedOne": "Bonus granted",
+        "grantFailed": "Failed to grant bonus"
+      },
+      "errors": {
+        "selectUsers": "Please select at least one user"
+      }
+    },
+    "postFilters": {
+      "searchPlaceholder": "Search posts...",
+      "status": {
+        "all": "All",
+        "draft": "Draft",
+        "scheduled": "Scheduled",
+        "sending": "Sending",
+        "sent": "Sent",
+        "failed": "Failed"
+      }
+    },
+    "postEditor": {
+      "channel": {
+        "defaultName": "Official Channel",
+        "preview": "Channel Preview"
+      },
+      "errors": {
+        "missingFields": {
+          "title": "Missing fields",
+          "description": "Title and content are required."
+        },
+        "missingCategory": {
+          "title": "Missing category",
+          "description": "Category is required for channel posts."
+        },
+        "tooManyImages": {
+          "title": "Too many images",
+          "description": "Channel posts support a single image only."
+        },
+        "saveFailed": {
+          "title": "Failed to save post",
+          "unknown": "Unknown error"
+        }
+      },
+      "toast": {
+        "saved": "Post saved"
+      },
+      "target": {
+        "label": "Target",
+        "users": "Users",
+        "channel": "Official Channel"
+      },
+      "category": {
+        "label": "Category",
+        "placeholder": "Select category"
+      },
+      "title": {
+        "label": "Title",
+        "placeholder": "New feature, promo, or announcement title"
+      },
+      "content": {
+        "label": "Content",
+        "format": {
+          "markdown": "Markdown",
+          "html": "HTML"
+        },
+        "placeholderMarkdown": "Use **bold**, _italic_, and links like [Open game](https://...)",
+        "placeholderHtml": "Use basic HTML tags supported by Telegram (b, i, a, etc.)"
+      },
+      "buttons": {
+        "label": "Buttons",
+        "addRow": "+ Row",
+        "textPlaceholder": "Button text",
+        "urlPlaceholder": "https:// or leave empty for callback",
+        "addButton": "+ Button",
+        "removeButton": "Remove",
+        "removeRow": "Remove Row",
+        "emptyHint": "Add one or more rows of inline buttons. Each row can contain one or more buttons."
+      },
+      "actions": {
+        "saving": "Saving...",
+        "save": "Save Post"
+      },
+      "previewLabel": "Telegram preview"
+    },
+    "postTable": {
+      "empty": "No posts yet. Create your first announcement.",
+      "headers": {
+        "title": "Title",
+        "status": "Status",
+        "scheduled": "Scheduled",
+        "updated": "Updated",
+        "actions": "Actions"
+      },
+      "status": {
+        "sent": "Sent",
+        "failed": "Failed",
+        "scheduled": "Scheduled",
+        "sending": "Sending",
+        "draft": "Draft",
+        "pending": "Pending"
+      },
+      "dash": "—",
+      "actions": {
+        "edit": "Edit",
+        "delete": "Delete",
+        "send": "Send"
+      }
+    },
+    "recipients": {
+      "toast": {
+        "queued": "Deletion job queued",
+        "failed": "Failed to start deletion"
+      },
+      "filters": {
+        "search": "Search username",
+        "statusPlaceholder": "Deletion Status",
+        "status": {
+          "all": "All Statuses",
+          "success": "Deleted",
+          "failed": "Failed",
+          "pending": "Pending"
+        },
+        "apply": "Apply"
+      },
+      "actions": {
+        "deleteSelected": "Delete Selected",
+        "deleteAll": "Delete All",
+        "deleteRange": "Delete Date Range",
+        "prev": "Prev",
+        "next": "Next",
+        "cancel": "Cancel",
+        "deleting": "Deleting...",
+        "confirm": "Confirm"
+      },
+      "progress": {
+        "title": "Deletion Progress",
+        "counts": "{success} success / {failed} failed",
+        "deleting": "Deleting {done} / {total}",
+        "cancel": "Cancel Deletion"
+      },
+      "table": {
+        "user": "User",
+        "telegram": "Telegram",
+        "delivered": "Delivered",
+        "deletionStatus": "Deletion Status",
+        "unknown": "Unknown",
+        "dash": "—"
+      },
+      "empty": {
+        "loading": "Loading recipients...",
+        "none": "No recipients found."
+      },
+      "pagination": "Page {page} of {total}",
+      "confirm": {
+        "description": "This will delete messages from Telegram chats only. Records will remain in the database."
+      }
+    },
+    "schedulePicker": {
+      "label": "Schedule (optional)",
+      "immediate": "Send immediately"
+    },
+    "telegramPreview": {
+      "botName": "Bingo Bot",
+      "botLabel": "bot",
+      "preview": "Preview",
+      "imageAlt": "preview"
+    },
+    "imageUploader": {
+      "title": "Images (URLs)",
+      "urlPlaceholder": "https://...",
+      "actions": {
+        "add": "Add",
+        "uploading": "Uploading...",
+        "upload": "Upload"
+      },
+      "previewAlt": "preview",
+      "hint": "You can paste a public image URL or upload an image, which will be hosted by the backend and used in the Telegram post."
+    },
+    "confirmSend": {
+      "title": {
+        "channel": "Publish to channel?",
+        "users": "Broadcast this post?"
+      },
+      "description": {
+        "channel": "This will publish the post to the official Telegram channel. Messages cannot be unsent once delivered.",
+        "users": "This will queue the post for delivery to all eligible Telegram users. Messages cannot be unsent once delivered."
+      },
+      "warning": {
+        "channel": "Publishing happens instantly and records the Telegram message ID for tracking.",
+        "users": "The broadcast will be processed in batches with retry logic. You can track progress in real-time."
+      },
+      "actions": {
+        "cancel": "Cancel",
+        "sendNow": "Send Now"
+      }
+    },
+    "broadcastProgress": {
+      "status": {
+        "broadcasting": "Broadcasting...",
+        "complete": "Broadcast Complete",
+        "completeWithFailures": "Broadcast Complete (with failures)",
+        "status": "Broadcast Status"
+      },
+      "progress": {
+        "label": "Progress"
+      },
+      "stats": {
+        "sent": "Sent",
+        "failed": "Failed",
+        "pending": "Pending"
+      },
+      "total": {
+        "label": "Total recipients"
+      }
+    },
+    "deliveryStatus": {
+      "pending": "Pending",
+      "sent": "Sent",
+      "failed": "Failed",
+      "draft": "Draft",
+      "scheduled": "Scheduled",
+      "sending": "Sending"
+    },
+    "rooms": {
+      "title": "Rooms",
+      "subtitle": "Manage game rooms for players.",
+      "actions": {
+        "newRoom": "New Room",
+        "cancel": "Cancel",
+        "deleting": "...",
+        "delete": "Delete"
+      },
+      "empty": {
+        "title": "No rooms found",
+        "subtitle": "Create your first room to start hosting games!"
+      },
+      "fallbackDescription": "Exciting Bingo Game",
+      "playersShort": "{min}-{max} PL",
+      "status": {
+        "active": "Active"
+      },
+      "confirmDelete": {
+        "title": "Delete Room?",
+        "description": "This will permanently remove the room. This action cannot be undone."
+      },
+      "toast": {
+        "deleted": "Room deleted successfully",
+        "deleteFailed": "Failed to delete room"
+      }
+    },
+    "users": {
+      "title": "Users",
+      "subtitle": "Management Center",
+      "searchPlaceholder": "Search users...",
+      "empty": "No users found",
+      "table": {
+        "user": "User",
+        "role": "Role",
+        "balance": "Balance",
+        "actions": "Actions",
+        "noUsername": "no-username"
+      },
+      "actions": {
+        "details": "Details",
+        "delete": "Delete",
+        "cancel": "Cancel",
+        "deleting": "..."
+      },
+      "confirmDelete": {
+        "title": "Delete User?",
+        "description": "This will permanently remove the user and all their data. This action cannot be undone."
+      },
+      "toast": {
+        "deleted": "User deleted successfully",
+        "deleteFailed": "Failed to delete user"
+      },
+      "fallback": {
+        "initial": "?"
+      }
+    },
+    "userDetail": {
+      "notFound": "User Not Found",
+      "actions": {
+        "backToUsers": "Back to Users",
+        "cancel": "Cancel"
+      },
+      "stats": {
+        "balance": "Balance",
+        "referrals": "Referrals",
+        "users": "Users"
+      },
+      "currency": "ETB",
+      "role": {
+        "title": "Manage Role",
+        "confirmTitle": "Confirm Role Change",
+        "confirmDescription": "Set {user}@{username}{/user} to {strong}{role}{/strong}?",
+        "confirmAction": "Update Role",
+        "label": "{role}",
+        "option": "{role}",
+        "unknownUser": "unknown",
+        "unknownRole": "unknown"
+      },
+      "activity": {
+        "title": "Recent Activity",
+        "empty": "No transactions found",
+        "type": "{type}"
+      },
+      "referrals": {
+        "title": "Referrals",
+        "empty": "No referrals yet",
+        "joined": "Joined {date}",
+        "active": "Active",
+        "unknownUser": "unknown"
+      },
+      "fallback": {
+        "initial": "?",
+        "noUsername": "no-username"
+      },
+      "toast": {
+        "roleUpdated": "Role updated to {role}",
+        "roleUpdateFailed": "Failed to update role"
+      }
+    }
   }
 }

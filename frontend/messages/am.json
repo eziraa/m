@@ -1323,5 +1323,541 @@
       "pending": "በመጠባበቅ ላይ",
       "failed": "አልተሳካም"
     }
+  },
+  "admin": {
+    "nav": {
+      "posts": "ፖስቶች",
+      "manage": "ማስተዳደር",
+      "scheduled": "የታቀዱ",
+      "analytics": "ትንታኔ",
+      "bonuses": "ቦነሶች",
+      "promocodes": "ፕሮሞ ኮዶች",
+      "withdrawals": "ክፍያዎች",
+      "transactions": "ግብይቶች",
+      "gameConfig": "ማስተካክያ",
+      "back": "ተመለስ"
+    },
+    "withdrawals": {
+      "title": "ክፍያዎች",
+      "totalRequests": "{count} ጠቅላላ ጥያቄዎች",
+      "searchPlaceholder": "በስም፣ በስልክ ወይም በID ይፈልጉ...",
+      "noWithdrawals": "ምንም ክፍያዎች አልተገኙም",
+      "tryDifferentSearch": "ሌላ ፍለጋ ይሞክሩ",
+      "noStatusRequests": "ምንም {status} ጥያቄዎች የሉም",
+      "amount": "መጠን",
+      "userBalance": "ቀሪ: {amount} ብር",
+      "actions": {
+        "approve": "ፍቀድ",
+        "reject": "ሰርዝ",
+        "confirm": "አረጋግጥ",
+        "cancel": "ተው",
+        "approving": "በመፍቀድ ላይ...",
+        "rejecting": "በመስራት ላይ..."
+      },
+      "confirmApprove": "የ{amount} ብር ክፍያ ይፈቀድ?",
+      "confirmReject": "ይህ ክፍያ ይሰረዝ?",
+      "reasonPlaceholder": "ምክንያት (ካለ)",
+      "rejectionReasonLabel": "ምክንያት: {reason}",
+      "toast": {
+        "approved": "ክፍያው ተፈቅዷል ✓",
+        "rejected": "ክፍያው ተሰርዟል",
+        "approveFailed": "መፍቀድ አልተሳካም",
+        "rejectFailed": "መሰረዝ አልተሳካም"
+      },
+      "status": {
+        "pending": "በመጠባበቅ ላይ",
+        "approved": "የተፈቀደ",
+        "rejected": "የተሰረዘ",
+        "all": "ሁሉም"
+      }
+    },
+    "bonuses": {
+      "title": "ቦነሶች",
+      "subtitle": "የእንኳን ደህና መጡ እና የአስተዳደር ቦነሶችን ያቀናብሩ",
+      "welcome": {
+        "title": "የእንኳን ደህና መጡ ቦነስ",
+        "description": "አዲስ ተጠቃሚ ሲመዘገብ በራሱ ይተገባል።",
+        "amountLabel": "የእንኳን ደህና መጡ መጠን",
+        "amountPlaceholder": "የእንኳን ደህና መጡ ቦነስ ያስገቡ",
+        "messageLabel": "የእንኳን ደህና መጡ መልእክት",
+        "messagePlaceholder": "ለአዲስ ተጠቃሚዎች የነባሪ መልእክት",
+        "messageHint": "{name} እና {amount} ቦታ ተግባራት ይደግፋል።"
+      },
+      "bonus": {
+        "title": "የአስተዳደር ቦነስ",
+        "description": "ለአንድ ተጠቃሚ ወይም ለሁሉም ቦነስ ይስጡ።",
+        "amountLabel": "የቦነስ መደበኛ መጠን",
+        "amountPlaceholder": "የቦነስ መጠን ያስገቡ",
+        "messageLabel": "የቦነስ መልእክት",
+        "messagePlaceholder": "ቦነስ ሲሰጥ የሚላክ ነባሪ መልእክት",
+        "messageHint": "{name} እና {amount} ቦታ ተግባራት ይደግፋል።",
+        "grantAll": "ለሁሉም ተጠቃሚዎች ስጥ",
+        "grantAllHint": "{count} ተጠቃሚዎችን ይጠቃልላል",
+        "userSearch": "ተጠቃሚ ፈልግ",
+        "userSearchPlaceholder": "በስም፣ በመጠቃሚ ስም ወይም ኢሜይል ይፈልጉ",
+        "userSelect": "ተጠቃሚ ይምረጡ",
+        "userSelectPlaceholder": "ተጠቃሚዎችን ይምረጡ",
+        "userSelected": "{count} ተጠቃሚዎች ተመርጠዋል",
+        "grantAmountLabel": "የሚሰጥ መጠን",
+        "grantAmountPlaceholder": "አማራጭ መጠን",
+        "grantAmountHint": "መደበኛውን መጠን ለመጠቀም ባዶ ይተዉ።",
+        "grantMessageLabel": "የቦነስ መልዕክት",
+        "grantMessagePlaceholder": "ለተጠቃሚዎች የሚላክ መልዕክት",
+        "grantMessageHint": "በቴሌግራም እና በቦሌት ትራንዛክሽን ይታያል።"
+      },
+      "tabs": {
+        "welcome": "የመግቢያ ቦነስ",
+        "bonus": "የአስተዳዳሪ ቦነስ",
+        "grant": "ቦነስ ስጥ"
+      },
+
+      "actions": {
+        "save": "ቅንብሮችን አስቀምጥ",
+        "saveWelcome": "የእንኳን ደህና መጡ ቦነስ አስቀምጥ",
+        "saveBonus": "የአስተዳደር ቦነስ አስቀምጥ",
+        "saving": "በማስቀመጥ ላይ...",
+        "grant": "ቦነስ ስጥ",
+        "granting": "በመስጠት ላይ..."
+      },
+      "fields": {
+        "active": "እንቅስቃሴ",
+        "activeHint": "ይህን ቦነስ ለጊዜው ለማቆም ያጥፉ።",
+        "description": "መግለጫ",
+        "descriptionPlaceholder": "አጭር መግለጫ ይጻፉ"
+      },
+      "toast": {
+        "settingsSaved": "የቦነስ ቅንብሮች ተዘምነዋል",
+        "settingsFailed": "የቦነስ ቅንብሮችን ማዘምን አልተሳካም",
+        "welcomeSaved": "የእንኳን ደህና መጡ ቦነስ ተዘምኗል",
+        "welcomeFailed": "የእንኳን ደህና መጡ ቦነስ ማዘምን አልተሳካም",
+        "bonusSaved": "የአስተዳደር ቦነስ ተዘምኗል",
+        "bonusFailed": "የአስተዳደር ቦነስ ማዘምን አልተሳካም",
+        "grantedAll": "ቦነስ ለሁሉም ተጠቃሚዎች ተሰጥቷል",
+        "grantedOne": "ቦነስ ተሰጥቷል",
+        "grantFailed": "ቦነስ መስጠት አልተሳካም"
+      },
+      "errors": {
+        "selectUsers": "እባክዎ ቢያንስ አንድ ተጠቃሚ ይምረጡ"
+      }
+    },
+    "deliveryLog": {
+      "title": "የማድረስ መዝገብ",
+      "subtitle": "{total} ጠቅላላ ማድረሶች",
+      "empty": {
+        "title": "እስካሁን ማድረስ የለም",
+        "subtitle": "ማድረስ መዝገብ ለማየት ፖስት ይላኩ።"
+      },
+      "untitled": "ያልተሰየመ",
+      "chat": "ቻት: {chatId}",
+      "pagination": "ገጽ {page} ከ {totalPages}"
+    },
+    "posts": {
+      "title": "ፖስቶች",
+      "subtitle": "ለቴሌግራም ተጠቃሚዎችዎ ማስታወቂያዎችን ያስተዳድሩ",
+      "actions": {
+        "newPost": "አዲስ ፖስት",
+        "createPost": "ፖስት ፍጠር"
+      },
+      "empty": {
+        "title": "ፖስት የለም",
+        "subtitle": "ተጠቃሚዎችን ለመድረስ የመጀመሪያዎን ማስታወቂያ ይፍጠሩ።"
+      },
+      "menu": {
+        "view": "እይ",
+        "edit": "አስተካክል",
+        "send": "ላክ",
+        "delete": "ሰርዝ"
+      },
+      "toast": {
+        "deleted": "ፖስት ተሰርዟል",
+        "deleteFailed": "ፖስት ማጥፋት አልተሳካም",
+        "published": "ወደ ቻናል ታትሟል (#{id})",
+        "queued": "ስርጭት ተራ ተመዝግቧል!",
+        "queueFailed": "ስርጭት ለመመዝገብ አልተሳካም"
+      }
+    },
+    "scheduled": {
+      "title": "የታቀዱ ፖስቶች",
+      "subtitle": "ለራስ-ሰር ማድረስ የተሰናዳ ፖስቶች",
+      "empty": {
+        "title": "የታቀዱ ፖስቶች የሉም",
+        "subtitle": "በተወሰነ ጊዜ ላይ በራስ-ሰር እንዲላክ ፖስት ያቅዱ።"
+      },
+      "actions": {
+        "createPost": "ፖስት ፍጠር"
+      }
+    },
+    "createPost": {
+      "title": "አዲስ ፖስት",
+      "subtitle": "ለተጠቃሚዎችዎ ማስታወቂያ ይፍጠሩ",
+      "toast": {
+        "created": "ፖስት በተሳካ ሁኔታ ተፈጥሯል",
+        "failed": "ፖስት መፍጠር አልተሳካም"
+      }
+    },
+    "editPost": {
+      "title": "ፖስት አስተካክል",
+      "subtitle": "ማስታወቂያዎን ያዘምኑ",
+      "toast": {
+        "updated": "ፖስት ተዘምኗል",
+        "failed": "ፖስት ማዘምን አልተሳካም"
+      },
+      "notFound": "ፖስት አልተገኘም"
+    },
+    "postDetail": {
+      "notFound": "ፖስት አልተገኘም",
+      "actions": {
+        "backToPosts": "ወደ ፖስቶች ተመለስ",
+        "edit": "አስተካክል",
+        "send": "ላክ"
+      },
+      "tabs": {
+        "overview": "አጠቃላይ",
+        "recipients": "ተቀባዮች"
+      },
+      "analytics": {
+        "title": "የማድረስ ትንታኔ",
+        "deliveryRate": "የማድረስ መጠን",
+        "recipients": "ተቀባዮች",
+        "sent": "ተልኳል",
+        "failed": "አልተሳካም",
+        "pending": "በመጠበቅ ላይ"
+      },
+      "preview": {
+        "title": "መልዕክት ቅድመ እይታ"
+      },
+      "details": {
+        "title": "ዝርዝሮች",
+        "format": "ፎርማት",
+        "images": "ምስሎች",
+        "buttons": "ቁልፎች",
+        "scheduled": "የታቀደ",
+        "sent": "ተልኳል",
+        "created": "ተፈጥሯል"
+      },
+      "recentDeliveries": {
+        "title": "የቅርብ ጊዜ ማድረሶች",
+        "viewAll": "ሁሉን እይ"
+      },
+      "toast": {
+        "published": "ወደ ቻናል ታትሟል (#{id})",
+        "queued": "ስርጭት ተራ ተመዝግቧል!",
+        "queueFailed": "ስርጭት ለመመዝገብ አልተሳካም"
+      }
+    },
+    "postFilters": {
+      "searchPlaceholder": "ፖስቶች ፈልግ...",
+      "status": {
+        "all": "ሁሉም",
+        "draft": "ረቂቅ",
+        "scheduled": "የታቀደ",
+        "sending": "በመላክ ላይ",
+        "sent": "ተልኳል",
+        "failed": "አልተሳካም"
+      }
+    },
+    "postEditor": {
+      "channel": {
+        "defaultName": "መደበኛ ቻናል",
+        "preview": "የቻናል ቅድመ እይታ"
+      },
+      "errors": {
+        "missingFields": {
+          "title": "አልተሞሉ መስኮች",
+          "description": "ርዕስ እና ይዘት ያስፈልጋሉ።"
+        },
+        "missingCategory": {
+          "title": "ምድብ ጎድሎአል",
+          "description": "ለቻናል ፖስት ምድብ ያስፈልጋል።"
+        },
+        "tooManyImages": {
+          "title": "ብዙ ምስሎች",
+          "description": "የቻናል ፖስቶች አንድ ምስል ብቻ ይደግፋሉ።"
+        },
+        "saveFailed": {
+          "title": "ፖስት ማስቀመጥ አልተሳካም",
+          "unknown": "ያልታወቀ ስህተት"
+        }
+      },
+      "toast": {
+        "saved": "ፖስት ተቀምጧል"
+      },
+      "target": {
+        "label": "መድረሻ",
+        "users": "ተጠቃሚዎች",
+        "channel": "መደበኛ ቻናል"
+      },
+      "category": {
+        "label": "ምድብ",
+        "placeholder": "ምድብ ይምረጡ"
+      },
+      "title": {
+        "label": "ርዕስ",
+        "placeholder": "አዲስ ባህሪ፣ ማስተዋወቂያ ወይም ማስታወቂያ ርዕስ"
+      },
+      "content": {
+        "label": "ይዘት",
+        "format": {
+          "markdown": "ማርክዳውን",
+          "html": "HTML"
+        },
+        "placeholderMarkdown": "**ደረቅ**, _ግርጌ_, እና [Open game](https://...) ያሉ ሊንኮችን ይጠቀሙ",
+        "placeholderHtml": "በቴሌግራም የሚደገፉ መሰረታዊ HTML መለያዎች (b, i, a, ወዘተ) ይጠቀሙ"
+      },
+      "buttons": {
+        "label": "ቁልፎች",
+        "addRow": "+ ረድፍ",
+        "textPlaceholder": "የቁልፍ ጽሑፍ",
+        "urlPlaceholder": "https:// ወይም ለcallback ባዶ ይተዉ",
+        "addButton": "+ ቁልፍ",
+        "removeButton": "አጥፋ",
+        "removeRow": "ረድፍ አጥፋ",
+        "emptyHint": "አንድ ወይም ከዚያ በላይ ረድፎች ያክሉ። እያንዳንዱ ረድፍ አንድ ወይም ከዚያ በላይ ቁልፎች ሊኖሩበት ይችላል።"
+      },
+      "actions": {
+        "saving": "በማስቀመጥ ላይ...",
+        "save": "ፖስት አስቀምጥ"
+      },
+      "previewLabel": "የቴሌግራም ቅድመ እይታ"
+    },
+    "postTable": {
+      "empty": "ፖስት የለም። የመጀመሪያዎን ማስታወቂያ ይፍጠሩ።",
+      "headers": {
+        "title": "ርዕስ",
+        "status": "ሁኔታ",
+        "scheduled": "የታቀደ",
+        "updated": "ዘመናዊ ሆኗል",
+        "actions": "እርምጃዎች"
+      },
+      "status": {
+        "sent": "ተልኳል",
+        "failed": "አልተሳካም",
+        "scheduled": "የታቀደ",
+        "sending": "በመላክ ላይ",
+        "draft": "ረቂቅ",
+        "pending": "በመጠበቅ ላይ"
+      },
+      "dash": "—",
+      "actions": {
+        "edit": "አስተካክል",
+        "delete": "ሰርዝ",
+        "send": "ላክ"
+      }
+    },
+    "recipients": {
+      "toast": {
+        "queued": "የማጥፋት ስራ ተመዝግቧል",
+        "failed": "ማጥፋት ለመጀመር አልተሳካም"
+      },
+      "filters": {
+        "search": "የተጠቃሚ ስም ፈልግ",
+        "statusPlaceholder": "የማጥፋት ሁኔታ",
+        "status": {
+          "all": "ሁሉም ሁኔታዎች",
+          "success": "ተሰርዟል",
+          "failed": "አልተሳካም",
+          "pending": "በመጠበቅ ላይ"
+        },
+        "apply": "ተግብር"
+      },
+      "actions": {
+        "deleteSelected": "የተመረጡትን ሰርዝ",
+        "deleteAll": "ሁሉን ሰርዝ",
+        "deleteRange": "የቀን ክልልን ሰርዝ",
+        "prev": "ቀዳሚ",
+        "next": "ቀጣይ",
+        "cancel": "ተው",
+        "deleting": "በማጥፋት ላይ...",
+        "confirm": "አረጋግጥ"
+      },
+      "progress": {
+        "title": "የማጥፋት ሂደት",
+        "counts": "{success} ተሳክቷል / {failed} አልተሳካም",
+        "deleting": "በማጥፋት ላይ {done} / {total}",
+        "cancel": "ማጥፋትን አቁም"
+      },
+      "table": {
+        "user": "ተጠቃሚ",
+        "telegram": "ቴሌግራም",
+        "delivered": "ደርሷል",
+        "deletionStatus": "የማጥፋት ሁኔታ",
+        "unknown": "ያልታወቀ",
+        "dash": "—"
+      },
+      "empty": {
+        "loading": "ተቀባዮችን በመጫን ላይ...",
+        "none": "ተቀባዮች አልተገኙም።"
+      },
+      "pagination": "ገጽ {page} ከ {total}",
+      "confirm": {
+        "description": "ይህ መልዕክቶችን ከቴሌግራም ቻቶች ብቻ ይሰርዛል። መዝገቦች በዳታቤዝ ይቀራሉ።"
+      }
+    },
+    "schedulePicker": {
+      "label": "ማቅዳት (አማራጭ)",
+      "immediate": "ወዲያውኑ ላክ"
+    },
+    "telegramPreview": {
+      "botName": "Bingo Bot",
+      "botLabel": "bot",
+      "preview": "ቅድመ እይታ",
+      "imageAlt": "ቅድመ እይታ"
+    },
+    "imageUploader": {
+      "title": "ምስሎች (URL)",
+      "urlPlaceholder": "https://...",
+      "actions": {
+        "add": "ጨምር",
+        "uploading": "በመጫን ላይ...",
+        "upload": "ጫን"
+      },
+      "previewAlt": "ቅድመ እይታ",
+      "hint": "የህዝብ የምስል URL መለጠፍ ወይም ምስል መጫን ትችላለህ፣ በጀርባ ይተናገዳል እና በቴሌግራም ፖስት ይጠቀማል።"
+    },
+    "confirmSend": {
+      "title": {
+        "channel": "ወደ ቻናል ማታትም?",
+        "users": "ይህን ፖስት ላክ?"
+      },
+      "description": {
+        "channel": "ፖስቱ ወደ የቴሌግራም ዋና ቻናል ይታተማል። አንዴ ከደረሰ መታጠፍ አይቻልም።",
+        "users": "ፖስቱ ለተገቢ ቴሌግራም ተጠቃሚዎች ለመላክ ወደ ተራ ይገባል። አንዴ ከደረሰ መታጠፍ አይቻልም።"
+      },
+      "warning": {
+        "channel": "ማታትም ወዲያውኑ ይከናወናል እና ለክትትል የቴሌግራም መልዕክት ID ይመዘገባል።",
+        "users": "ስርጭቱ በቡድን ይከናወናል እና እንደገና ለመሞከር ይሞክራል። ሂደቱን በቀጥታ መከታተል ይችላሉ።"
+      },
+      "actions": {
+        "cancel": "ተው",
+        "sendNow": "አሁን ላክ"
+      }
+    },
+    "broadcastProgress": {
+      "status": {
+        "broadcasting": "በስርጭት ላይ...",
+        "complete": "ስርጭት ተጠናቋል",
+        "completeWithFailures": "ስርጭት ተጠናቋል (ከችግኝ ጋር)",
+        "status": "የስርጭት ሁኔታ"
+      },
+      "progress": {
+        "label": "ሂደት"
+      },
+      "stats": {
+        "sent": "ተልኳል",
+        "failed": "አልተሳካም",
+        "pending": "በመጠበቅ ላይ"
+      },
+      "total": {
+        "label": "ጠቅላላ ተቀባዮች"
+      }
+    },
+    "deliveryStatus": {
+      "pending": "በመጠበቅ ላይ",
+      "sent": "ተልኳል",
+      "failed": "አልተሳካም",
+      "draft": "ረቂቅ",
+      "scheduled": "የታቀደ",
+      "sending": "በመላክ ላይ"
+    },
+    "rooms": {
+      "title": "ክፍሎች",
+      "subtitle": "ለተጫዋቾች የጨዋታ ክፍሎችን ያስተዳድሩ።",
+      "actions": {
+        "newRoom": "አዲስ ክፍል",
+        "cancel": "ተው",
+        "deleting": "...",
+        "delete": "ሰርዝ"
+      },
+      "empty": {
+        "title": "ክፍሎች አልተገኙም",
+        "subtitle": "ጨዋታ ለመጀመር የመጀመሪያዎን ክፍል ይፍጠሩ!"
+      },
+      "fallbackDescription": "አስደሳች የቢንጎ ጨዋታ",
+      "playersShort": "{min}-{max} PL",
+      "status": {
+        "active": "በስራ ላይ"
+      },
+      "confirmDelete": {
+        "title": "ክፍሉን ሰርዝ?",
+        "description": "ይህ ክፍሉን በቋሚነት ይሰርዛል። ይህን እርምጃ መመለስ አይቻልም።"
+      },
+      "toast": {
+        "deleted": "ክፍል ተሰርዟል",
+        "deleteFailed": "ክፍል ማጥፋት አልተሳካም"
+      }
+    },
+    "users": {
+      "title": "ተጠቃሚዎች",
+      "subtitle": "የአስተዳደር ማዕከል",
+      "searchPlaceholder": "ተጠቃሚዎች ፈልግ...",
+      "empty": "ተጠቃሚዎች አልተገኙም",
+      "table": {
+        "user": "ተጠቃሚ",
+        "role": "ሚና",
+        "balance": "ቀሪ ሂሳብ",
+        "actions": "እርምጃዎች",
+        "noUsername": "ያልተሰየመ"
+      },
+      "actions": {
+        "details": "ዝርዝር",
+        "delete": "ሰርዝ",
+        "cancel": "ተው",
+        "deleting": "..."
+      },
+      "confirmDelete": {
+        "title": "ተጠቃሚውን ሰርዝ?",
+        "description": "ይህ ተጠቃሚን እና ሁሉንም መረጃውን በቋሚነት ይሰርዛል። ይህን እርምጃ መመለስ አይቻልም።"
+      },
+      "toast": {
+        "deleted": "ተጠቃሚ ተሰርዟል",
+        "deleteFailed": "ተጠቃሚ ማጥፋት አልተሳካም"
+      },
+      "fallback": {
+        "initial": "?"
+      }
+    },
+    "userDetail": {
+      "notFound": "ተጠቃሚ አልተገኘም",
+      "actions": {
+        "backToUsers": "ወደ ተጠቃሚዎች ተመለስ",
+        "cancel": "ተው"
+      },
+      "stats": {
+        "balance": "ቀሪ ሂሳብ",
+        "referrals": "ግብዣዎች",
+        "users": "ተጠቃሚዎች"
+      },
+      "currency": "ETB",
+      "role": {
+        "title": "ሚና አስተዳድር",
+        "confirmTitle": "ሚና ለመቀየር አረጋግጥ",
+        "confirmDescription": "{user}@{username}{/user}ን ወደ {strong}{role}{/strong} መቀየር?",
+        "confirmAction": "ሚና አዘምን",
+        "label": "{role}",
+        "option": "{role}",
+        "unknownUser": "ያልታወቀ",
+        "unknownRole": "ያልታወቀ"
+      },
+      "activity": {
+        "title": "የቅርብ እንቅስቃሴ",
+        "empty": "ግብይቶች አልተገኙም",
+        "type": "{type}"
+      },
+      "referrals": {
+        "title": "ግብዣዎች",
+        "empty": "እስካሁን ግብዣ የለም",
+        "joined": "ተቀላቀለ {date}",
+        "active": "ንቁ",
+        "unknownUser": "ያልታወቀ"
+      },
+      "fallback": {
+        "initial": "?",
+        "noUsername": "ያልተሰየመ"
+      },
+      "toast": {
+        "roleUpdated": "ሚና ወደ {role} ተቀይሯል",
+        "roleUpdateFailed": "ሚና ማዘምን አልተሳካም"
+      }
+    }
   }
 }

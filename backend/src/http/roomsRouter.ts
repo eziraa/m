@@ -117,7 +117,7 @@ router.get("/rooms", requireAuth, async (_req, res) => {
     const identity = _req.identity;
     const allRooms = identity ? await listAvailableRooms(identity) : [];
 
-    const liveRoomIds = await getLiveRoomIdsCached();
+    // const liveRoomIds = await getLiveRoomIdsCached();
     logger.info("rooms_listed", {
       requestId: _req.requestId,
       userId: identity?.userId ?? null,
@@ -130,7 +130,8 @@ router.get("/rooms", requireAuth, async (_req, res) => {
       rooms: allRooms.map((room) => ({
         ...room,
         price: centsToPrice(room.boardPriceCents),
-        isLive: liveRoomIds.has(room.id),
+        isLive: false, // liveRoomIds.has(room.id),
+        // isLive: liveRoomIds.has(room.id),
       })),
     });
   } catch (error: unknown) {
