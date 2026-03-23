@@ -17,13 +17,21 @@ function inferTelegramEventType(update: Record<string, unknown>): string {
 }
 
 router.post("/telegram/webhook", async (req: Request, res: Response) => {
+  console.log("[WEBHOOK] Incoming request", {
+    headers: req.headers,
+    body: req.body,
+  });
   if (env.LOCAL_DEV_AUTH_ENABLED) {
+    console.log(
+      "[WEBHOOK] LOCAL_DEV_AUTH_ENABLED is true, skipping processing",
+    );
     res.status(204).send();
     return;
   }
 
   const secret = req.header("x-telegram-bot-api-secret-token");
   if (secret !== env.TELEGRAM_WEBHOOK_SECRET) {
+    console.warn("[WEBHOOK] Invalid secret token", { received: secret });
     res.status(401).json({ error: "invalid_telegram_secret" });
     return;
   }
@@ -40,6 +48,13 @@ router.post("/telegram/webhook", async (req: Request, res: Response) => {
           0,
       ) || "0";
 
+    console.log("[WEBHOOK] Parsed update", {
+      updateId,
+      eventType,
+      telegramUserId,
+      update,
+    });
+
     if (Number.isFinite(updateId) && updateId > 0) {
       const inserted = await db
         .insert(telegramUpdates)
@@ -53,12 +68,19 @@ router.post("/telegram/webhook", async (req: Request, res: Response) => {
         .returning({ id: telegramUpdates.id });
 
       if (inserted.length === 0) {
+        console.log("[WEBHOOK] Duplicate update", { updateId });
         res.status(200).json({ ok: true, duplicate: true });
         return;
       }
     }
 
-    await getBot().handleUpdate(req.body);
+    try {
+      await getBot().handleUpdate(req.body);
+      console.log("[WEBHOOK] Bot handled update successfully");
+    } catch (botError) {
+      console.error("[WEBHOOK] Error in bot.handleUpdate", botError);
+      throw botError;
+    }
 
     if (Number.isFinite(updateId) && updateId > 0) {
       await db
@@ -73,7 +95,8 @@ router.post("/telegram/webhook", async (req: Request, res: Response) => {
     }
 
     res.status(200).json({ ok: true });
-  } catch {
+  } catch (err) {
+    console.error("[WEBHOOK] Error handling update", err);
     res.status(500).json({ error: "telegram_update_failed" });
   }
 });
