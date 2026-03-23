@@ -512,13 +512,7 @@ export function useGetRoomsQuery(options?: { skip?: boolean }) {
   const query = useQuery({
     queryKey: ["rooms"],
     queryFn: async () => {
-      const endpoint =
-        getAuthRole() === "ADMIN"
-          ? "/admin/rooms"
-          : getAuthRole() === "AGENT"
-            ? "/agent/rooms"
-            : "/rooms";
-      const res = await fetch(`${API_BASE}${endpoint}`, {
+      const res = await fetch(`${API_BASE}$/rooms`, {
         method: "GET",
         headers: { authorization: `Bearer ${token}` },
         cache: "no-store",
