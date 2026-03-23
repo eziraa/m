@@ -1,20 +1,33 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useGetScheduledPostsQuery } from "@/lib/api";
+import type { Post } from "@/lib/types";
 import { BottomAdminNav } from "@/components/admin/posts/BottomAdminNav";
 import { DeliveryStatusBadge } from "@/components/admin/posts/DeliveryStatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format, formatDistanceToNow } from "date-fns";
-import { ArrowLeft, Clock, Calendar } from "lucide-react";
+import {
+  ArrowLeft,
+  Clock,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 
 export default function ScheduledPostsPage() {
   const t = useTranslations("admin.scheduled");
   const router = useRouter();
-  const { data: posts = [], isLoading } = useGetScheduledPostsQuery();
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const { data, isLoading } = useGetScheduledPostsQuery({ page, pageSize });
+  const posts = data?.posts ?? [];
+  const total = data?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col px-4 py-4 space-y-4 pb-24">
@@ -66,7 +79,7 @@ export default function ScheduledPostsPage() {
         </Card>
       ) : (
         <div className="space-y-2.5">
-          {posts.map((post) => (
+          {posts.map((post: Post) => (
             <Card
               key={post.id}
               className="bg-foreground/5 border-foreground/10 rounded-2xl p-4 cursor-pointer transition-all hover:bg-foreground/8 active:scale-[0.98]"
@@ -103,6 +116,36 @@ export default function ScheduledPostsPage() {
             </Card>
           ))}
         </div>
+      )}
+
+      {totalPages > 1 && (
+        <Card className="border-foreground/10 bg-foreground/5 px-3 py-2">
+          <div className="flex items-center justify-between gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-9 rounded-xl"
+              disabled={page <= 1}
+              onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+            >
+              <ChevronLeft className="mr-1 h-4 w-4" />
+              Prev
+            </Button>
+            <span className="text-[11px] font-semibold text-muted-foreground">
+              Page {page} of {totalPages}
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-9 rounded-xl"
+              disabled={page >= totalPages}
+              onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+            >
+              Next
+              <ChevronRight className="ml-1 h-4 w-4" />
+            </Button>
+          </div>
+        </Card>
       )}
 
       <BottomAdminNav />

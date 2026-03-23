@@ -50,14 +50,14 @@ async function readJson(res: Response) {
 }
 
 export async function verifyTelegramAndGetToken(
-  initData: string,
+  input: { initData: string; startParam?: string },
 ): Promise<string> {
   const res = await fetch(`${API_BASE}/auth/telegram/verify-init-data`, {
     method: "POST",
     headers: {
       "content-type": "application/json",
     },
-    body: JSON.stringify({ initData }),
+    body: JSON.stringify(input),
   });
 
   if (!res.ok) {
@@ -534,6 +534,42 @@ export function useGetRoomsQuery(options?: { skip?: boolean }) {
   };
 }
 
+export function useGetAdminRoomsQuery(args?: {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+}) {
+  const token = getAuthToken();
+  return useQuery({
+    queryKey: ["admin-rooms", args],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      Object.entries(args ?? {}).forEach(([key, value]) => {
+        if (
+          value !== undefined &&
+          value !== null &&
+          !(typeof value === "string" && value === "")
+        ) {
+          params.set(key, String(value));
+        }
+      });
+      const suffix = params.toString() ? `?${params.toString()}` : "";
+      const res = await fetch(`${API_BASE}/admin/rooms${suffix}`, {
+        headers: { authorization: `Bearer ${token}` },
+        cache: "no-store",
+      });
+      if (!res.ok) throw new Error("fetch_admin_rooms_failed");
+      return res.json() as Promise<{
+        rooms: RoomItem[];
+        total: number;
+        page: number;
+        pageSize: number;
+      }>;
+    },
+    enabled: !!token,
+  });
+}
+
 export function useGetRoomsForAgentQuery(options?: { skip?: boolean }) {
   const token = getAuthToken();
   const query = useQuery({
@@ -803,7 +839,8 @@ export function useSignupLocalMutation() {
 
 export function useVerifyTelegramMutation() {
   const mutation = useMutation({
-    mutationFn: (initData: string) => verifyTelegramAndGetToken(initData),
+    mutationFn: (input: { initData: string; startParam?: string }) =>
+      verifyTelegramAndGetToken(input),
   });
   return mutation;
 }
@@ -1329,7 +1366,11 @@ export function useGetAdminUsersQuery(
     queryFn: async () => {
       const params = new URLSearchParams();
       Object.entries(args ?? {}).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== "") {
+        if (
+          value !== undefined &&
+          value !== null &&
+          !(typeof value === "string" && value === "")
+        ) {
           params.set(key, String(value));
         }
       });
@@ -1377,7 +1418,11 @@ export function useGetAdminWithdrawalsQuery(args?: {
     queryFn: async () => {
       const params = new URLSearchParams();
       Object.entries(args ?? {}).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== "") {
+        if (
+          value !== undefined &&
+          value !== null &&
+          !(typeof value === "string" && value === "")
+        ) {
           params.set(key, String(value));
         }
       });
@@ -1619,6 +1664,8 @@ export function useGetPostCategoriesQuery(options?: { skip?: boolean }) {
 export function useGetPostsQuery(args?: {
   status?: string;
   search?: string;
+  page?: number;
+  pageSize?: number;
 }) {
   const token = getAuthToken();
   return useQuery({
@@ -1636,27 +1683,49 @@ export function useGetPostsQuery(args?: {
         cache: "no-store",
       });
       if (!res.ok) throw new Error("fetch_posts_failed");
-      const data = (await res.json()) as { posts: Post[] };
-      return data.posts;
+      return (await res.json()) as {
+        posts: Post[];
+        total: number;
+        page: number;
+        pageSize: number;
+      };
     },
     enabled: !!token,
   });
 }
 
-export function useGetScheduledPostsQuery(options?: { skip?: boolean }) {
+export function useGetScheduledPostsQuery(args?: {
+  page?: number;
+  pageSize?: number;
+}) {
   const token = getAuthToken();
   return useQuery({
-    queryKey: ["scheduled-posts"],
+    queryKey: ["scheduled-posts", args],
     queryFn: async () => {
-      const res = await fetch(`${API_BASE}/admin/posts/scheduled`, {
+      const params = new URLSearchParams();
+      Object.entries(args ?? {}).forEach(([key, value]) => {
+        if (
+          value !== undefined &&
+          value !== null &&
+          !(typeof value === "string" && value === "")
+        ) {
+          params.set(key, String(value));
+        }
+      });
+      const suffix = params.toString() ? `?${params.toString()}` : "";
+      const res = await fetch(`${API_BASE}/admin/posts/scheduled${suffix}`, {
         headers: { authorization: `Bearer ${token}` },
         cache: "no-store",
       });
       if (!res.ok) throw new Error("fetch_scheduled_posts_failed");
-      const data = (await res.json()) as { posts: Post[] };
-      return data.posts;
+      return (await res.json()) as {
+        posts: Post[];
+        total: number;
+        page: number;
+        pageSize: number;
+      };
     },
-    enabled: !!token && !options?.skip,
+    enabled: !!token,
   });
 }
 

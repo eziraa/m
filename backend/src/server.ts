@@ -24,6 +24,7 @@ import userRouter from "./http/userRouter.js";
 import walletRouter from "./http/walletRouter.js";
 import roomsRouter from "./http/roomsRouter.js";
 import { closeSocketServer, createSocketServer } from "./realtime/socket.js";
+import { configureTelegramBot } from "./telegram/setup.js";
 import { isAllowedOrigin } from "./utils/cors.js";
 import { logger } from "./utils/logger.js";
 import { getMetricsCounters } from "./utils/metrics.js";
@@ -117,6 +118,11 @@ void recoverActiveSessions();
 
 server.listen(env.PORT, () => {
   logger.info("backend_started", { port: env.PORT, env: env.NODE_ENV });
+  void configureTelegramBot().catch((error) => {
+    logger.error("telegram_bot_setup_failed", {
+      message: error instanceof Error ? error.message : String(error),
+    });
+  });
 });
 
 let shuttingDown = false;

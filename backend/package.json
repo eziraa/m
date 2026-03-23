@@ -9,6 +9,8 @@
     "check": "tsc --noEmit -p tsconfig.json",
     "start": "node dist/server.js",
     "dev:up": "tsx src/dev/devUp.ts",
+    "telegram:setup": "tsx src/telegram/setupCli.ts",
+    "telegram:webhook:clear": "tsx src/telegram/clearWebhookCli.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "dev:seed": "tsx src/dev/seedLocalDev.ts",

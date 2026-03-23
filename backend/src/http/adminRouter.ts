@@ -1014,6 +1014,13 @@ router.get(
 router.get(
   "/admin/posts",
   asyncHandler(async (req, res) => {
+    const page = parsePositiveInt(req.query.page, 1);
+    const pageSize = parsePositiveInt(
+      req.query.pageSize ?? req.query.limit,
+      20,
+      100,
+    );
+    const offset = (page - 1) * pageSize;
     const status = String(req.query.status ?? "").trim().toLowerCase();
     const search = String(req.query.search ?? "").trim();
 
@@ -1032,6 +1039,11 @@ router.get(
     }
 
     const whereClause = filters.length ? and(...filters) : undefined;
+    const [totalResult] = await db
+      .select({ count: count() })
+      .from(broadcastPosts)
+      .where(whereClause);
+
     const rows = await db
       .select({
         id: broadcastPosts.id,
@@ -1050,10 +1062,15 @@ router.get(
       })
       .from(broadcastPosts)
       .where(whereClause)
+      .limit(pageSize)
+      .offset(offset)
       .orderBy(desc(broadcastPosts.updatedAt));
 
     res.status(200).json({
       ok: true,
+      total: totalResult.count,
+      page,
+      pageSize,
       posts: rows,
     });
   }),
@@ -1061,14 +1078,35 @@ router.get(
 
 router.get(
   "/admin/posts/scheduled",
-  asyncHandler(async (_req, res) => {
+  asyncHandler(async (req, res) => {
+    const page = parsePositiveInt(req.query.page, 1);
+    const pageSize = parsePositiveInt(
+      req.query.pageSize ?? req.query.limit,
+      20,
+      100,
+    );
+    const offset = (page - 1) * pageSize;
+
+    const [totalResult] = await db
+      .select({ count: count() })
+      .from(broadcastPosts)
+      .where(eq(broadcastPosts.status, "scheduled"));
+
     const posts = await db
       .select()
       .from(broadcastPosts)
       .where(eq(broadcastPosts.status, "scheduled"))
+      .limit(pageSize)
+      .offset(offset)
       .orderBy(asc(broadcastPosts.scheduledAt));
 
-    res.status(200).json({ ok: true, posts });
+    res.status(200).json({
+      ok: true,
+      total: totalResult.count,
+      page,
+      pageSize,
+      posts,
+    });
   }),
 );
 
@@ -1763,11 +1801,41 @@ router.post(
 
 router.get(
   "/admin/rooms",
-  asyncHandler(async (_req, res) => {
-    const rows = await db.select().from(rooms).orderBy(desc(rooms.createdAt));
+  asyncHandler(async (req, res) => {
+    const page = parsePositiveInt(req.query.page, 1);
+    const pageSize = parsePositiveInt(
+      req.query.pageSize ?? req.query.limit,
+      20,
+      100,
+    );
+    const offset = (page - 1) * pageSize;
+    const search = String(req.query.search ?? "").trim();
+
+    const whereClause = search
+      ? or(
+          ilike(rooms.name, `%${search}%`),
+          ilike(rooms.description, `%${search}%`),
+        )
+      : undefined;
+
+    const [totalResult] = await db
+      .select({ count: count() })
+      .from(rooms)
+      .where(whereClause);
+
+    const rows = await db
+      .select()
+      .from(rooms)
+      .where(whereClause)
+      .limit(pageSize)
+      .offset(offset)
+      .orderBy(desc(rooms.createdAt));
 
     res.status(200).json({
       ok: true,
+      total: totalResult.count,
+      page,
+      pageSize,
       rooms: rows.map((room) => ({
         ...room,
         price: centsToDisplayAmount(room.boardPriceCents),

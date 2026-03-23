@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import {
   ArrowLeft,
@@ -13,8 +14,15 @@ import {
   RefreshCw,
   LayoutGrid,
   Zap,
+  Search,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
-import { useGetRoomsQuery, useDeleteRoomMutation } from "@/lib/api";
+import {
+  useGetAdminRoomsQuery,
+  useDeleteRoomMutation,
+  type RoomItem,
+} from "@/lib/api";
 import { Room } from "@/lib/types";
 import { RoomDialog } from "@/components/room-dialog";
 import { Badge } from "@/components/ui/badge";
@@ -34,12 +42,31 @@ import { useTranslations } from "next-intl";
 export default function AdminRoomsPage() {
   const t = useTranslations("admin.rooms");
   const router = useRouter();
-  const { data: rooms, isLoading, refetch } = useGetRoomsQuery();
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const pageSize = 12;
+  const {
+    data,
+    isLoading,
+    isFetching,
+    refetch,
+  } = useGetAdminRoomsQuery({
+    page,
+    pageSize,
+    search: search || undefined,
+  });
   const [deleteRoom, { isLoading: isDeleting }] = useDeleteRoomMutation();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [roomToDelete, setRoomToDelete] = useState<string | null>(null);
+  const rooms = data?.rooms ?? [];
+  const total = data?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  useEffect(() => {
+    setPage(1);
+  }, [search]);
 
   const handleEdit = (room: Room) => {
     setSelectedRoom(room);
@@ -92,11 +119,11 @@ export default function AdminRoomsPage() {
               variant="ghost"
               size="icon"
               onClick={() => refetch()}
-              disabled={isLoading}
+              disabled={isLoading || isFetching}
               className="h-10 w-10 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white"
             >
               <RefreshCw
-                className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
+                className={`h-4 w-4 ${isLoading || isFetching ? "animate-spin" : ""}`}
               />
             </Button>
           </div>
@@ -112,6 +139,15 @@ export default function AdminRoomsPage() {
               {t("actions.newRoom")}
             </Button>
           </div>
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" />
+            <Input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search rooms"
+              className="h-11 rounded-2xl border-white/10 bg-white/5 pl-10 text-white placeholder:text-white/30"
+            />
+          </div>
         </header>
 
         <div className="relative z-10 px-4 flex-1 grid! grid-cols-2! gap-4">
@@ -122,7 +158,7 @@ export default function AdminRoomsPage() {
                 className="h-24 w-full bg-white/5 rounded-2xl animate-pulse border border-white/10"
               />
             ))
-          ) : rooms?.length === 0 ? (
+          ) : rooms.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
               <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
                 <LayoutGrid className="h-10 w-10 text-white/20" />
@@ -135,7 +171,7 @@ export default function AdminRoomsPage() {
               </div>
             </div>
           ) : (
-            rooms?.map((room) => (
+            rooms.map((room: RoomItem) => (
               <Card
                 key={room.id}
                 className="group relative border-white/10 bg-white/5 backdrop-blur-xl rounded-3xl overflow-hidden p-4 flex flex-col items-center text-center gap-3 active:scale-[0.98] transition-all min-h-[180px]"
@@ -185,8 +221,8 @@ export default function AdminRoomsPage() {
                   <div className="flex items-center justify-center gap-2 mt-2 pt-3 border-t border-white/5 w-full">
                     <span className="text-[9px] text-white/30 font-black uppercase tracking-widest">
                       {t("playersShort", {
-                        min: room.minPlayers,
-                        max: room.maxPlayers,
+                        min: room.minPlayers ?? 0,
+                        max: room.maxPlayers ?? 0,
                       })}
                     </span>
                     <div className="w-1 h-1 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50" />
@@ -199,6 +235,40 @@ export default function AdminRoomsPage() {
             ))
           )}
         </div>
+
+        {totalPages > 1 && (
+          <div className="relative z-10 px-4 pt-4">
+            <Card className="rounded-2xl border-white/10 bg-white/5 px-3 py-2">
+              <div className="flex items-center justify-between gap-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-9 rounded-xl text-white disabled:text-white/30"
+                  disabled={page <= 1}
+                  onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                >
+                  <ChevronLeft className="mr-1 h-4 w-4" />
+                  Prev
+                </Button>
+                <div className="text-center text-[11px] font-bold uppercase tracking-[0.18em] text-white/55">
+                  Page {page} / {totalPages}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-9 rounded-xl text-white disabled:text-white/30"
+                  disabled={page >= totalPages}
+                  onClick={() =>
+                    setPage((prev) => Math.min(totalPages, prev + 1))
+                  }
+                >
+                  Next
+                  <ChevronRight className="ml-1 h-4 w-4" />
+                </Button>
+              </div>
+            </Card>
+          </div>
+        )}
 
         <RoomDialog
           room={selectedRoom}

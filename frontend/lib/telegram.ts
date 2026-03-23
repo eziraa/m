@@ -15,6 +15,18 @@ export function getTelegramInitData(): string {
   return window.Telegram?.WebApp?.initData || "";
 }
 
+export function getTelegramStartParam(): string {
+  if (typeof window === "undefined") return "";
+
+  const params = new URLSearchParams(window.location.search);
+  return (
+    params.get("ref") ||
+    params.get("start") ||
+    params.get("tgWebAppStartParam") ||
+    ""
+  );
+}
+
 export function initTelegramWebApp() {
   if (typeof window === "undefined") return;
   const app = window.Telegram?.WebApp;

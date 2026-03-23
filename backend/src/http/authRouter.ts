@@ -8,6 +8,7 @@ import { verifyTelegramInitData } from "../auth/telegramInitData.js";
 
 const verifyInitDataSchema = z.object({
   initData: z.string().min(1),
+  startParam: z.string().max(64).optional(),
 });
 
 const localSignupSchema = z.object({
@@ -35,7 +36,9 @@ router.post("/auth/telegram/verify-init-data", async (req, res) => {
 
   try {
     const verified = verifyTelegramInitData(parsed.data.initData);
-    const result = await loginWithTelegram(verified);
+    const result = await loginWithTelegram(verified, {
+      startParam: parsed.data.startParam,
+    });
     res.status(200).json({
       ok: true,
       token: result.token,

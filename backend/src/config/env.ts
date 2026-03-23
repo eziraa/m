@@ -11,6 +11,7 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(16),
   TELEGRAM_BOT_TOKEN: z.string().optional(),
   TELEGRAM_WEBHOOK_SECRET: z.string().optional(),
+  TELEGRAM_WEBHOOK_URL: z.string().url().optional(),
   TELEGRAM_INITDATA_MAX_AGE_SEC: z.coerce
     .number()
     .int()

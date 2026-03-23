@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   useGetAdminWithdrawalsQuery,
@@ -23,6 +23,8 @@ import {
   User,
   Wallet,
   Filter,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { format } from "date-fns";
@@ -39,6 +41,8 @@ export default function AdminWithdrawalsPage() {
     action: "approve" | "reject";
   } | null>(null);
   const [rejectReason, setRejectReason] = useState("");
+  const [page, setPage] = useState(1);
+  const pageSize = 20;
 
   // Get balance of
 
@@ -52,8 +56,8 @@ export default function AdminWithdrawalsPage() {
   const { data, isLoading, isFetching } = useGetAdminWithdrawalsQuery({
     status: statusFilter,
     search: search || undefined,
-    page: 1,
-    limit: 50,
+    page,
+    pageSize,
   });
 
   const [approveWithdrawal, { isLoading: approving }] =
@@ -115,7 +119,13 @@ export default function AdminWithdrawalsPage() {
   };
 
   const withdrawals = data?.withdrawals ?? [];
+  const total = data?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const processing = approving || rejecting;
+
+  useEffect(() => {
+    setPage(1);
+  }, [statusFilter, search]);
 
   return (
     <div className="bg-background min-h-screen pb-20 px-4 flex flex-col py-4 gap-4">
@@ -405,6 +415,34 @@ export default function AdminWithdrawalsPage() {
               </motion.div>
             );
           })}
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between rounded-2xl border border-foreground/10 bg-foreground/5 px-3 py-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-9 rounded-xl"
+            disabled={page <= 1}
+            onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+          >
+            <ChevronLeft className="mr-1 h-4 w-4" />
+            Prev
+          </Button>
+          <span className="text-[11px] font-semibold text-foreground/60">
+            Page {page} of {totalPages}
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-9 rounded-xl"
+            disabled={page >= totalPages}
+            onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+          >
+            Next
+            <ChevronRight className="ml-1 h-4 w-4" />
+          </Button>
         </div>
       )}
     </div>

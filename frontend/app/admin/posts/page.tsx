@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   useGetPostsQuery,
@@ -27,6 +27,8 @@ import {
   Eye,
   FileText,
   ArrowUpRight,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -43,17 +45,28 @@ export default function AdminPostsListPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sendTarget, setSendTarget] = useState<Post | null>(null);
   const [broadcastPostId, setBroadcastPostId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
 
   const {
-    data: posts = [],
+    data,
     isLoading,
     refetch,
   } = useGetPostsQuery({
     status: statusFilter !== "all" ? statusFilter : undefined,
     search: searchQuery || undefined,
+    page,
+    pageSize,
   });
+  const posts = data?.posts ?? [];
+  const total = data?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const [deletePost] = useDeletePostMutation();
   const [sendPost] = useSendPostMutation();
+
+  useEffect(() => {
+    setPage(1);
+  }, [statusFilter, searchQuery]);
 
   const handleDelete = async (post: Post) => {
     try {
@@ -150,7 +163,7 @@ export default function AdminPostsListPage() {
         </Card>
       ) : (
         <div className="space-y-2.5">
-          {posts.map((post) => (
+          {posts.map((post: Post) => (
             <Card
               key={post.id}
               className="bg-foreground/5 border-foreground/10 rounded-2xl p-4 transition-all duration-200 hover:bg-foreground/8 active:scale-[0.98] cursor-pointer"
@@ -225,6 +238,36 @@ export default function AdminPostsListPage() {
             </Card>
           ))}
         </div>
+      )}
+
+      {totalPages > 1 && (
+        <Card className="border-foreground/10 bg-foreground/5 px-3 py-2">
+          <div className="flex items-center justify-between gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-9 rounded-xl"
+              disabled={page <= 1}
+              onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+            >
+              <ChevronLeft className="mr-1 h-4 w-4" />
+              Prev
+            </Button>
+            <span className="text-[11px] font-semibold text-muted-foreground">
+              Page {page} of {totalPages}
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-9 rounded-xl"
+              disabled={page >= totalPages}
+              onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+            >
+              Next
+              <ChevronRight className="ml-1 h-4 w-4" />
+            </Button>
+          </div>
+        </Card>
       )}
 
       {/* Dialogs */}

@@ -35,9 +35,10 @@ async function resolveAgentIdFromStartParam(
 
 export async function loginWithTelegram(
   verified: VerifiedInitData,
+  options?: { startParam?: string },
 ): Promise<LoginResult> {
   const telegramId = String(verified.user.id);
-  const referralCode = verified.raw.start_param;
+  const referralCode = verified.raw.start_param || options?.startParam;
   const referredByAgentId = await resolveAgentIdFromStartParam(referralCode);
 
   const [existing] = await db

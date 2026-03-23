@@ -6,7 +6,11 @@ import {
   useLoginLocalMutation, 
   useSignupLocalMutation 
 } from "@/lib/api";
-import { initTelegramWebApp, getTelegramInitData } from "@/lib/telegram";
+import {
+  initTelegramWebApp,
+  getTelegramInitData,
+  getTelegramStartParam,
+} from "@/lib/telegram";
 
 const FALLBACK_TOKEN_KEY = "mella_token";
 
@@ -105,6 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         initTelegramWebApp();
         const initData = getTelegramInitData();
+        const startParam = getTelegramStartParam();
         const stored = localStorage.getItem(FALLBACK_TOKEN_KEY);
 
         if (!initData && !stored) {
@@ -113,7 +118,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         const activeToken = initData
-          ? await verifyTelegramMutation.mutateAsync(initData)
+          ? await verifyTelegramMutation.mutateAsync({
+              initData,
+              startParam: startParam || undefined,
+            })
           : stored;
 
         if (!activeToken) {
