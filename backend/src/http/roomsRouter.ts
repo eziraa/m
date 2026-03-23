@@ -1,11 +1,12 @@
 import { Router } from "express";
-import { eq, desc, inArray, and, sql } from "drizzle-orm";
+import { eq, desc, inArray, and } from "drizzle-orm";
 
 import { db } from "../db/client.js";
 import { gameSessions, rooms } from "../db/schema.js";
 import { RequestIdentity, requireAuth } from "./authMiddleware.js";
 import { requireAdmin } from "./adminGuard.js";
 import { requireAgent } from "./agentGuard.js";
+import { logger } from "../utils/logger.js";
 
 const router = Router();
 
@@ -99,21 +100,11 @@ async function listAvailableRooms(identity: RequestIdentity) {
           and(eq(rooms.status, "active"), eq(rooms.agentId, identity.agentId)),
         )
         .orderBy(desc(rooms.createdAt));
-    } else {
-      // User without agent: see only rooms with agentId null
-      return db
-        .select({
-          id: rooms.id,
-          name: rooms.name,
-          description: rooms.description,
-          boardPriceCents: rooms.boardPriceCents,
-          agentId: rooms.agentId,
-          color: rooms.color,
-        })
-        .from(rooms)
-        .where(and(eq(rooms.status, "active"), sql`${rooms.agentId} IS NULL`))
-        .orderBy(desc(rooms.createdAt));
     }
+
+    // Rooms.agentId is non-null in schema, so a USER without an agent cannot
+    // match any room ownership rule in the current model.
+    return [];
   }
 
   // Fallback: no rooms
@@ -124,44 +115,16 @@ router.get("/rooms", requireAuth, async (_req, res) => {
   try {
     // Use new logic for available rooms based on user type/agent
     const identity = _req.identity;
-    let allRooms = identity ? await listAvailableRooms(identity) : [];
-
-    // Seed default rooms if empty (for demo purposes)
-    if (allRooms.length === 0 && identity) {
-      const agentId = identity.userId;
-      await db.insert(rooms).values([
-        {
-          agentId,
-          name: "Beginner Room",
-          description: "Perfect for new players",
-          boardPriceCents: 1000,
-          minPlayers: 2,
-          maxPlayers: 10,
-          color: "from-blue-400 to-blue-600",
-        },
-        {
-          agentId,
-          name: "Standard Room",
-          description: "For regular players",
-          boardPriceCents: 2000,
-          minPlayers: 5,
-          maxPlayers: 20,
-          color: "from-blue-500 to-blue-700",
-        },
-        {
-          agentId,
-          name: "High Stakes",
-          description: "Big risks, big rewards",
-          boardPriceCents: 5000,
-          minPlayers: 10,
-          maxPlayers: 50,
-          color: "from-blue-700 to-blue-900",
-        },
-      ]);
-      allRooms = await listAvailableRooms(identity);
-    }
+    const allRooms = identity ? await listAvailableRooms(identity) : [];
 
     const liveRoomIds = await getLiveRoomIdsCached();
+    logger.info("rooms_listed", {
+      requestId: _req.requestId,
+      userId: identity?.userId ?? null,
+      role: identity?.role ?? null,
+      agentId: identity?.agentId ?? null,
+      count: allRooms.length,
+    });
 
     return res.json({
       rooms: allRooms.map((room) => ({
@@ -173,6 +136,13 @@ router.get("/rooms", requireAuth, async (_req, res) => {
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : "list_rooms_failed";
+    logger.error("rooms_list_failed", {
+      requestId: _req.requestId,
+      userId: _req.identity?.userId ?? null,
+      role: _req.identity?.role ?? null,
+      agentId: _req.identity?.agentId ?? null,
+      message,
+    });
     return res.status(500).json({ error: message });
   }
 });
