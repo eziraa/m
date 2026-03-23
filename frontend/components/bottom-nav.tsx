@@ -25,7 +25,8 @@ export function BottomNav() {
   const pathname = usePathname() || "";
   const t = useTranslations("bottomNav");
 
-  const isAgent = user?.role === "AGENT" || user?.role === "ADMIN";
+  const isAgent = user?.role === "AGENT";
+  const isAdmin = user?.role === "ADMIN";
 
   let navItems = [
     { label: t("play"), href: "/", icon: Gamepad2 },
@@ -34,7 +35,9 @@ export function BottomNav() {
     { label: t("settings"), href: "/settings", icon: Settings },
     ...(isAgent
       ? [{ label: "Dashboard", href: "/agent/rooms", icon: LayoutDashboard }]
-      : []),
+      : isAdmin
+        ? [{ label: "Dashboard", href: "/admin/rooms", icon: LayoutDashboard }]
+        : []),
   ];
 
   const agentNavItems = [
