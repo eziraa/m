@@ -512,7 +512,7 @@ export function useGetRoomsQuery(options?: { skip?: boolean }) {
   const query = useQuery({
     queryKey: ["rooms"],
     queryFn: async () => {
-      const res = await fetch(`${API_BASE}$/rooms`, {
+      const res = await fetch(`${API_BASE}/rooms`, {
         method: "GET",
         headers: { authorization: `Bearer ${token}` },
         cache: "no-store",
