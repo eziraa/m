@@ -100,6 +100,7 @@ app.get("/metrics", (_req, res) => {
   });
 });
 
+app.use(telegramWebhookRouter);
 app.use(authRouter);
 app.use(adminRouter);
 app.use(agentRouter);
@@ -107,7 +108,6 @@ app.use(gameRouter);
 app.use(userRouter);
 app.use(walletRouter);
 app.use(roomsRouter);
-app.use(telegramWebhookRouter);
 app.use(notFoundHandler);
 app.use(errorHandler);
 

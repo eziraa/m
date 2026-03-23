@@ -5,8 +5,7 @@ import { env } from "../config/env.js";
 import { db } from "../db/client.js";
 import { telegramUpdates } from "../db/schema.js";
 import { getBot } from "../telegram/bot.js";
-import { logger } from "../utils/logger.js";
-
+import { logger } from "./requestContext.js";
 const router = Router();
 
 function inferTelegramEventType(update: Record<string, unknown>): string {
