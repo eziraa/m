@@ -5,6 +5,7 @@ import { env } from "../config/env.js";
 import { db } from "../db/client.js";
 import { telegramUpdates } from "../db/schema.js";
 import { getBot } from "../telegram/bot.js";
+import { logger } from "../utils/logger.js";
 
 const router = Router();
 
@@ -17,27 +18,43 @@ function inferTelegramEventType(update: Record<string, unknown>): string {
 }
 
 router.post("/telegram/webhook", async (req: Request, res: Response) => {
-  console.log("[WEBHOOK] Incoming request", {
-    headers: req.headers,
-    body: req.body,
+  logger.info("telegram_webhook_received", {
+    requestId: req.requestId,
+    contentType: req.header("content-type") ?? null,
+    hasBody: Boolean(req.body && Object.keys(req.body).length > 0),
+    hasSecretHeader: Boolean(
+      req.header("x-telegram-bot-api-secret-token")?.length,
+    ),
   });
   if (env.LOCAL_DEV_AUTH_ENABLED) {
-    console.log(
-      "[WEBHOOK] LOCAL_DEV_AUTH_ENABLED is true, skipping processing",
-    );
+    logger.warn("telegram_webhook_skipped_local_dev", {
+      requestId: req.requestId,
+    });
     res.status(204).send();
     return;
   }
 
   const secret = req.header("x-telegram-bot-api-secret-token");
   if (secret !== env.TELEGRAM_WEBHOOK_SECRET) {
-    console.warn("[WEBHOOK] Invalid secret token", { received: secret });
+    logger.warn("telegram_webhook_invalid_secret", {
+      requestId: req.requestId,
+      receivedLength: secret?.length ?? 0,
+    });
     res.status(401).json({ error: "invalid_telegram_secret" });
     return;
   }
 
   try {
     const update = req.body as Record<string, unknown>;
+    if (!update || typeof update !== "object") {
+      logger.warn("telegram_webhook_invalid_body", {
+        requestId: req.requestId,
+        bodyType: typeof req.body,
+      });
+      res.status(400).json({ error: "invalid_telegram_update" });
+      return;
+    }
+
     const updateId = Number(update.update_id);
     const eventType = inferTelegramEventType(update);
     const telegramUserId =
@@ -48,11 +65,11 @@ router.post("/telegram/webhook", async (req: Request, res: Response) => {
           0,
       ) || "0";
 
-    console.log("[WEBHOOK] Parsed update", {
+    logger.info("telegram_webhook_parsed_update", {
+      requestId: req.requestId,
       updateId,
       eventType,
       telegramUserId,
-      update,
     });
 
     if (Number.isFinite(updateId) && updateId > 0) {
@@ -83,12 +100,17 @@ router.post("/telegram/webhook", async (req: Request, res: Response) => {
           .limit(1);
 
         if (existing?.processedAt) {
-          console.log("[WEBHOOK] Duplicate processed update", { updateId });
+          logger.info("telegram_webhook_duplicate_processed", {
+            requestId: req.requestId,
+            updateId,
+            eventType,
+          });
           res.status(200).json({ ok: true, duplicate: true });
           return;
         }
 
-        console.warn("[WEBHOOK] Retrying previously unprocessed update", {
+        logger.warn("telegram_webhook_retry_unprocessed", {
+          requestId: req.requestId,
           updateId,
           eventType,
           recordId: existing?.id ?? null,
@@ -98,9 +120,19 @@ router.post("/telegram/webhook", async (req: Request, res: Response) => {
 
     try {
       await getBot().handleUpdate(req.body);
-      console.log("[WEBHOOK] Bot handled update successfully");
+      logger.info("telegram_webhook_bot_handled", {
+        requestId: req.requestId,
+        updateId,
+        eventType,
+      });
     } catch (botError) {
-      console.error("[WEBHOOK] Error in bot.handleUpdate", botError);
+      logger.error("telegram_webhook_bot_error", {
+        requestId: req.requestId,
+        updateId,
+        eventType,
+        message:
+          botError instanceof Error ? botError.message : String(botError),
+      });
       throw botError;
     }
 
@@ -116,9 +148,18 @@ router.post("/telegram/webhook", async (req: Request, res: Response) => {
         );
     }
 
+    logger.info("telegram_webhook_processed", {
+      requestId: req.requestId,
+      updateId,
+      eventType,
+      statusCode: 200,
+    });
     res.status(200).json({ ok: true });
   } catch (err) {
-    console.error("[WEBHOOK] Error handling update", err);
+    logger.error("telegram_webhook_failed", {
+      requestId: req.requestId,
+      message: err instanceof Error ? err.message : String(err),
+    });
     res.status(500).json({ error: "telegram_update_failed" });
   }
 });
