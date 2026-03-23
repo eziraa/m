@@ -125,6 +125,17 @@ export function getBot(): Telegraf {
   if (botRef) return botRef;
 
   botRef = new Telegraf(env.TELEGRAM_BOT_TOKEN);
+  botRef.telegram.webhookReply = false;
+
+  botRef.catch((error, ctx) => {
+    console.error("[TELEGRAM] Unhandled bot error", {
+      updateId: ctx.update.update_id,
+      chatId: ctx.chat?.id,
+      fromId: ctx.from?.id,
+      error,
+    });
+    throw error;
+  });
 
   botRef.start(async (ctx) => {
     const payload = ctx.startPayload ?? "";

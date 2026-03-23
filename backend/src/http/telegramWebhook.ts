@@ -68,9 +68,31 @@ router.post("/telegram/webhook", async (req: Request, res: Response) => {
         .returning({ id: telegramUpdates.id });
 
       if (inserted.length === 0) {
-        console.log("[WEBHOOK] Duplicate update", { updateId });
-        res.status(200).json({ ok: true, duplicate: true });
-        return;
+        const [existing] = await db
+          .select({
+            id: telegramUpdates.id,
+            processedAt: telegramUpdates.processedAt,
+          })
+          .from(telegramUpdates)
+          .where(
+            and(
+              eq(telegramUpdates.updateId, updateId),
+              eq(telegramUpdates.eventType, eventType),
+            ),
+          )
+          .limit(1);
+
+        if (existing?.processedAt) {
+          console.log("[WEBHOOK] Duplicate processed update", { updateId });
+          res.status(200).json({ ok: true, duplicate: true });
+          return;
+        }
+
+        console.warn("[WEBHOOK] Retrying previously unprocessed update", {
+          updateId,
+          eventType,
+          recordId: existing?.id ?? null,
+        });
       }
     }
 
