@@ -26,8 +26,8 @@ export function AgentBottomNav() {
   const pathname = usePathname() || "";
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 px-4 flex justify-center pointer-events-none md:hidden">
-      <div className="relative w-full max-w-[480px] flex items-center justify-between bg-zinc-950/80 backdrop-blur-3xl border border-white/5 rounded-[32px] px-1.5 py-3 shadow-[0_20px_50px_rgba(0,0,0,0.5)] pointer-events-auto">
+    <div className="fixed bottom-0 left-0 right-0 z-50 px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 flex justify-center pointer-events-none md:hidden">
+      <div className="relative w-full max-w-[460px] flex items-center justify-between bg-zinc-950/90 backdrop-blur-3xl border border-white/5 rounded-[28px] px-1 py-2.5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] pointer-events-auto">
         {/* Subtle top highlight */}
         <div className="absolute inset-0 rounded-[32px] overflow-hidden pointer-events-none">
           <div className="absolute inset-0 bg-linear-to-b from-white/2 to-transparent" />
@@ -50,12 +50,12 @@ export function AgentBottomNav() {
               {isActive && (
                 <motion.div
                   layoutId="agentActiveCircle"
-                  className="absolute -top-8 size-14 bg-blue-600 rounded-full flex flex-col p-2 items-center justify-center shadow-[0_8px_20px_rgba(37,99,235,0.4)] z-20"
+                  className="absolute -top-7 size-12 bg-blue-600 rounded-full flex flex-col p-1.5 items-center justify-center shadow-[0_8px_20px_rgba(37,99,235,0.4)] z-20"
                   transition={{ type: "spring", bounce: 0.25, duration: 0.5 }}
                 >
                   <div className="absolute inset-0 rounded-full bg-linear-to-b from-white/20 to-transparent pointer-events-none" />
-                  <Icon size={22} className="text-white" strokeWidth={2.5} />
-                  <span className="text-[9px] font-bold mt-0.5 text-white tracking-tight">
+                  <Icon size={18} className="text-white" strokeWidth={2.5} />
+                  <span className="text-[8px] font-bold mt-0.5 text-white tracking-tight">
                     {item.label}
                   </span>
                   <div className="absolute -inset-2 rounded-full bg-blue-500/20 blur-md -z-10 animate-pulse" />
@@ -70,7 +70,7 @@ export function AgentBottomNav() {
                 )}
               >
                 <Icon
-                  size={20}
+                  size={18}
                   strokeWidth={2}
                   className={cn(
                     "transition-colors",

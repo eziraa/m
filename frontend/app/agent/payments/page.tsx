@@ -81,17 +81,17 @@ export default function AgentPaymentsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="space-y-5 pb-28">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
             {t("title")}
           </h1>
           <p className="text-sm text-muted-foreground">
             {t("subtitle")}
           </p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 self-start sm:self-auto">
           {(isFetching || statsFetching) && (
             <div className="inline-flex items-center gap-2 rounded-md border px-3 py-2 text-xs text-muted-foreground">
               <Loader2 className="h-3.5 w-3.5 animate-spin" /> Updating
@@ -101,7 +101,7 @@ export default function AgentPaymentsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         <StatsCard
           title={t("stats.totalRecords")}
           value={stats?.totalCount ?? 0}
@@ -129,7 +129,7 @@ export default function AgentPaymentsPage() {
           <CardTitle className="text-base">{t("filters.title")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <div className="relative xl:col-span-2">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -162,7 +162,7 @@ export default function AgentPaymentsPage() {
             />
           </div>
 
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
             <select
               value={status}
               onChange={(e) => {
@@ -220,7 +220,7 @@ export default function AgentPaymentsPage() {
               </select>
             </div>
           </div>
-          <div className="flex justify-end">
+          <div className="flex justify-stretch sm:justify-end">
             <Button variant="outline" onClick={resetFilters}>
               {t("filters.reset")}
             </Button>

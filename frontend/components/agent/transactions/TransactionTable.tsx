@@ -56,7 +56,7 @@ export default function TransactionTable() {
   return (
     <div className="w-full ">
       {/* Table Header */}
-      <div className="border-b bg-muted/40 p-4 flex flex-col md:flex-row gap-4 justify-between md:items-center">
+      <div className="border-b bg-muted/40 p-4 flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
         <div>
           <h3 className="text-sm font-medium text-muted-foreground">
             Recent Transactions
@@ -65,7 +65,7 @@ export default function TransactionTable() {
             Showing {transactions.length} of {total} records
           </p>
         </div>
-        <div className="flex flex-wrap gap-2 items-center">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
           <input
             placeholder="Search..."
             value={search}
@@ -73,7 +73,7 @@ export default function TransactionTable() {
               setSearch(event.target.value);
               setPage(1);
             }}
-            className="h-8 w-full sm:w-auto lg:w-62.5 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            className="col-span-2 h-8 w-full sm:w-auto lg:w-62.5 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
           />
           {/* Sorting */}
           <select
@@ -299,12 +299,12 @@ export default function TransactionTable() {
       </div>
 
       {/* Pagination */}
-      <div className="flex flex-wrap items-center justify-between gap-3 py-4 px-4 border-t">
+      <div className="flex flex-col gap-3 border-t px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="text-sm text-muted-foreground">
           Page {page} of {Math.max(1, Math.ceil(total / pageSize))} •{" "}
           {total.toLocaleString()} records
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <label className="flex items-center gap-1 text-xs text-muted-foreground">
             <span>Per page:</span>
             <select
@@ -322,7 +322,7 @@ export default function TransactionTable() {
               ))}
             </select>
           </label>
-          <div className="space-x-2 flex items-center  ">
+          <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"

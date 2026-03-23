@@ -53,6 +53,8 @@ export function BottomNav() {
   if (!user) return null;
 
   if (pathname.includes("game")) return null;
+  if (pathname.startsWith("/admin")) return null;
+  if (pathname.startsWith("/agent")) return null;
   if (pathname.startsWith("/agent")) navItems = agentNavItems;
 
   return (

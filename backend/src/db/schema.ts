@@ -71,6 +71,38 @@ export const withdrawalStatusEnum = pgEnum("withdrawal_status", [
 ]);
 
 export const bonusTypeEnum = pgEnum("bonus_type", ["percentage", "fixed"]);
+export const postTargetEnum = pgEnum("post_target", ["users", "channel"]);
+export const postStatusEnum = pgEnum("post_status", [
+  "draft",
+  "scheduled",
+  "sending",
+  "sent",
+  "failed",
+]);
+export const deliveryStatusEnum = pgEnum("delivery_status", [
+  "pending",
+  "sent",
+  "failed",
+]);
+export const deliveryDeletionStatusEnum = pgEnum("delivery_deletion_status", [
+  "none",
+  "queued",
+  "deleted",
+  "failed",
+  "cancelled",
+]);
+export const broadcastDeleteModeEnum = pgEnum("broadcast_delete_mode", [
+  "selected",
+  "all",
+  "date_range",
+]);
+export const jobStatusEnum = pgEnum("job_status", [
+  "queued",
+  "running",
+  "done",
+  "failed",
+  "cancelled",
+]);
 
 export const users = pgTable(
   "users",
@@ -600,6 +632,169 @@ export const promoCodeUsages = pgTable(
   }),
 );
 
+export const adminSettings = pgTable(
+  "admin_settings",
+  {
+    key: text("key").primaryKey(),
+    value: jsonb("value").notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    updatedAtIdx: index("idx_admin_settings_updated_at").on(table.updatedAt),
+  }),
+);
+
+export const postCategories = pgTable(
+  "post_categories",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: text("name").notNull(),
+    slug: text("slug").notNull(),
+    description: text("description"),
+    channelChatId: text("channel_chat_id"),
+    isActive: boolean("is_active").default(true).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    nameUq: uniqueIndex("uq_post_categories_name").on(table.name),
+    slugUq: uniqueIndex("uq_post_categories_slug").on(table.slug),
+    activeIdx: index("idx_post_categories_active").on(table.isActive),
+  }),
+);
+
+export const broadcastPosts = pgTable(
+  "broadcast_posts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    title: text("title").notNull(),
+    content: text("content").notNull(),
+    format: text("format").default("markdown").notNull(),
+    target: postTargetEnum("target").default("users").notNull(),
+    categoryId: uuid("category_id").references(() => postCategories.id, {
+      onDelete: "set null",
+    }),
+    images: jsonb("images").notNull().default([]),
+    buttons: jsonb("buttons").notNull().default([]),
+    status: postStatusEnum("status").default("draft").notNull(),
+    scheduledAt: timestamp("scheduled_at", { withTimezone: true }),
+    sentAt: timestamp("sent_at", { withTimezone: true }),
+    createdBy: uuid("created_by")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    updatedBy: uuid("updated_by").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    statusUpdatedIdx: index("idx_broadcast_posts_status_updated").on(
+      table.status,
+      table.updatedAt,
+    ),
+    scheduledIdx: index("idx_broadcast_posts_scheduled").on(
+      table.scheduledAt,
+      table.status,
+    ),
+    targetIdx: index("idx_broadcast_posts_target").on(table.target),
+  }),
+);
+
+export const postDeliveries = pgTable(
+  "post_deliveries",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    postId: uuid("post_id")
+      .notNull()
+      .references(() => broadcastPosts.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+    chatId: text("chat_id").notNull(),
+    status: deliveryStatusEnum("status").default("pending").notNull(),
+    messageId: text("message_id"),
+    errorMessage: text("error_message"),
+    deliveredAt: timestamp("delivered_at", { withTimezone: true }),
+    deletionStatus: deliveryDeletionStatusEnum("deletion_status")
+      .default("none")
+      .notNull(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    postStatusIdx: index("idx_post_deliveries_post_status").on(
+      table.postId,
+      table.status,
+      table.createdAt,
+    ),
+    chatIdx: index("idx_post_deliveries_chat").on(table.chatId, table.createdAt),
+    userIdx: index("idx_post_deliveries_user").on(table.userId, table.createdAt),
+    deletionIdx: index("idx_post_deliveries_deletion").on(
+      table.postId,
+      table.deletionStatus,
+      table.createdAt,
+    ),
+    uniquePostRecipient: uniqueIndex("uq_post_deliveries_post_chat").on(
+      table.postId,
+      table.chatId,
+    ),
+  }),
+);
+
+export const broadcastDeleteJobs = pgTable(
+  "broadcast_delete_jobs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    postId: uuid("post_id")
+      .notNull()
+      .references(() => broadcastPosts.id, { onDelete: "cascade" }),
+    requestedBy: uuid("requested_by")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    mode: broadcastDeleteModeEnum("mode").notNull(),
+    status: jobStatusEnum("status").default("queued").notNull(),
+    filters: jsonb("filters").notNull().default({}),
+    totalTargeted: integer("total_targeted").default(0).notNull(),
+    successCount: integer("success_count").default(0).notNull(),
+    failedCount: integer("failed_count").default(0).notNull(),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    postCreatedIdx: index("idx_broadcast_delete_jobs_post_created").on(
+      table.postId,
+      table.createdAt,
+    ),
+    statusIdx: index("idx_broadcast_delete_jobs_status").on(
+      table.status,
+      table.createdAt,
+    ),
+  }),
+);
+
 export const telegramUpdates = pgTable(
   "telegram_updates",
   {
@@ -635,3 +830,8 @@ export type Deposit = typeof deposits.$inferSelect;
 export type Withdrawal = typeof withdrawals.$inferSelect;
 export type PromoCode = typeof promoCodes.$inferSelect;
 export type PromoCodeUsage = typeof promoCodeUsages.$inferSelect;
+export type AdminSetting = typeof adminSettings.$inferSelect;
+export type PostCategory = typeof postCategories.$inferSelect;
+export type BroadcastPost = typeof broadcastPosts.$inferSelect;
+export type PostDelivery = typeof postDeliveries.$inferSelect;
+export type BroadcastDeleteJob = typeof broadcastDeleteJobs.$inferSelect;

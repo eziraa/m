@@ -8,7 +8,6 @@ import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Plus, Edit, Trash2, RefreshCw, LayoutGrid, Zap } from "lucide-react";
 import {
-  useGetRoomsQuery,
   useDeleteRoomMutation,
   useToggleRoomBotsMutation,
   useGetRoomsForAgentQuery,
@@ -78,17 +77,15 @@ export default function AgentRoomsPage() {
 
   return (
     <div className="space-y-4">
-      <header className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div>
-            <h1 className="text-xl font-semibold flex items-center gap-2">
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-xl font-semibold flex items-center gap-2">
               <Zap className="h-5 w-5 text-primary" />
               {t("title")}
-            </h1>
-            <p className="text-xs text-muted-foreground">{t("subtitle")}</p>
-          </div>
+          </h1>
+          <p className="text-xs text-muted-foreground">{t("subtitle")}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 self-start sm:self-auto">
           <Button
             variant="outline"
             size="icon"
@@ -107,7 +104,7 @@ export default function AgentRoomsPage() {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
         {isLoading ? (
           Array.from({ length: 4 }).map((_, i) => (
             <div
@@ -130,7 +127,7 @@ export default function AgentRoomsPage() {
             </div>
           </div>
         ) : (
-          rooms?.map((room) => (
+          rooms?.map((room: Room) => (
             <Card
               key={room.id}
               className="group relative border bg-card rounded-2xl overflow-hidden p-4 flex flex-col items-center text-center gap-3 transition-all min-h-[180px]"
@@ -173,12 +170,12 @@ export default function AgentRoomsPage() {
                   {room.price} ETB
                 </Badge>
 
-                <p className="text-[10px] text-white/40 line-clamp-1 mt-0.5 font-medium px-2">
+                <p className="text-[10px] text-muted-foreground line-clamp-2 mt-0.5 font-medium px-2">
                   {room.description || t("fallbackDescription")}
                 </p>
 
-                <div className="flex items-center justify-center gap-2 mt-2 pt-3 border-t border-white/5 w-full">
-                  <span className="text-[9px] text-white/30 font-black uppercase tracking-widest">
+                <div className="flex items-center justify-center gap-2 mt-2 pt-3 border-t border-border/60 w-full">
+                  <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest">
                     {t("playersShort", {
                       min: room.minPlayers ?? 0,
                       max: room.maxPlayers ?? 0,
@@ -191,13 +188,13 @@ export default function AgentRoomsPage() {
                 </div>
 
                 <div className="flex items-center justify-between w-full mt-3 px-1">
-                  <span className="text-[10px] text-white/50 font-semibold">
+                  <span className="text-[10px] text-muted-foreground font-semibold">
                     {room.botAllowed ? "Bots Enabled" : "Bots Disabled"}
                   </span>
                   <Switch
                     checked={Boolean(room.botAllowed)}
                     disabled={togglingRoomId === room.id}
-                    onCheckedChange={(checked) =>
+                    onCheckedChange={(checked: boolean) =>
                       handleBotToggle(room, checked)
                     }
                   />

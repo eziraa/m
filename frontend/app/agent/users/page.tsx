@@ -3,7 +3,6 @@
 import { useDeferredValue, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft,
   Users,
   Search,
   MoreVertical,
@@ -25,7 +24,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useGetAgentUsersQuery } from "@/lib/api";
-import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslations } from "next-intl";
@@ -64,7 +62,7 @@ export default function AgentUsersPage() {
   const isLoading = isFetching && !usersData;
 
   const handleViewDetails = (userId: string) => {
-    router.push(`/Agent/users/${userId}`);
+    router.push(`/agent/users/${userId}`);
   };
 
   const getRoleIcon = (role: string) => {
@@ -93,15 +91,13 @@ export default function AgentUsersPage() {
 
   return (
     <div className="space-y-4">
-      <header className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div>
-            <h1 className="text-xl font-semibold flex items-center gap-2">
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-xl font-semibold flex items-center gap-2">
               <Users className="h-5 w-5 text-primary" />
               {t("title")}
-            </h1>
-            <p className="text-xs text-muted-foreground">{t("subtitle")}</p>
-          </div>
+          </h1>
+          <p className="text-xs text-muted-foreground">{t("subtitle")}</p>
         </div>
         <Button
           variant="outline"
@@ -113,8 +109,8 @@ export default function AgentUsersPage() {
         </Button>
       </header>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="relative min-w-[260px]">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,1.6fr)_auto_auto_auto] xl:items-center">
+        <div className="relative min-w-0">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder={t("searchPlaceholder")}
@@ -126,16 +122,14 @@ export default function AgentUsersPage() {
             className="pl-9 h-9"
           />
         </div>
-        {/* Sort */}
-        <div className="flex items-center gap-1">
-          <span className="text-xs text-muted-foreground">Sort by:</span>
+        <div className="flex items-center gap-1 min-w-0">
           <select
             value={sortBy}
             onChange={(e) => {
               setSortBy(e.target.value);
               setPage(1);
             }}
-            className="h-9 rounded-md border bg-background px-3 text-xs font-medium"
+            className="h-9 min-w-0 flex-1 rounded-md border bg-background px-3 text-xs font-medium"
           >
             <option value="createdAt">Created At</option>
             <option value="balance">Balance</option>
@@ -175,7 +169,7 @@ export default function AgentUsersPage() {
           <option value="Agent">Agent</option>
           <option value="AGENT">Agent</option>
         </select>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-xs text-muted-foreground sm:justify-self-end">
           {total.toLocaleString()} total
         </p>
       </div>

@@ -122,10 +122,10 @@ export default function AgentWithdrawalsPage() {
 
   return (
     <>
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 pb-28">
+        <div className="flex items-start justify-between gap-3">
           <div>
-            <h1 className="text-xl font-semibold tracking-tight">
+            <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
               {t("title")}
             </h1>
             <p className="text-xs text-muted-foreground">
@@ -138,7 +138,7 @@ export default function AgentWithdrawalsPage() {
         </div>
 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-          <div className="relative max-w-sm">
+          <div className="relative w-full md:max-w-sm">
             <Search
               size={14}
               className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
@@ -152,7 +152,7 @@ export default function AgentWithdrawalsPage() {
           </div>
 
           {/* Sorting */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 self-start">
             <select
               value={orderBy}
               onChange={(event) => {

@@ -23,12 +23,14 @@ export type Transaction = {
   amount: string | number;
   status: TransactionStatus;
   description: string | null;
+  details?: string | null;
   createdAt: string;
   user?: {
     id: string;
     username: string | null;
     firstName: string | null;
     lastName: string | null;
+    name?: string | null;
   };
 };
 
@@ -114,6 +116,11 @@ export type AgentWithdrawal = {
   userBalance?: string;
 };
 
+export type AdminWithdrawal = AgentWithdrawal & {
+  lastName?: string | null;
+  email?: string | null;
+};
+
 export type Room = {
   id: string;
   name: string;
@@ -127,3 +134,59 @@ export type Room = {
   botAllowed: boolean | number;
   isLive: boolean;
 };
+
+export type PostStatus =
+  | "draft"
+  | "scheduled"
+  | "sending"
+  | "sent"
+  | "failed"
+  | "pending";
+
+export type PostButton = {
+  text: string;
+  url?: string;
+};
+
+export type Post = {
+  id: string;
+  title: string;
+  content: string;
+  format: "markdown" | "html";
+  target: "users" | "channel";
+  categoryId: string | null;
+  images: string[];
+  buttons: PostButton[][];
+  status: PostStatus;
+  scheduledAt: string | null;
+  sentAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type PostCategory = {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  channelChatId?: string | null;
+  isActive: boolean;
+};
+
+export type PostDelivery = {
+  id: string;
+  postId?: string;
+  postTitle?: string | null;
+  userId?: string | null;
+  chatId: string;
+  username?: string | null;
+  firstName?: string | null;
+  telegramId?: string | null;
+  status: "pending" | "sent" | "failed";
+  errorMessage?: string | null;
+  deliveredAt?: string | null;
+  createdAt: string;
+  deletionStatus?: "none" | "queued" | "deleted" | "failed" | "cancelled";
+};
+
+export type PostRecipient = PostDelivery;
