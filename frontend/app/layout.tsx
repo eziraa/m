@@ -5,6 +5,7 @@ import Provider from "@/providers/providers";
 import { Toaster } from "sonner";
 import { DM_Sans, Great_Vibes, Noto_Sans_Ethiopic } from "next/font/google";
 import { getLocale, getMessages } from "next-intl/server";
+import { BottomNav } from "@/components/bottom-nav";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -68,9 +69,13 @@ export default async function RootLayout({
         <Provider locale={locale} messages={messages}>
           <Toaster position="top-center" richColors closeButton theme="dark" />
           <div className="relative w-full    min-h-screen overflow-hidden max-h-screen  flex flex-col  bg-background ">
-            <div className={`   w-full flex flex-col flex-1   justify-start  `}>
+            <div
+              className={`   w-full flex flex-col flex-1 min-h-screen overflow-y-auto custom-scrollbar max-h-screen  justify-start  `}
+            >
               {children}
             </div>
+
+            <BottomNav />
           </div>
         </Provider>
       </body>
