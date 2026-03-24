@@ -1,10 +1,11 @@
-import { and, desc, eq, gt, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, gt, inArray, or, sql } from "drizzle-orm";
 import { db } from "../db/client.js";
 import {
   boards,
   gameSessions,
   rooms,
   sessionCalledNumbers,
+  users,
 } from "../db/schema.js";
 import type { RequestIdentity } from "../http/authMiddleware.js";
 import {
@@ -22,6 +23,21 @@ const heartbeats = new Map<string, NodeJS.Timeout>();
 const leaseTokens = new Map<string, string>();
 const localLeaseOwners = new Map<string, string>();
 const tickingSessions = new Set<string>();
+
+function canAccessSessionOwner(
+  identity: RequestIdentity,
+  ownerAgentId: string,
+  ownerRole: "ADMIN" | "AGENT" | "USER",
+) {
+  if (identity.role === "ADMIN") return true;
+  if (identity.role === "AGENT") {
+    return ownerAgentId === identity.userId || ownerRole === "ADMIN";
+  }
+  if (identity.role === "USER") {
+    return ownerRole === "ADMIN" || identity.agentId === ownerAgentId;
+  }
+  return false;
+}
 
 async function acquireLease(
   sessionId: string,
@@ -447,9 +463,11 @@ export async function getSessionState(
       winnerUserId: gameSessions.winnerUserId,
       agentId: gameSessions.agentId,
       stakeCents: rooms.boardPriceCents,
+      ownerRole: users.role,
     })
     .from(gameSessions)
     .innerJoin(rooms, eq(rooms.id, gameSessions.roomId))
+    .innerJoin(users, eq(users.id, rooms.agentId))
     .where(eq(gameSessions.id, sessionId))
     .limit(1);
 
@@ -457,13 +475,7 @@ export async function getSessionState(
     throw new Error("session_not_found");
   }
 
-  if (identity.role === "AGENT" && session.agentId !== identity.userId) {
-    throw new Error("forbidden_agent_scope");
-  }
-  if (
-    identity.role === "USER" &&
-    (!identity.agentId || identity.agentId !== session.agentId)
-  ) {
+  if (!canAccessSessionOwner(identity, session.agentId, session.ownerRole)) {
     throw new Error("forbidden_agent_scope");
   }
 
@@ -562,9 +574,11 @@ export async function getBoardSelectionState(
       roomName: rooms.name,
       stakeCents: rooms.boardPriceCents,
       agentId: gameSessions.agentId,
+      ownerRole: users.role,
     })
     .from(gameSessions)
     .innerJoin(rooms, eq(rooms.id, gameSessions.roomId))
+    .innerJoin(users, eq(users.id, rooms.agentId))
     .where(eq(gameSessions.id, sessionId))
     .limit(1);
 
@@ -572,13 +586,7 @@ export async function getBoardSelectionState(
     throw new Error("session_not_found");
   }
 
-  if (identity.role === "AGENT" && session.agentId !== identity.userId) {
-    throw new Error("forbidden_agent_scope");
-  }
-  if (
-    identity.role === "USER" &&
-    (!identity.agentId || identity.agentId !== session.agentId)
-  ) {
+  if (!canAccessSessionOwner(identity, session.agentId, session.ownerRole)) {
     throw new Error("forbidden_agent_scope");
   }
 
@@ -628,18 +636,22 @@ export async function resolveOrCreateActiveSessionByRoomName(
     throw new Error("room_name_required");
   }
 
-  const roomFilters = [
+  const roomFilters: Array<ReturnType<typeof eq>> = [
     eq(rooms.status, "active"),
     eq(rooms.name, normalizedRoomName),
   ];
 
   if (identity.role === "AGENT") {
-    roomFilters.push(eq(rooms.agentId, identity.userId));
+    const accessFilter = or(
+      eq(rooms.agentId, identity.userId),
+      eq(users.role, "ADMIN"),
+    ) as ReturnType<typeof eq>;
+    roomFilters.push(accessFilter);
   } else if (identity.role === "USER") {
-    if (!identity.agentId) {
-      throw new Error("forbidden_agent_scope");
-    }
-    roomFilters.push(eq(rooms.agentId, identity.agentId));
+    const accessFilter = identity.agentId
+      ? or(eq(rooms.agentId, identity.agentId), eq(users.role, "ADMIN"))
+      : eq(users.role, "ADMIN");
+    roomFilters.push(accessFilter as ReturnType<typeof eq>);
   }
 
   const [room] = await db
@@ -649,6 +661,7 @@ export async function resolveOrCreateActiveSessionByRoomName(
       name: rooms.name,
     })
     .from(rooms)
+    .innerJoin(users, eq(users.id, rooms.agentId))
     .where(and(...roomFilters))
     .orderBy(desc(rooms.createdAt))
     .limit(1);
@@ -665,15 +678,22 @@ export async function resolveOrCreateActiveSessionByRoomId(
   identity: RequestIdentity,
   roomId: string,
 ) {
-  const roomFilters = [eq(rooms.status, "active"), eq(rooms.id, roomId)];
+  const roomFilters: Array<ReturnType<typeof eq>> = [
+    eq(rooms.status, "active"),
+    eq(rooms.id, roomId),
+  ];
 
   if (identity.role === "AGENT") {
-    roomFilters.push(eq(rooms.agentId, identity.userId));
+    const accessFilter = or(
+      eq(rooms.agentId, identity.userId),
+      eq(users.role, "ADMIN"),
+    ) as ReturnType<typeof eq>;
+    roomFilters.push(accessFilter);
   } else if (identity.role === "USER") {
-    if (!identity.agentId) {
-      throw new Error("forbidden_agent_scope");
-    }
-    roomFilters.push(eq(rooms.agentId, identity.agentId));
+    const accessFilter = identity.agentId
+      ? or(eq(rooms.agentId, identity.agentId), eq(users.role, "ADMIN"))
+      : eq(users.role, "ADMIN");
+    roomFilters.push(accessFilter as ReturnType<typeof eq>);
   }
 
   const [room] = await db
@@ -683,6 +703,7 @@ export async function resolveOrCreateActiveSessionByRoomId(
       name: rooms.name,
     })
     .from(rooms)
+    .innerJoin(users, eq(users.id, rooms.agentId))
     .where(and(...roomFilters))
     .orderBy(desc(rooms.createdAt))
     .limit(1);

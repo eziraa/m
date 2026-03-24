@@ -11,13 +11,13 @@ import {
 import { requireAuth } from "./authMiddleware.js";
 import { requireAgent } from "./agentGuard.js";
 import { asyncHandler } from "./asyncHandler.js";
+import { listAvailableRooms } from "../game/gameService.js";
 import { amountToCents } from "../wallet/depositService.js";
 
 const router = Router();
 
 // Apply middleware to all agent routes
-router.use(requireAuth);
-router.use(requireAgent);
+router.use("/agent", requireAuth, requireAgent);
 
 // ── ROOMS ────────────────────────────────────────────────────────────
 
@@ -25,12 +25,7 @@ router.use(requireAgent);
 router.get(
   "/agent/rooms",
   asyncHandler(async (req, res) => {
-    const agentId = req.identity!.userId;
-    const allRooms = await db
-      .select()
-      .from(rooms)
-      .where(eq(rooms.agentId, agentId))
-      .orderBy(desc(rooms.createdAt));
+    const allRooms = await listAvailableRooms(req.identity!);
 
     res.json({
       rooms: allRooms.map((r) => ({

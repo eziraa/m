@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, or, sql } from "drizzle-orm";
 
 import { env } from "../config/env.js";
 import { db } from "../db/client.js";
@@ -34,16 +34,27 @@ export async function canJoinRoom(
   roomId: string,
 ): Promise<boolean> {
   const [room] = await db
-    .select({ id: rooms.id, agentId: rooms.agentId, status: rooms.status })
+    .select({
+      id: rooms.id,
+      agentId: rooms.agentId,
+      status: rooms.status,
+      ownerRole: users.role,
+    })
     .from(rooms)
+    .innerJoin(users, eq(users.id, rooms.agentId))
     .where(eq(rooms.id, roomId))
     .limit(1);
 
   if (!room || room.status !== "active") return false;
   if (identity.role === "ADMIN") return true;
-  if (identity.role === "AGENT") return room.agentId === identity.userId;
+  if (identity.role === "AGENT") {
+    return room.agentId === identity.userId || room.ownerRole === "ADMIN";
+  }
   if (identity.role === "USER")
-    return Boolean(identity.agentId && room.agentId === identity.agentId);
+    return Boolean(
+      room.ownerRole === "ADMIN" ||
+        (identity.agentId && room.agentId === identity.agentId),
+    );
   return false;
 }
 
@@ -58,9 +69,11 @@ export async function canJoinSession(
       sessionAgentId: gameSessions.agentId,
       status: gameSessions.status,
       roomStatus: rooms.status,
+      ownerRole: users.role,
     })
     .from(gameSessions)
     .innerJoin(rooms, eq(rooms.id, gameSessions.roomId))
+    .innerJoin(users, eq(users.id, rooms.agentId))
     .where(eq(gameSessions.id, sessionId))
     .limit(1);
 
@@ -68,14 +81,17 @@ export async function canJoinSession(
   if (identity.role === "ADMIN") return { ok: true, roomId: session.roomId };
   if (identity.role === "AGENT") {
     return {
-      ok: session.sessionAgentId === identity.userId,
+      ok:
+        session.sessionAgentId === identity.userId ||
+        session.ownerRole === "ADMIN",
       roomId: session.roomId,
     };
   }
   if (identity.role === "USER") {
     return {
       ok: Boolean(
-        identity.agentId && session.sessionAgentId === identity.agentId,
+        session.ownerRole === "ADMIN" ||
+          (identity.agentId && session.sessionAgentId === identity.agentId),
       ),
       roomId: session.roomId,
     };
@@ -84,70 +100,60 @@ export async function canJoinSession(
 }
 
 export async function listAvailableRooms(identity: RequestIdentity) {
+  const roomFields = {
+    id: rooms.id,
+    name: rooms.name,
+    description: rooms.description,
+    boardPriceCents: rooms.boardPriceCents,
+    agentId: rooms.agentId,
+    color: rooms.color,
+    icon: rooms.icon,
+    minPlayers: rooms.minPlayers,
+    maxPlayers: rooms.maxPlayers,
+    botAllowed: rooms.botAllowed,
+  } as const;
+
   if (identity.role === "ADMIN") {
-    // Admin sees all active rooms
     return db
-      .select({
-        id: rooms.id,
-        name: rooms.name,
-        description: rooms.description,
-        boardPriceCents: rooms.boardPriceCents,
-        agentId: rooms.agentId,
-        color: rooms.color,
-      })
+      .select(roomFields)
       .from(rooms)
       .where(eq(rooms.status, "active"))
       .orderBy(desc(rooms.createdAt));
   }
 
   if (identity.role === "AGENT") {
-    // Agent sees only their own rooms
     return db
-      .select({
-        id: rooms.id,
-        name: rooms.name,
-        description: rooms.description,
-        boardPriceCents: rooms.boardPriceCents,
-        agentId: rooms.agentId,
-        color: rooms.color,
-      })
+      .select(roomFields)
       .from(rooms)
+      .innerJoin(users, eq(users.id, rooms.agentId))
       .where(
-        and(eq(rooms.status, "active"), eq(rooms.agentId, identity.userId)),
+        and(
+          eq(rooms.status, "active"),
+          or(eq(rooms.agentId, identity.userId), eq(users.role, "ADMIN")),
+        ),
       )
       .orderBy(desc(rooms.createdAt));
   }
 
   if (identity.role === "USER") {
     if (identity.agentId) {
-      // User with agent: see only rooms of their agent
       return db
-        .select({
-          id: rooms.id,
-          name: rooms.name,
-          description: rooms.description,
-          boardPriceCents: rooms.boardPriceCents,
-          agentId: rooms.agentId,
-          color: rooms.color,
-        })
+        .select(roomFields)
         .from(rooms)
+        .innerJoin(users, eq(users.id, rooms.agentId))
         .where(
-          and(eq(rooms.status, "active"), eq(rooms.agentId, identity.agentId)),
+          and(
+            eq(rooms.status, "active"),
+            or(eq(rooms.agentId, identity.agentId), eq(users.role, "ADMIN")),
+          ),
         )
         .orderBy(desc(rooms.createdAt));
     } else {
-      // User without agent: see only rooms with agentId null
       return db
-        .select({
-          id: rooms.id,
-          name: rooms.name,
-          description: rooms.description,
-          boardPriceCents: rooms.boardPriceCents,
-          agentId: rooms.agentId,
-          color: rooms.color,
-        })
+        .select(roomFields)
         .from(rooms)
-        .where(and(eq(rooms.status, "active"), sql`${rooms.agentId} IS NULL`))
+        .innerJoin(users, eq(users.id, rooms.agentId))
+        .where(and(eq(rooms.status, "active"), eq(users.role, "ADMIN")))
         .orderBy(desc(rooms.createdAt));
     }
   }
@@ -405,9 +411,11 @@ export async function buyBoards(
       sessionAgentId: gameSessions.agentId,
       boardPriceCents: rooms.boardPriceCents,
       roomStatus: rooms.status,
+      ownerRole: users.role,
     })
     .from(gameSessions)
     .innerJoin(rooms, eq(rooms.id, gameSessions.roomId))
+    .innerJoin(users, eq(users.id, rooms.agentId))
     .where(eq(gameSessions.id, sessionId))
     .limit(1);
 
@@ -416,7 +424,11 @@ export async function buyBoards(
   if (!(session.status === "waiting" || session.status === "countdown")) {
     throw new Error("session_not_open_for_purchase");
   }
-  if (identity.role === "USER" && identity.agentId !== session.sessionAgentId) {
+  if (
+    identity.role === "USER" &&
+    session.ownerRole !== "ADMIN" &&
+    identity.agentId !== session.sessionAgentId
+  ) {
     throw new Error("forbidden_agent_scope");
   }
 
@@ -556,9 +568,11 @@ export async function leaveSessionBeforeStart(
       status: gameSessions.status,
       sessionAgentId: gameSessions.agentId,
       roomStatus: rooms.status,
+      ownerRole: users.role,
     })
     .from(gameSessions)
     .innerJoin(rooms, eq(rooms.id, gameSessions.roomId))
+    .innerJoin(users, eq(users.id, rooms.agentId))
     .where(eq(gameSessions.id, sessionId))
     .limit(1);
 
@@ -567,7 +581,11 @@ export async function leaveSessionBeforeStart(
   if (!(session.status === "waiting" || session.status === "countdown")) {
     throw new Error("session_not_open_for_leave");
   }
-  if (identity.role === "USER" && identity.agentId !== session.sessionAgentId) {
+  if (
+    identity.role === "USER" &&
+    session.ownerRole !== "ADMIN" &&
+    identity.agentId !== session.sessionAgentId
+  ) {
     throw new Error("forbidden_agent_scope");
   }
 
@@ -639,8 +657,11 @@ export async function callBingo(identity: RequestIdentity, input: ClaimInput) {
         roomId: gameSessions.roomId,
         status: gameSessions.status,
         sessionAgentId: gameSessions.agentId,
+        ownerRole: users.role,
       })
       .from(gameSessions)
+      .innerJoin(rooms, eq(rooms.id, gameSessions.roomId))
+      .innerJoin(users, eq(users.id, rooms.agentId))
       .where(eq(gameSessions.id, input.sessionId))
       .limit(1);
 
@@ -648,6 +669,7 @@ export async function callBingo(identity: RequestIdentity, input: ClaimInput) {
     if (session.status !== "playing") throw new Error("session_not_playing");
     if (
       identity.role === "USER" &&
+      session.ownerRole !== "ADMIN" &&
       identity.agentId !== session.sessionAgentId
     ) {
       throw new Error("forbidden_agent_scope");

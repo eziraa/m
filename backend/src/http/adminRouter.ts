@@ -287,8 +287,7 @@ function normalizePostStatus(scheduledAt?: string | null, sentAt?: string | null
 
 const router = Router();
 
-router.use(requireAuth);
-router.use(requireAdmin);
+router.use("/admin", requireAuth, requireAdmin);
 
 router.get(
   "/admin/users",

@@ -1,11 +1,12 @@
 import { Router } from "express";
-import { eq, desc, inArray, and } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 
 import { db } from "../db/client.js";
 import { gameSessions, rooms } from "../db/schema.js";
-import { RequestIdentity, requireAuth } from "./authMiddleware.js";
+import { requireAuth } from "./authMiddleware.js";
 import { requireAdmin } from "./adminGuard.js";
 import { requireAgent } from "./agentGuard.js";
+import { listAvailableRooms } from "../game/gameService.js";
 import { logger } from "../utils/logger.js";
 
 const router = Router();
@@ -45,71 +46,6 @@ function priceToCents(price: number): number {
   return Math.round(price * 100);
 }
 
-async function listAvailableRooms(identity: RequestIdentity) {
-  if (identity.role === "ADMIN") {
-    // Admin sees all active rooms
-    return db
-      .select({
-        id: rooms.id,
-        name: rooms.name,
-        description: rooms.description,
-        boardPriceCents: rooms.boardPriceCents,
-        agentId: rooms.agentId,
-        color: rooms.color,
-        icon: rooms.icon,
-      })
-      .from(rooms)
-      .where(eq(rooms.status, "active"))
-      .orderBy(desc(rooms.createdAt));
-  }
-
-  if (identity.role === "AGENT") {
-    // Agent sees only their own rooms
-    return db
-      .select({
-        id: rooms.id,
-        name: rooms.name,
-        description: rooms.description,
-        boardPriceCents: rooms.boardPriceCents,
-        agentId: rooms.agentId,
-        color: rooms.color,
-        icon: rooms.icon,
-      })
-      .from(rooms)
-      .where(
-        and(eq(rooms.status, "active"), eq(rooms.agentId, identity.userId)),
-      )
-      .orderBy(desc(rooms.createdAt));
-  }
-
-  if (identity.role === "USER") {
-    if (identity.agentId) {
-      // User with agent: see only rooms of their agent
-      return db
-        .select({
-          id: rooms.id,
-          name: rooms.name,
-          description: rooms.description,
-          boardPriceCents: rooms.boardPriceCents,
-          agentId: rooms.agentId,
-          color: rooms.color,
-          icon: rooms.icon,
-        })
-        .from(rooms)
-        .where(
-          and(eq(rooms.status, "active"), eq(rooms.agentId, identity.agentId)),
-        )
-        .orderBy(desc(rooms.createdAt));
-    }
-
-    // Rooms.agentId is non-null in schema, so a USER without an agent cannot
-    // match any room ownership rule in the current model.
-    return [];
-  }
-
-  // Fallback: no rooms
-  return [];
-}
 // ── GET /rooms ──────────────────────────────────────────────────────
 router.get("/rooms", requireAuth, async (_req, res) => {
   try {
