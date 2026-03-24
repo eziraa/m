@@ -348,7 +348,7 @@ router.get(
         role: users.role,
         isActive: users.isActive,
         createdAt: users.createdAt,
-        balanceCents: sql<number>`coalesce((select sum(case when status = 'posted' then amount_cents else 0 end) from ${walletLedger} where user_id = ${users.id}), 0)`,
+        balanceCents: sql<number>`coalesce(sum(case when ${walletLedger.status} = 'posted' then ${walletLedger.amountCents} else 0 end), 0)`,
       })
       .from(users)
       .where(whereClause)
