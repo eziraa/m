@@ -128,7 +128,11 @@ const postPayloadSchema = z
     target: z.enum(["users", "channel"]).default("users"),
     categoryId: z.string().uuid().nullable().optional(),
     images: z.array(z.string().trim().url()).max(10).optional().default([]),
-    buttons: z.array(z.array(postButtonSchema).max(8)).max(8).optional().default([]),
+    buttons: z
+      .array(z.array(postButtonSchema).max(8))
+      .max(8)
+      .optional()
+      .default([]),
     scheduledAt: z.string().datetime().nullable().optional(),
   })
   .strict();
@@ -224,7 +228,9 @@ async function getBonusSetting(slug: AdminBonusSetting["slug"]) {
           isActive: true,
         };
 
-  return row ? mapSettingValue<AdminBonusSetting>(row.value, fallback) : fallback;
+  return row
+    ? mapSettingValue<AdminBonusSetting>(row.value, fallback)
+    : fallback;
 }
 
 async function listBonusSettings() {
@@ -265,7 +271,9 @@ async function getGameConfigSetting(key: string) {
 
   const fallback = fallbackMap[key];
   if (!fallback) return null;
-  return row ? mapSettingValue<GameConfigSetting>(row.value, fallback) : fallback;
+  return row
+    ? mapSettingValue<GameConfigSetting>(row.value, fallback)
+    : fallback;
 }
 
 async function listGameConfigSettings() {
@@ -277,7 +285,10 @@ async function listGameConfigSettings() {
   return settings.filter(Boolean) as GameConfigSetting[];
 }
 
-function normalizePostStatus(scheduledAt?: string | null, sentAt?: string | null) {
+function normalizePostStatus(
+  scheduledAt?: string | null,
+  sentAt?: string | null,
+) {
   if (sentAt) return "sent" as const;
   if (scheduledAt && new Date(scheduledAt).getTime() > Date.now()) {
     return "scheduled" as const;
@@ -300,7 +311,9 @@ router.get(
     );
     const offset = (page - 1) * pageSize;
     const search = String(req.query.search ?? "").trim();
-    const role = String(req.query.role ?? "all").trim().toUpperCase();
+    const role = String(req.query.role ?? "all")
+      .trim()
+      .toUpperCase();
     const sortBy = String(req.query.sortBy ?? "createdAt");
     const sortOrder = String(req.query.sortOrder ?? "desc").toLowerCase();
 
@@ -442,9 +455,19 @@ router.patch(
       return;
     }
 
+    //  generate referral code for agent
+    const referralCode =
+      role.data === "AGENT"
+        ? `AGENT-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
+        : null;
+
     const [updated] = await db
       .update(users)
-      .set({ role: role.data, updatedAt: new Date() })
+      .set({
+        role: role.data,
+        updatedAt: new Date(),
+        referralCode: referralCode,
+      })
       .where(eq(users.id, String(req.params.id)))
       .returning();
 
@@ -490,7 +513,9 @@ router.get(
     );
     const offset = (page - 1) * pageSize;
     const search = String(req.query.search ?? "").trim();
-    const status = String(req.query.status ?? "all").trim().toLowerCase();
+    const status = String(req.query.status ?? "all")
+      .trim()
+      .toLowerCase();
 
     const filters = [];
     if (status && status !== "all") {
@@ -614,7 +639,8 @@ router.post(
         error instanceof Error ? error.message : "withdrawal_approve_failed";
       const status = reason.includes("not_found")
         ? 404
-        : reason.includes("already_processed") || reason.includes("insufficient")
+        : reason.includes("already_processed") ||
+            reason.includes("insufficient")
           ? 409
           : 500;
       res.status(status).json({ error: reason });
@@ -658,8 +684,12 @@ router.get(
     );
     const offset = (page - 1) * pageSize;
     const search = String(req.query.search ?? "").trim();
-    const type = String(req.query.type ?? "all").trim().toLowerCase();
-    const status = String(req.query.status ?? "all").trim().toLowerCase();
+    const type = String(req.query.type ?? "all")
+      .trim()
+      .toLowerCase();
+    const status = String(req.query.status ?? "all")
+      .trim()
+      .toLowerCase();
 
     const filters = [];
     if (search) {
@@ -690,7 +720,9 @@ router.get(
         filters.push(eq(walletLedger.entryType, "referral_reward"));
       } else if (type === "welcome_bonus") {
         filters.push(eq(walletLedger.entryType, "adjustment"));
-        filters.push(sql`${walletLedger.metadata}->>'reason' = 'welcome_bonus'`);
+        filters.push(
+          sql`${walletLedger.metadata}->>'reason' = 'welcome_bonus'`,
+        );
       } else if (type === "bonus") {
         filters.push(eq(walletLedger.entryType, "adjustment"));
       } else {
@@ -1020,7 +1052,9 @@ router.get(
       100,
     );
     const offset = (page - 1) * pageSize;
-    const status = String(req.query.status ?? "").trim().toLowerCase();
+    const status = String(req.query.status ?? "")
+      .trim()
+      .toLowerCase();
     const search = String(req.query.search ?? "").trim();
 
     const filters = [];
@@ -1277,7 +1311,8 @@ router.post(
             .limit(1)
         : [];
 
-      const chatId = category?.channelChatId || `channel:${category?.slug ?? "general"}`;
+      const chatId =
+        category?.channelChatId || `channel:${category?.slug ?? "general"}`;
 
       await db
         .insert(postDeliveries)
@@ -1435,7 +1470,9 @@ router.get(
     const limit = parsePositiveInt(req.query.limit, 50, 100);
     const offset = (page - 1) * limit;
     const search = String(req.query.search ?? "").trim();
-    const deletionStatus = String(req.query.deletionStatus ?? "").trim().toLowerCase();
+    const deletionStatus = String(req.query.deletionStatus ?? "")
+      .trim()
+      .toLowerCase();
 
     const filters = [eq(postDeliveries.postId, postId)];
     if (search) {
@@ -1532,7 +1569,12 @@ router.post(
           deletedAt: now,
           updatedAt: now,
         })
-        .where(inArray(postDeliveries.id, rows.map((row) => row.id)));
+        .where(
+          inArray(
+            postDeliveries.id,
+            rows.map((row) => row.id),
+          ),
+        );
     }
 
     await db
@@ -1854,7 +1896,9 @@ router.get(
       100,
     );
     const offset = (page - 1) * pageSize;
-    const status = String(req.query.status ?? "all").trim().toLowerCase();
+    const status = String(req.query.status ?? "all")
+      .trim()
+      .toLowerCase();
 
     const whereClause =
       status && status !== "all"
