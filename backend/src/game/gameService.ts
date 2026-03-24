@@ -53,7 +53,7 @@ export async function canJoinRoom(
   if (identity.role === "USER")
     return Boolean(
       room.ownerRole === "ADMIN" ||
-        (identity.agentId && room.agentId === identity.agentId),
+      (identity.agentId && room.agentId === identity.agentId),
     );
   return false;
 }
@@ -91,7 +91,7 @@ export async function canJoinSession(
     return {
       ok: Boolean(
         session.ownerRole === "ADMIN" ||
-          (identity.agentId && session.sessionAgentId === identity.agentId),
+        (identity.agentId && session.sessionAgentId === identity.agentId),
       ),
       roomId: session.roomId,
     };
@@ -122,6 +122,51 @@ export async function listAvailableRooms(identity: RequestIdentity) {
   }
 
   if (identity.role === "AGENT") {
+    let all_rooms = db
+      .select(roomFields)
+      .from(rooms)
+      .innerJoin(users, eq(users.id, rooms.agentId))
+      .where(
+        and(
+          eq(rooms.status, "active"),
+          or(eq(rooms.agentId, identity.userId), eq(users.role, "ADMIN")),
+        ),
+      )
+      .orderBy(desc(rooms.createdAt));
+
+    if (!(await all_rooms).length) {
+      const agentId = identity.userId;
+      await db.insert(rooms).values([
+        {
+          agentId,
+          name: "Beginner Room",
+          description: "Perfect for new players",
+          boardPriceCents: 1000,
+          minPlayers: 2,
+          maxPlayers: 10,
+          color: "from-blue-400 to-blue-600",
+        },
+        {
+          agentId,
+          name: "Standard Room",
+          description: "For regular players",
+          boardPriceCents: 2000,
+          minPlayers: 5,
+          maxPlayers: 20,
+          color: "from-yellow-500 to-yellow-700",
+        },
+        {
+          agentId,
+          name: "High Stakes",
+          description: "Big risks, big rewards",
+          boardPriceCents: 5000,
+          minPlayers: 10,
+          maxPlayers: 50,
+          color: "from-green-700 to-green-900",
+        },
+      ]);
+    }
+
     return db
       .select(roomFields)
       .from(rooms)
