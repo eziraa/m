@@ -97,7 +97,7 @@ export default async function RootLayout({
           {maintenanceMode ? (
             <MaintenanceScreen />
           ) : (
-            <div className="">
+            <main className="">
               <Toaster
                 position="top-center"
                 richColors
@@ -110,7 +110,7 @@ export default async function RootLayout({
                 </div>
                 <BottomNav />
               </div>
-            </div>
+            </main>
           )}
         </Provider>
       </body>
