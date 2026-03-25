@@ -21,6 +21,7 @@ CLEAN_DEPS="${CLEAN_DEPS:-1}"
 PM2_APP_NAME="${PM2_APP_NAME:-}"
 SYSTEMD_SERVICE="${SYSTEMD_SERVICE:-}"
 START_CMD="${START_CMD:-npm start}"
+GIT_ROOT=""
 
 log() {
   printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"
@@ -37,22 +38,24 @@ command -v npm >/dev/null 2>&1 || die "npm is required"
 
 cd "$APP_DIR"
 
-[ -d .git ] || die "${APP_DIR} is not a git repository"
-
-if [ -z "$BRANCH" ]; then
-  BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+if ! GIT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"; then
+  die "${APP_DIR} is not inside a git repository"
 fi
 
-log "Deploying branch '$BRANCH' from remote '$REMOTE' in '$APP_DIR'"
+if [ -z "$BRANCH" ]; then
+  BRANCH="$(git -C "$GIT_ROOT" rev-parse --abbrev-ref HEAD)"
+fi
+
+log "Deploying branch '$BRANCH' from remote '$REMOTE' in '$APP_DIR' (git root: '$GIT_ROOT')"
 
 log "Fetching latest changes"
-git fetch "$REMOTE" "$BRANCH"
+git -C "$GIT_ROOT" fetch "$REMOTE" "$BRANCH"
 
 log "Checking out branch '$BRANCH'"
-git checkout "$BRANCH"
+git -C "$GIT_ROOT" checkout "$BRANCH"
 
 log "Pulling latest commit"
-git pull --rebase --autostash "$REMOTE" "$BRANCH"
+git -C "$GIT_ROOT" pull --rebase --autostash "$REMOTE" "$BRANCH"
 
 if [ "$CLEAN_DEPS" = "1" ]; then
   log "Removing existing dependencies for clean install"
