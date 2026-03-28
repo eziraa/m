@@ -653,8 +653,12 @@ router.post(
         datetime = new Date();
       }
 
+      const cbeReceiptId = sms_content.match(
+        /Mbreciept\.cbe\.com\.et\/([A-Z0-9-]{9,40})/i,
+      )?.[1];
       const transactionNumber =
-        sms_content.match(/Mbreciept\.cbe\.com\.et\/([A-Z0-9-]{9,40})/i)?.[1] ??
+        cbeReceiptId?.match(/^(FT\d{6}[A-Z0-9]{4})/)?.[1] ??
+        cbeReceiptId ??
         sms_content.match(/Ref No\s+([A-Z0-9]+)/i)?.[1] ??
         null;
 

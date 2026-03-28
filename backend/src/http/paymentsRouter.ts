@@ -41,7 +41,10 @@ function extractTransactionNumber(smsContent: string): string | null {
       continue;
     }
 
-    if (pattern.source.includes("\\?id=")) {
+    if (
+      pattern.source.includes("\\?id=") ||
+      pattern.source.includes("Mbreciept\\.cbe\\.com\\.et")
+    ) {
       const id = match[1];
       const strictMatch = id.match(/^(FT\d{6}[A-Z0-9]{4})/);
       return strictMatch ? strictMatch[1] : id;
