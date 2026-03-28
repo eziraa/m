@@ -180,7 +180,7 @@ export function DepositForm() {
         </div>
 
         {/* Amount */}
-        <div className="flex flex-col gap-1 mt-1">
+        {/* <div className="flex flex-col gap-1 mt-1">
           <label className="text-[11px] font-medium text-foreground/60">
             {t("amount.label")}
           </label>
@@ -201,7 +201,7 @@ export function DepositForm() {
               {errors.amount.message}
             </span>
           )}
-        </div>
+        </div> */}
 
         {/* SMS */}
         <div className="flex flex-col gap-1 mt-1">
