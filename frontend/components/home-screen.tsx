@@ -17,6 +17,7 @@ import { closeSocket, connectSocket } from "@/lib/socket";
 import { useTranslations } from "next-intl";
 
 const FALLBACK_TOKEN_KEY = "mella_token";
+const EMPTY_ROOMS: RoomItem[] = [];
 
 function centsToLabel(cents: number): string {
   return (cents / 100).toFixed(2);
@@ -27,7 +28,7 @@ export function HomeScreen() {
   const { status, login, signup, error: authError } = useAuth();
 
   const {
-    data: rooms = [],
+    data: roomsData,
     isLoading: isRoomsLoading,
     isError: isRoomsError,
     refetch: refetchRooms,
@@ -46,6 +47,7 @@ export function HomeScreen() {
         currency: walletData.currency,
       }
     : null;
+  const rooms = roomsData ?? EMPTY_ROOMS;
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [roomStates, setRoomStates] = useState<
     Record<
@@ -72,8 +74,8 @@ export function HomeScreen() {
   }, [status]);
 
   useEffect(() => {
-    setRoomStates(
-      Object.fromEntries(
+    setRoomStates((prev) => {
+      const next = Object.fromEntries(
         rooms.map((room) => [
           room.id,
           {
@@ -82,8 +84,29 @@ export function HomeScreen() {
             playersCount: room.playersCount,
           },
         ]),
-      ),
-    );
+      );
+
+      const prevKeys = Object.keys(prev);
+      const nextKeys = Object.keys(next);
+      if (prevKeys.length !== nextKeys.length) {
+        return next;
+      }
+
+      for (const key of nextKeys) {
+        const prevRoom = prev[key];
+        const nextRoom = next[key];
+        if (
+          !prevRoom ||
+          prevRoom.sessionId !== nextRoom.sessionId ||
+          prevRoom.sessionStatus !== nextRoom.sessionStatus ||
+          prevRoom.playersCount !== nextRoom.playersCount
+        ) {
+          return next;
+        }
+      }
+
+      return prev;
+    });
   }, [rooms]);
 
   useEffect(() => {
@@ -169,6 +192,23 @@ export function HomeScreen() {
       socket.off("session_countdown", onCountdown);
     };
   }, [roomStates, status]);
+
+  const balanceLabel = wallet ? centsToLabel(wallet.balanceCents) : "0.00";
+  const currency = wallet?.currency ?? "ETB";
+  const displayRooms = useMemo(
+    () =>
+      rooms.map((room) => {
+        const liveState = roomStates[room.id];
+        const sessionStatus = liveState?.sessionStatus ?? room.sessionStatus;
+        return {
+          ...room,
+          sessionStatus,
+          playersCount: liveState?.playersCount ?? room.playersCount,
+          isLive: sessionStatus === "playing",
+        };
+      }),
+    [roomStates, rooms],
+  );
 
   if (
     status === "boot" ||
@@ -272,23 +312,6 @@ export function HomeScreen() {
       />
     );
   }
-
-  const balanceLabel = wallet ? centsToLabel(wallet.balanceCents) : "0.00";
-  const currency = wallet?.currency ?? "ETB";
-  const displayRooms = useMemo(
-    () =>
-      rooms.map((room) => {
-        const liveState = roomStates[room.id];
-        const sessionStatus = liveState?.sessionStatus ?? room.sessionStatus;
-        return {
-          ...room,
-          sessionStatus,
-          playersCount: liveState?.playersCount ?? room.playersCount,
-          isLive: sessionStatus === "playing",
-        };
-      }),
-    [roomStates, rooms],
-  );
 
   return (
     <div className="bg-background min-h-svh w-full h-screen max-h-screen overflow-y-auto custom-scrollbar transition-colors duration-500">
