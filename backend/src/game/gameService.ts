@@ -16,6 +16,7 @@ import {
 } from "../db/schema.js";
 import { type RequestIdentity } from "../http/authMiddleware.js";
 import { getIo } from "../realtime/ioHub.js";
+import { logger } from "../utils/logger.js";
 import { incCounter } from "../utils/metrics.js";
 import {
   boardHash,
@@ -663,15 +664,52 @@ export type ClaimInput = {
   clientLastSeq: number;
 };
 
+type BingoClaimTxResult = {
+  replay: boolean;
+  claim: {
+    id: string;
+    status: "accepted" | "rejected" | "pending";
+    rejectionReason: string | null;
+  };
+  winner: { sessionId: string; userId: string } | null;
+  notifyWinner: {
+    sessionId: string;
+    winnerUserId: string;
+    winnerName: string;
+    boardId: string;
+    pattern: WinningPatternInput;
+    payoutCents: number;
+    commissionCents: number;
+  } | null;
+};
+
 export async function callBingo(identity: RequestIdentity, input: ClaimInput) {
   incCounter("bingo_claim_requests_total");
+  logger.info("bingo_claim_started", {
+    sessionId: input.sessionId,
+    boardId: input.boardId,
+    userId: identity.userId,
+    agentId: identity.agentId,
+    role: identity.role,
+    clientLastSeq: input.clientLastSeq,
+    markedCellsCount: input.markedCells.length,
+    winningPattern: input.winningPattern,
+  });
 
   if (identity.role !== "USER") {
+    logger.warn("bingo_claim_forbidden_role", {
+      sessionId: input.sessionId,
+      userId: identity.userId,
+      role: identity.role,
+    });
     throw new Error("only_user_can_call_bingo");
   }
 
-  const txResult = await db.transaction(async (tx) => {
-    const existingClaim = await tx
+  let txResult: BingoClaimTxResult;
+
+  try {
+    txResult = await db.transaction(async (tx) => {
+      const existingClaim = await tx
       .select({
         id: bingoClaims.id,
         status: bingoClaims.status,
@@ -687,16 +725,22 @@ export async function callBingo(identity: RequestIdentity, input: ClaimInput) {
       )
       .limit(1);
 
-    if (existingClaim.length > 0) {
-      return {
-        replay: true,
-        claim: existingClaim[0],
-        winner: null,
-        notifyWinner: null,
-      };
-    }
+      if (existingClaim.length > 0) {
+        logger.info("bingo_claim_replay_detected", {
+          sessionId: input.sessionId,
+          userId: identity.userId,
+          claimId: existingClaim[0].id,
+          claimStatus: existingClaim[0].status,
+        });
+        return {
+          replay: true,
+          claim: existingClaim[0],
+          winner: null,
+          notifyWinner: null,
+        };
+      }
 
-    const [session] = await tx
+      const [session] = await tx
       .select({
         id: gameSessions.id,
         roomId: gameSessions.roomId,
@@ -710,15 +754,22 @@ export async function callBingo(identity: RequestIdentity, input: ClaimInput) {
       .where(eq(gameSessions.id, input.sessionId))
       .limit(1);
 
-    if (!session) throw new Error("session_not_found");
-    if (session.status !== "playing") throw new Error("session_not_playing");
-    if (
-      identity.role === "USER" &&
-      session.ownerRole !== "ADMIN" &&
-      identity.agentId !== session.sessionAgentId
-    ) {
-      throw new Error("forbidden_agent_scope");
-    }
+      if (!session) throw new Error("session_not_found");
+      if (session.status !== "playing") throw new Error("session_not_playing");
+      logger.info("bingo_claim_session_loaded", {
+        sessionId: input.sessionId,
+        roomId: session.roomId,
+        userId: identity.userId,
+        sessionStatus: session.status,
+        sessionAgentId: session.sessionAgentId,
+      });
+      if (
+        identity.role === "USER" &&
+        session.ownerRole !== "ADMIN" &&
+        identity.agentId !== session.sessionAgentId
+      ) {
+        throw new Error("forbidden_agent_scope");
+      }
 
     const [board] = await tx
       .select({
@@ -750,6 +801,12 @@ export async function callBingo(identity: RequestIdentity, input: ClaimInput) {
       matrix,
       input.winningPattern,
     );
+    logger.info("bingo_claim_pattern_resolved", {
+      sessionId: input.sessionId,
+      boardId: input.boardId,
+      userId: identity.userId,
+      requiredNumbers,
+    });
 
     const calledRows = await tx
       .select({ number: sessionCalledNumbers.number })
@@ -763,6 +820,14 @@ export async function callBingo(identity: RequestIdentity, input: ClaimInput) {
 
     const calledSet = new Set(calledRows.map((x) => x.number));
     const isValid = requiredNumbers.every((n) => calledSet.has(n));
+    logger.info("bingo_claim_pattern_checked", {
+      sessionId: input.sessionId,
+      boardId: input.boardId,
+      userId: identity.userId,
+      requiredNumbers,
+      calledNumbers: calledRows.map((x) => x.number),
+      isValid,
+    });
 
     const [insertedClaim] = await tx
       .insert(bingoClaims)
@@ -787,6 +852,13 @@ export async function callBingo(identity: RequestIdentity, input: ClaimInput) {
 
     if (!isValid) {
       incCounter("bingo_claim_rejected_total");
+      logger.warn("bingo_claim_rejected", {
+        sessionId: input.sessionId,
+        boardId: input.boardId,
+        userId: identity.userId,
+        claimId: insertedClaim.id,
+        reason: "pattern_numbers_not_called",
+      });
       const io = getIo();
       io?.to(`user:${identity.userId}`).emit("bingo_rejected", {
         sessionId: input.sessionId,
@@ -820,6 +892,13 @@ export async function callBingo(identity: RequestIdentity, input: ClaimInput) {
 
     if (winnerRows.length === 0) {
       incCounter("bingo_claim_rejected_total");
+      logger.warn("bingo_claim_rejected", {
+        sessionId: input.sessionId,
+        boardId: input.boardId,
+        userId: identity.userId,
+        claimId: insertedClaim.id,
+        reason: "winner_already_declared",
+      });
       await tx
         .update(bingoClaims)
         .set({
@@ -859,6 +938,15 @@ export async function callBingo(identity: RequestIdentity, input: ClaimInput) {
       (gross * env.AGENT_COMMISSION_BPS) / 10000,
     );
     const payoutCents = Math.max(gross - commissionCents, 0);
+    logger.info("bingo_claim_financials_computed", {
+      sessionId: input.sessionId,
+      boardId: input.boardId,
+      userId: identity.userId,
+      claimId: insertedClaim.id,
+      gross,
+      payoutCents,
+      commissionCents,
+    });
     const losingParticipants = await tx
       .select({
         userId: boards.userId,
@@ -928,6 +1016,19 @@ export async function callBingo(identity: RequestIdentity, input: ClaimInput) {
     if (loserLedgerRows.length > 0) {
       await tx.insert(walletLedger).values(loserLedgerRows);
     }
+    logger.info("bingo_claim_ledger_written", {
+      sessionId: input.sessionId,
+      boardId: input.boardId,
+      userId: identity.userId,
+      claimId: insertedClaim.id,
+      payoutCents,
+      commissionCents,
+      loserCount: loserLedgerRows.length,
+      losers: loserLedgerRows.map((row) => ({
+        userId: row.userId,
+        amountCents: row.amountCents,
+      })),
+    });
 
     await tx
       .update(gameSessions)
@@ -960,7 +1061,16 @@ export async function callBingo(identity: RequestIdentity, input: ClaimInput) {
         commissionCents,
       },
     };
-  });
+    });
+  } catch (error) {
+    logger.error("bingo_claim_failed", {
+      sessionId: input.sessionId,
+      boardId: input.boardId,
+      userId: identity.userId,
+      error: error instanceof Error ? error.message : "unknown_error",
+    });
+    throw error;
+  }
 
   if (txResult.notifyWinner) {
     const io = getIo();
@@ -981,7 +1091,24 @@ export async function callBingo(identity: RequestIdentity, input: ClaimInput) {
       txResult.notifyWinner.sessionId,
       "winner_declared",
     );
+    logger.info("bingo_claim_result_emitted", {
+      sessionId: txResult.notifyWinner.sessionId,
+      winnerUserId: txResult.notifyWinner.winnerUserId,
+      winnerName: txResult.notifyWinner.winnerName,
+      payoutCents: txResult.notifyWinner.payoutCents,
+      commissionCents: txResult.notifyWinner.commissionCents,
+    });
   }
+
+  logger.info("bingo_claim_completed", {
+    sessionId: input.sessionId,
+    boardId: input.boardId,
+    userId: identity.userId,
+    replay: txResult.replay,
+    claimId: txResult.claim.id,
+    claimStatus: txResult.claim.status,
+    hasWinner: Boolean(txResult.notifyWinner),
+  });
 
   return {
     replay: txResult.replay,
