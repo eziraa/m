@@ -22,7 +22,7 @@ const envSchema = z.object({
   CORS_ALLOWED_ORIGINS: z
     .string()
     .default("http://localhost:3000,http://127.0.0.1:3000"),
-  WELCOME_BONUS_CENTS: z.coerce.number().int().min(0).default(5000),
+  WELCOME_BONUS_CENTS: z.coerce.number().int().min(0).default(1000),
   AGENT_COMMISSION_BPS: z.coerce.number().int().min(0).max(10000).default(1000),
   HTTP_RATE_LIMIT_WINDOW_SEC: z.coerce.number().int().positive().default(60),
   HTTP_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(240),

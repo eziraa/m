@@ -84,16 +84,6 @@ const adminBonusSchema = z
   })
   .strict();
 
-const grantBonusSchema = z
-  .object({
-    target: z.enum(["all", "user", "users"]).default("user"),
-    userId: z.string().uuid().optional(),
-    userIds: z.array(z.string().uuid()).optional(),
-    amount: z.number().min(0).optional(),
-    message: z.string().max(2_000).optional(),
-  })
-  .strict();
-
 const gameConfigSchema = z
   .object({
     value: z.union([z.string(), z.number()]),
@@ -101,7 +91,7 @@ const gameConfigSchema = z
   .strict();
 
 type AdminBonusSetting = {
-  slug: "welcome_bonus" | "bonus";
+  slug: "welcome_bonus";
   amount: number;
   description: string;
   message: string;
@@ -177,7 +167,7 @@ function mapLedgerEntryType(
   if (entryType === "adjustment") {
     const reason = String(metadata.reason ?? "");
     if (reason === "welcome_bonus") return "welcome_bonus";
-    return "bonus";
+    return "adjustment";
   }
   return entryType;
 }
@@ -210,23 +200,13 @@ async function getBonusSetting(slug: AdminBonusSetting["slug"]) {
     .where(eq(adminSettings.key, `bonus:${slug}`))
     .limit(1);
 
-  const fallback: AdminBonusSetting =
-    slug === "welcome_bonus"
-      ? {
-          slug,
-          amount: 25,
-          description: "Starter credit granted to a newly created account.",
-          message:
-            "Welcome {{name}}! You received {{amount}} ETB to get started.",
-          isActive: true,
-        }
-      : {
-          slug,
-          amount: 10,
-          description: "Manual promotional credit that admins can grant.",
-          message: "You received a bonus of {{amount}} ETB.",
-          isActive: true,
-        };
+  const fallback: AdminBonusSetting = {
+    slug,
+    amount: 10,
+    description: "Starter credit granted to a newly created account.",
+    message: "Welcome {{name}}! You received {{amount}} ETB to get started.",
+    isActive: true,
+  };
 
   return row
     ? mapSettingValue<AdminBonusSetting>(row.value, fallback)
@@ -234,11 +214,7 @@ async function getBonusSetting(slug: AdminBonusSetting["slug"]) {
 }
 
 async function listBonusSettings() {
-  const settings = await Promise.all([
-    getBonusSetting("welcome_bonus"),
-    getBonusSetting("bonus"),
-  ]);
-  return settings;
+  return [await getBonusSetting("welcome_bonus")];
 }
 
 async function getGameConfigSetting(key: string) {
@@ -723,8 +699,6 @@ router.get(
         filters.push(
           sql`${walletLedger.metadata}->>'reason' = 'welcome_bonus'`,
         );
-      } else if (type === "bonus") {
-        filters.push(eq(walletLedger.entryType, "adjustment"));
       } else {
         filters.push(eq(walletLedger.entryType, type as never));
       }
@@ -864,10 +838,7 @@ router.patch(
   "/admin/bonuses/:slug",
   asyncHandler(async (req, res) => {
     const slug = String(req.params.slug) as AdminBonusSetting["slug"];
-    const current =
-      slug === "welcome_bonus" || slug === "bonus"
-        ? await getBonusSetting(slug)
-        : null;
+    const current = slug === "welcome_bonus" ? await getBonusSetting(slug) : null;
     if (!current) {
       res.status(404).json({ error: "bonus_not_found" });
       return;
@@ -895,83 +866,6 @@ router.patch(
       });
 
     res.status(200).json({ ok: true, bonus: next });
-  }),
-);
-
-router.post(
-  "/admin/bonuses/grant",
-  asyncHandler(async (req, res) => {
-    const parsed = grantBonusSchema.safeParse(req.body);
-    if (!parsed.success) {
-      res
-        .status(400)
-        .json({ error: "invalid_request", details: parsed.error.flatten() });
-      return;
-    }
-
-    const input = parsed.data;
-    const configuredBonus = await getBonusSetting("bonus");
-    const amount = input.amount ?? configuredBonus.amount;
-    if (amount <= 0) {
-      res.status(400).json({ error: "invalid_bonus_amount" });
-      return;
-    }
-
-    let targetIds: string[] = [];
-    if (input.target === "all") {
-      const rows = await db
-        .select({ id: users.id })
-        .from(users)
-        .where(eq(users.role, "USER"));
-      targetIds = rows.map((row) => row.id);
-    } else if (input.target === "users") {
-      targetIds = input.userIds ?? [];
-    } else if (input.userId) {
-      targetIds = [input.userId];
-    }
-
-    targetIds = Array.from(new Set(targetIds));
-    if (targetIds.length === 0) {
-      res.status(400).json({ error: "no_target_users" });
-      return;
-    }
-
-    const recipientRows = await db
-      .select({
-        id: users.id,
-        firstName: users.firstName,
-        username: users.username,
-      })
-      .from(users)
-      .where(inArray(users.id, targetIds));
-
-    const byId = new Map(recipientRows.map((row) => [row.id, row]));
-    const grantedAt = new Date().toISOString();
-
-    await db.insert(walletLedger).values(
-      targetIds
-        .filter((userId) => byId.has(userId))
-        .map((userId) => ({
-          userId,
-          agentId: req.identity!.userId,
-          entryType: "adjustment" as const,
-          amountCents: amountToCents(amount),
-          status: "posted" as const,
-          idempotencyKey: `admin_bonus:${userId}:${grantedAt}`,
-          metadata: {
-            reason: "bonus",
-            source: "admin_manual_grant",
-            message: input.message ?? configuredBonus.message,
-          },
-        })),
-    );
-
-    res.status(200).json({
-      ok: true,
-      success: true,
-      grantedCount: recipientRows.length,
-      amount,
-    });
   }),
 );
 
