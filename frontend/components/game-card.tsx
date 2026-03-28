@@ -15,6 +15,8 @@ interface GameCardProps {
   id: string;
   canAfford: boolean;
   isLive?: boolean;
+  status?: string;
+  joinedUsers?: number;
 }
 
 export function GameCard({
@@ -26,9 +28,12 @@ export function GameCard({
   id,
   canAfford,
   isLive = false,
+  status = "waiting",
+  joinedUsers = 0,
 }: GameCardProps) {
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
+  const statusLabel = isLive ? "LIVE" : status === "countdown" ? "WAITING" : "WAITING";
 
   return (
     <>
@@ -51,24 +56,38 @@ export function GameCard({
           }
         }}
       >
-        {/* Live Indicator */}
-        {isLive && (
-          <div className="absolute top-3 right-3 z-36 flex items-center gap-1.5 px-1 py-0.5 bg-red-500 rounded-full shadow-lg shadow-red-500/40 border border-white/20">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
-            </span>
-            <span className="text-[6px] font-black tracking-tighter text-white uppercase leading-none">
-              LIVE
-            </span>
-          </div>
-        )}
+        <div
+          className={cn(
+            "absolute top-3 right-3 z-36 flex items-center gap-1.5 rounded-full border px-1.5 py-0.5",
+            isLive
+              ? "bg-red-500 border-white/20 shadow-lg shadow-red-500/40"
+              : "bg-black/20 border-white/15 backdrop-blur-md",
+          )}
+        >
+          <span className="relative flex h-2 w-2">
+            {isLive ? (
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+            ) : null}
+            <span
+              className={cn(
+                "relative inline-flex rounded-full h-2 w-2",
+                isLive ? "bg-white" : "bg-amber-200",
+              )}
+            />
+          </span>
+          <span className="text-[6px] font-black tracking-[0.16em] text-white uppercase leading-none">
+            {statusLabel}
+          </span>
+        </div>
         <div className="relative z-10 flex flex-col gap-1">
           <span className="text-foreground/70 text-[10px] font-black uppercase tracking-widest">
             {name}
           </span>
           <span className="text-foreground text-xl font-black">
             {price} ETB
+          </span>
+          <span className="text-[8px] font-bold uppercase tracking-[0.18em] text-white/70">
+            {joinedUsers} joined
           </span>
         </div>
 

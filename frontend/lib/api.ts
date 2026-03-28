@@ -150,6 +150,9 @@ export type RoomItem = {
   maxPlayers: number | null;
   botAllowed: boolean | number;
   isLive: boolean;
+  sessionId: string | null;
+  sessionStatus: string;
+  playersCount: number;
 };
 
 export async function fetchRooms(token: string): Promise<RoomItem[]> {

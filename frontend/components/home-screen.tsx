@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LayoutGrid, Sparkles, Users, Zap } from "lucide-react";
 import { motion } from "framer-motion";
@@ -46,6 +46,13 @@ export function HomeScreen() {
         currency: walletData.currency,
       }
     : null;
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [roomStates, setRoomStates] = useState<
+    Record<
+      string,
+      { sessionId: string | null; sessionStatus: string; playersCount: number }
+    >
+  >({});
 
   useEffect(() => {
     if (status !== "authenticated" || !localStorage.getItem(FALLBACK_TOKEN_KEY))
@@ -64,11 +71,104 @@ export function HomeScreen() {
     };
   }, [status]);
 
-  function openRoom(room: RoomItem) {
-    router.push(`/rooms/${room.id}`);
-  }
+  useEffect(() => {
+    setRoomStates(
+      Object.fromEntries(
+        rooms.map((room) => [
+          room.id,
+          {
+            sessionId: room.sessionId,
+            sessionStatus: room.sessionStatus,
+            playersCount: room.playersCount,
+          },
+        ]),
+      ),
+    );
+  }, [rooms]);
 
-  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  useEffect(() => {
+    if (
+      status !== "authenticated" ||
+      !localStorage.getItem(FALLBACK_TOKEN_KEY) ||
+      Object.keys(roomStates).length === 0
+    ) {
+      return;
+    }
+
+    const socket = connectSocket(localStorage.getItem(FALLBACK_TOKEN_KEY)!);
+    const sessionIds = new Set<string>();
+
+    Object.values(roomStates).forEach((roomState) => {
+      if (roomState.sessionId && !sessionIds.has(roomState.sessionId)) {
+        sessionIds.add(roomState.sessionId);
+        socket.emit("join_session", { sessionId: roomState.sessionId });
+      }
+    });
+
+    const updateRoomState = (
+      sessionId: string,
+      patch: Partial<{
+        sessionStatus: string;
+        playersCount: number;
+      }>,
+    ) => {
+      setRoomStates((prev) => {
+        const roomId = Object.keys(prev).find(
+          (key) => prev[key]?.sessionId === sessionId,
+        );
+        if (!roomId) return prev;
+        return {
+          ...prev,
+          [roomId]: {
+            ...prev[roomId],
+            ...patch,
+          },
+        };
+      });
+    };
+
+    const onSnapshot = (payload: {
+      sessionId: string;
+      status?: string;
+      playersCount?: number;
+    }) => {
+      updateRoomState(payload.sessionId, {
+        sessionStatus: payload.status,
+        playersCount: payload.playersCount,
+      });
+    };
+
+    const onParticipantsUpdated = (payload: {
+      sessionId: string;
+      status: string;
+      playersCount: number;
+    }) => {
+      updateRoomState(payload.sessionId, {
+        sessionStatus: payload.status,
+        playersCount: payload.playersCount,
+      });
+    };
+
+    const onStarted = (payload: { sessionId: string }) => {
+      updateRoomState(payload.sessionId, { sessionStatus: "playing" });
+    };
+
+    const onCountdown = (payload: { sessionId: string }) => {
+      updateRoomState(payload.sessionId, { sessionStatus: "countdown" });
+    };
+
+    socket.on("session_snapshot", onSnapshot);
+    socket.on("session_participants_updated", onParticipantsUpdated);
+    socket.on("session_started", onStarted);
+    socket.on("session_countdown", onCountdown);
+
+    return () => {
+      socket.off("session_snapshot", onSnapshot);
+      socket.off("session_participants_updated", onParticipantsUpdated);
+      socket.off("session_started", onStarted);
+      socket.off("session_countdown", onCountdown);
+    };
+  }, [roomStates, status]);
 
   if (
     status === "boot" ||
@@ -175,6 +275,20 @@ export function HomeScreen() {
 
   const balanceLabel = wallet ? centsToLabel(wallet.balanceCents) : "0.00";
   const currency = wallet?.currency ?? "ETB";
+  const displayRooms = useMemo(
+    () =>
+      rooms.map((room) => {
+        const liveState = roomStates[room.id];
+        const sessionStatus = liveState?.sessionStatus ?? room.sessionStatus;
+        return {
+          ...room,
+          sessionStatus,
+          playersCount: liveState?.playersCount ?? room.playersCount,
+          isLive: sessionStatus === "playing",
+        };
+      }),
+    [roomStates, rooms],
+  );
 
   return (
     <div className="bg-background min-h-svh w-full h-screen max-h-screen overflow-y-auto custom-scrollbar transition-colors duration-500">
@@ -231,7 +345,7 @@ export function HomeScreen() {
         </div>
 
         <div className="grid grid-cols-2 gap-4 p-4 mt-2">
-          {rooms.length === 0 ? (
+          {displayRooms.length === 0 ? (
             <div className="col-span-2 py-20 text-center flex flex-col items-center gap-4">
               <div className="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center border border-primary/10">
                 <LayoutGrid className="text-primary/40" />
@@ -241,7 +355,7 @@ export function HomeScreen() {
               </p>
             </div>
           ) : (
-            rooms.map((room) => (
+            displayRooms.map((room) => (
               <div key={room.id}>
                 <GameCard
                   name={room.name}
@@ -253,6 +367,8 @@ export function HomeScreen() {
                     wallet ? wallet.balanceCents >= room.boardPriceCents : false
                   }
                   isLive={room.isLive}
+                  status={room.sessionStatus}
+                  joinedUsers={room.playersCount}
                 />
               </div>
             ))

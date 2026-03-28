@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Activity, RotateCcw, Ticket, Users, Volume2 } from "lucide-react";
+import { RotateCcw, Volume2 } from "lucide-react";
 
 import {
   buyBoard,
@@ -42,8 +42,6 @@ export default function RoomPage() {
   const [msg, setMsg] = useState("");
   const [prizePoolCents, setPrizePoolCents] = useState(0);
   const [stakeLabelLive, setStakeLabelLive] = useState("0.00");
-  const [playersCount, setPlayersCount] = useState(0);
-  const [boardsCount, setBoardsCount] = useState(0);
 
   const { data: walletData } = useGetWalletQuery();
 
@@ -84,8 +82,6 @@ export default function RoomPage() {
       setState(nextState);
       setStartsIn(nextState.startsInSec);
       setStakeLabelLive(nextState.stakeLabel);
-      setPlayersCount(0);
-      setBoardsCount(0);
       setMsg("");
     } catch {
       setMsg(t("errors.failedLoad"));
@@ -118,8 +114,6 @@ export default function RoomPage() {
         setState(nextState);
         setStartsIn(nextState.startsInSec);
         setStakeLabelLive(nextState.stakeLabel);
-        setPlayersCount(0);
-        setBoardsCount(0);
       } catch {
         if (!alive) return;
         setMsg(t("errors.failedLoad"));
@@ -160,8 +154,6 @@ export default function RoomPage() {
       sessionId: string;
       status?: string;
       startsInSec?: number;
-      playersCount?: number;
-      boardsCount?: number;
       potCents?: number;
       stakeLabel?: string;
       viewerResult?: { targetPath: string } | null;
@@ -178,12 +170,6 @@ export default function RoomPage() {
         const nextStatus = payload.status;
         setState((prev) => (prev ? { ...prev, status: nextStatus } : prev));
       }
-      if (typeof payload.playersCount === "number") {
-        setPlayersCount(payload.playersCount);
-      }
-      if (typeof payload.boardsCount === "number") {
-        setBoardsCount(payload.boardsCount);
-      }
       if (typeof payload.potCents === "number") {
         setPrizePoolCents(payload.potCents);
       }
@@ -195,8 +181,6 @@ export default function RoomPage() {
     const onParticipantsUpdated = (payload: {
       sessionId: string;
       status: string;
-      playersCount: number;
-      boardsCount: number;
       potCents: number;
       stakeLabel: string;
     }) => {
@@ -204,8 +188,6 @@ export default function RoomPage() {
       setState((prev) =>
         prev ? { ...prev, status: payload.status ?? prev.status } : prev,
       );
-      setPlayersCount(payload.playersCount);
-      setBoardsCount(payload.boardsCount);
       setPrizePoolCents(payload.potCents);
       setStakeLabelLive(payload.stakeLabel);
     };
@@ -239,11 +221,6 @@ export default function RoomPage() {
   const prizePool = prizePoolCents / 100;
   const status = state?.status ?? "waiting";
   const isLive = status === "playing";
-  const statusLabel = isLive ? "Live" : "Waiting";
-  const countdownLabel =
-    status === "countdown" || status === "waiting"
-      ? `${Math.max(startsIn, 0)}s`
-      : "Now";
   const bgNumbers = useMemo(
     () => Array.from({ length: 50 }, () => Math.floor(Math.random() * 100)),
     [],
@@ -325,66 +302,6 @@ export default function RoomPage() {
             </button>
           </div>
         </header>
-
-        <div className="mb-4 rounded-[18px] border border-white/10 bg-[linear-gradient(135deg,rgba(37,99,235,0.18),rgba(15,23,42,0.92))] p-3 shadow-[0_20px_50px_rgba(2,8,23,0.35)]">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <div
-                className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-[0.22em] ${
-                  isLive
-                    ? "bg-emerald-500/15 text-emerald-300"
-                    : "bg-amber-400/15 text-amber-200"
-                }`}
-              >
-                <span
-                  className={`h-2 w-2 rounded-full ${isLive ? "bg-emerald-400 animate-pulse" : "bg-amber-300"}`}
-                />
-                {statusLabel}
-              </div>
-              <p className="mt-2 text-sm font-semibold text-white/90">
-                {isLive
-                  ? "Game is live now. Players are in."
-                  : "Waiting for players to join the next live round."}
-              </p>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-right">
-              <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">
-                Starts
-              </div>
-              <div className="text-lg font-black text-white">{countdownLabel}</div>
-            </div>
-          </div>
-
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            <div className="rounded-2xl border border-white/10 bg-black/15 p-3">
-              <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-cyan-100/60">
-                <Users size={14} />
-                Joined Users
-              </div>
-              <div className="mt-1 text-2xl font-black text-white">
-                {playersCount}
-              </div>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-black/15 p-3">
-              <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-cyan-100/60">
-                <Ticket size={14} />
-                E-Basket
-              </div>
-              <div className="mt-1 text-2xl font-black text-white">
-                {boardsCount}
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-3 flex items-center gap-2 text-xs text-white/65">
-            <Activity size={14} className={isLive ? "text-emerald-300" : "text-amber-200"} />
-            <span>
-              {isLive
-                ? `${playersCount} users joined with ${boardsCount} e-basket${boardsCount === 1 ? "" : "s"}.`
-                : `${playersCount} users joined so far with ${boardsCount} e-basket${boardsCount === 1 ? "" : "s"}.`}
-            </span>
-          </div>
-        </div>
 
         <div className="flex w-full items-stretch justify-between gap-2 mb-4">
           <div className="bg-blue-500 rounded-[8px] min-w-20 p-2.5 pb-2 flex flex-col shadow-lg">

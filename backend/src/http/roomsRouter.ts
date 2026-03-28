@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { eq, inArray } from "drizzle-orm";
+import { desc, eq, inArray, sql } from "drizzle-orm";
 
 import { db } from "../db/client.js";
-import { gameSessions, rooms } from "../db/schema.js";
+import { boards, gameSessions, rooms } from "../db/schema.js";
 import { requireAuth } from "./authMiddleware.js";
 import { requireAdmin } from "./adminGuard.js";
 import { requireAgent } from "./agentGuard.js";
@@ -49,11 +49,60 @@ function priceToCents(price: number): number {
 // ── GET /rooms ──────────────────────────────────────────────────────
 router.get("/rooms", requireAuth, async (_req, res) => {
   try {
-    // Use new logic for available rooms based on user type/agent
     const identity = _req.identity;
     const allRooms = identity ? await listAvailableRooms(identity) : [];
+    const roomIds = allRooms.map((room) => room.id);
 
-    // const liveRoomIds = await getLiveRoomIdsCached();
+    const activeSessions = roomIds.length
+      ? await db
+          .select({
+            roomId: gameSessions.roomId,
+            sessionId: gameSessions.id,
+            status: gameSessions.status,
+            createdAt: gameSessions.createdAt,
+            playersCount:
+              sql<number>`coalesce(count(distinct ${boards.userId}), 0)`,
+          })
+          .from(gameSessions)
+          .leftJoin(boards, eq(boards.sessionId, gameSessions.id))
+          .where(
+            inArray(gameSessions.roomId, roomIds),
+          )
+          .groupBy(
+            gameSessions.roomId,
+            gameSessions.id,
+            gameSessions.status,
+            gameSessions.createdAt,
+          )
+          .orderBy(desc(gameSessions.createdAt))
+      : [];
+
+    const sessionByRoom = new Map<
+      string,
+      {
+        sessionId: string;
+        status: string;
+        playersCount: number;
+      }
+    >();
+
+    for (const session of activeSessions) {
+      if (sessionByRoom.has(session.roomId)) continue;
+      if (
+        session.status !== "waiting" &&
+        session.status !== "countdown" &&
+        session.status !== "playing"
+      ) {
+        continue;
+      }
+
+      sessionByRoom.set(session.roomId, {
+        sessionId: session.sessionId,
+        status: session.status,
+        playersCount: session.playersCount,
+      });
+    }
+
     logger.info("rooms_listed", {
       requestId: _req.requestId,
       userId: identity?.userId ?? null,
@@ -66,8 +115,10 @@ router.get("/rooms", requireAuth, async (_req, res) => {
       rooms: allRooms.map((room) => ({
         ...room,
         price: centsToPrice(room.boardPriceCents),
-        isLive: false, // liveRoomIds.has(room.id),
-        // isLive: liveRoomIds.has(room.id),
+        sessionId: sessionByRoom.get(room.id)?.sessionId ?? null,
+        sessionStatus: sessionByRoom.get(room.id)?.status ?? "waiting",
+        playersCount: sessionByRoom.get(room.id)?.playersCount ?? 0,
+        isLive: sessionByRoom.get(room.id)?.status === "playing",
       })),
     });
   } catch (error: unknown) {
