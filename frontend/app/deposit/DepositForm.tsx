@@ -104,7 +104,7 @@ export function DepositForm() {
   };
 
   const handleCopy = () => {
-    const valueToCopy = isCbe ? "1000277768066" : "0925527212";
+    const valueToCopy = isCbe ? "1000485490478" : "0935878383";
     navigator.clipboard.writeText(valueToCopy);
     setCopySuccess(true);
     setTimeout(() => setCopySuccess(false), 1200);
@@ -161,7 +161,7 @@ export function DepositForm() {
               {t("account.ownerLabel")}
             </div>
             <div className="text-sm font-semibold text-white">
-              {isCbe ? "Ezira Tigab" : "Ezira Tigab"}
+              {isCbe ? "Muluken Kasawmar" : "Muluken Kasawmar"}
             </div>
 
             <div className=" flex items-center justify-between gap-3">
@@ -170,7 +170,7 @@ export function DepositForm() {
                   {t("account.numberLabel")}
                 </span>
                 <span className="text-base font-semibold tracking-[0.16em] text-white">
-                  {isCbe ? "1000 2777 680 66" : "09 25 52 72 12"}
+                  {isCbe ? "1000 4854 904 78" : "09 35 87 83 83"}
                 </span>
               </div>
               <button
