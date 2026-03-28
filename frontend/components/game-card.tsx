@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { InsufficientBalanceModal } from "./insufficient-balance-modal";
+import { toast } from "sonner";
 
 interface GameCardProps {
   name: string;
@@ -33,7 +34,11 @@ export function GameCard({
 }: GameCardProps) {
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
-  const statusLabel = isLive ? "LIVE" : status === "countdown" ? "WAITING" : "WAITING";
+  const statusLabel = isLive
+    ? "LIVE"
+    : status === "countdown"
+      ? "WAITING"
+      : "WAITING";
 
   return (
     <>
@@ -45,7 +50,9 @@ export function GameCard({
         )}
         onClick={() => {
           if (isLive) {
-            router.push(`/rooms/${id}/room-full`);
+            toast.info(
+              "This game is currently live. Please wait for the next round to join.",
+            );
             return;
           }
           if (!canAfford) {
