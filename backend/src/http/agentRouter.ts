@@ -28,6 +28,12 @@ import { amountToCents } from "../wallet/depositService.js";
 
 const router = Router();
 
+function normalizeTransactionNumberCandidate(value: string): string {
+  const trimmed = value.trim();
+  const cbeReceiptMatch = trimmed.match(/^(FT\d{6}[A-Z0-9]{4})/i);
+  return cbeReceiptMatch ? cbeReceiptMatch[1].toUpperCase() : trimmed;
+}
+
 type PaymentListQuery = {
   page?: string;
   pageSize?: string;
@@ -657,9 +663,14 @@ router.post(
         /Mbreciept\.cbe\.com\.et\/([A-Z0-9-]{9,40})/i,
       )?.[1];
       const transactionNumber =
-        cbeReceiptId?.match(/^(FT\d{6}[A-Z0-9]{4})/)?.[1] ??
-        cbeReceiptId ??
-        sms_content.match(/Ref No\s+([A-Z0-9]+)/i)?.[1] ??
+        (cbeReceiptId
+          ? normalizeTransactionNumberCandidate(cbeReceiptId)
+          : null) ??
+        (sms_content.match(/Ref No\s+([A-Z0-9]+)/i)?.[1]
+          ? normalizeTransactionNumberCandidate(
+              sms_content.match(/Ref No\s+([A-Z0-9]+)/i)![1],
+            )
+          : null) ??
         null;
 
       if (!amount || !phonenumber || !datetime || !transactionNumber) {

@@ -7,6 +7,7 @@ import { deposits, payments, users } from "../db/schema.js";
 import { asyncHandler } from "./asyncHandler.js";
 import { requireAuth } from "./authMiddleware.js";
 import { getBot } from "../telegram/bot.js";
+import { logger } from "../utils/logger.js";
 import {
   approvePendingDepositInTx,
   normalizePromoCode,
@@ -21,6 +22,30 @@ type ParsedPendingPayment = {
   datetime: Date;
   transactionNumber: string;
 };
+
+function normalizeTransactionNumberCandidate(value: string): string {
+  const trimmed = value.trim();
+  const cbeReceiptMatch = trimmed.match(/^(FT\d{6}[A-Z0-9]{4})/i);
+  return cbeReceiptMatch ? cbeReceiptMatch[1].toUpperCase() : trimmed;
+}
+
+function summarizeSmsForLog(smsContent: string): string {
+  return smsContent.replace(/\s+/g, " ").trim().slice(0, 240);
+}
+
+function buildTransactionExtractionDebug(smsContent: string) {
+  return {
+    normalizedTransactionNumber: extractTransactionNumber(smsContent),
+    hasCbeReceiptUrl: /mbreciept\.cbe\.com\.et\//i.test(smsContent),
+    cbeReceiptUrlMatch:
+      smsContent.match(/mbreciept\.cbe\.com\.et\/([A-Z0-9-]{9,40})/i)?.[1] ??
+      null,
+    refNoMatch: smsContent.match(/Ref No\s+([A-Z0-9]+)/i)?.[1] ?? null,
+    transactionNoMatch:
+      smsContent.match(/Transaction No\s*:?\s*([A-Z0-9]+)/i)?.[1] ?? null,
+    smsPreview: summarizeSmsForLog(smsContent),
+  };
+}
 
 function extractTransactionNumber(smsContent: string): string | null {
   const patterns = [
@@ -45,12 +70,10 @@ function extractTransactionNumber(smsContent: string): string | null {
       pattern.source.includes("\\?id=") ||
       pattern.source.includes("Mbreciept\\.cbe\\.com\\.et")
     ) {
-      const id = match[1];
-      const strictMatch = id.match(/^(FT\d{6}[A-Z0-9]{4})/);
-      return strictMatch ? strictMatch[1] : id;
+      return normalizeTransactionNumberCandidate(match[1]);
     }
 
-    return match[1];
+    return normalizeTransactionNumberCandidate(match[1]);
   }
 
   return null;
@@ -345,6 +368,11 @@ const approvePaymentHandler = asyncHandler(async (req, res) => {
 
   const transactionNumber = extractTransactionNumber(sms_content);
   if (!transactionNumber) {
+    logger.warn("payment_submit_transaction_number_not_found", {
+      requestId: req.requestId,
+      userId: req.identity.userId,
+      ...buildTransactionExtractionDebug(sms_content),
+    });
     res.status(400).json({ error: "transaction_number_not_found" });
     return;
   }
@@ -481,6 +509,12 @@ const approvePaymentHandler = asyncHandler(async (req, res) => {
       error instanceof Error ? error.message : "payment_approve_failed";
 
     if (message === "payment_not_found") {
+      logger.warn("payment_submit_payment_not_found", {
+        requestId: req.requestId,
+        userId: req.identity.userId,
+        transactionNumber,
+        ...buildTransactionExtractionDebug(sms_content),
+      });
       res.status(404).json({ error: "Payment not found" });
       return;
     }
@@ -508,6 +542,13 @@ const approvePaymentHandler = asyncHandler(async (req, res) => {
     }
 
     console.error("Approve payment error:", error);
+    logger.error("payment_submit_failed", {
+      requestId: req.requestId,
+      userId: req.identity.userId,
+      transactionNumber,
+      message,
+      ...buildTransactionExtractionDebug(sms_content),
+    });
     res.status(500).json({ error: "Failed to approve payment" });
   }
 });
@@ -560,6 +601,12 @@ router.post(
       // log the full error for debugging, but only return a generic message to the client
       console.error("Error processing pending Telebirr payment:", error);
       const message = error instanceof Error ? error.message : String(error);
+      logger.warn("pending_telebirr_payment_parse_failed", {
+        requestId: req.requestId,
+        agentTelegramId: String(agentTelegramId).trim(),
+        message,
+        ...buildTransactionExtractionDebug(sms_content),
+      });
       const duplicate =
         message.includes("uq_payments_transaction_number") ||
         message.includes("duplicate key");
@@ -627,6 +674,12 @@ router.post(
       res.status(201).json({ success: true, payment });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
+      logger.warn("pending_cbe_payment_parse_failed", {
+        requestId: req.requestId,
+        agentTelegramId: String(agentTelegramId).trim(),
+        message,
+        ...buildTransactionExtractionDebug(sms_content),
+      });
       const duplicate =
         message.includes("uq_payments_transaction_number") ||
         message.includes("duplicate key");
