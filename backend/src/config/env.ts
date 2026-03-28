@@ -12,6 +12,7 @@ const envSchema = z.object({
   TELEGRAM_BOT_TOKEN: z.string().optional(),
   TELEGRAM_WEBHOOK_SECRET: z.string().optional(),
   TELEGRAM_WEBHOOK_URL: z.string().url().optional(),
+  SMS_FORWARDER_SECRET: z.string().min(16).optional(),
   TELEGRAM_INITDATA_MAX_AGE_SEC: z.coerce
     .number()
     .int()
@@ -52,4 +53,5 @@ export const env = {
   ...parsed,
   TELEGRAM_BOT_TOKEN: parsed.TELEGRAM_BOT_TOKEN ?? "",
   TELEGRAM_WEBHOOK_SECRET: parsed.TELEGRAM_WEBHOOK_SECRET ?? "",
+  SMS_FORWARDER_SECRET: parsed.SMS_FORWARDER_SECRET ?? "",
 };

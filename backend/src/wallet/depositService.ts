@@ -49,7 +49,9 @@ export type UpdatePromoCodeInput = {
   isActive?: boolean;
 };
 
-function normalizePromoCode(value: string | null | undefined): string | null {
+export function normalizePromoCode(
+  value: string | null | undefined,
+): string | null {
   if (!value) {
     return null;
   }
@@ -373,74 +375,88 @@ async function claimAndApplyPromo(
   };
 }
 
+type DbTransaction = Parameters<typeof db.transaction>[0] extends (
+  tx: infer T,
+) => Promise<unknown>
+  ? T
+  : never;
+
+export async function approvePendingDepositInTx(
+  tx: DbTransaction,
+  depositId: string,
+  adminId: string,
+) {
+  const locked = await tx.execute(sql`
+    select
+      ${deposits.id} as id,
+      ${deposits.userId} as user_id,
+      ${deposits.amountCents} as amount_cents,
+      ${deposits.promoCode} as promo_code,
+      ${deposits.status} as status
+    from ${deposits}
+    where ${deposits.id} = ${depositId}
+    for update
+  `);
+
+  const row = locked.rows[0] as
+    | {
+        id: string;
+        user_id: string;
+        amount_cents: number;
+        promo_code: string | null;
+        status: "pending" | "approved" | "rejected";
+      }
+    | undefined;
+
+  if (!row) {
+    throw new Error("deposit_not_found");
+  }
+
+  if (row.status !== "pending") {
+    throw new Error("deposit_already_processed");
+  }
+
+  await tx.insert(walletLedger).values({
+    userId: row.user_id,
+    entryType: "deposit",
+    amountCents: row.amount_cents,
+    status: "posted",
+    idempotencyKey: `deposit-approval:${row.id}`,
+    metadata: {
+      source: "deposit_approval",
+      depositId: row.id,
+    },
+  });
+
+  const promo = await claimAndApplyPromo(tx, {
+    id: row.id,
+    userId: row.user_id,
+    amountCents: row.amount_cents,
+    promoCode: row.promo_code,
+  });
+
+  const [updatedDeposit] = await tx
+    .update(deposits)
+    .set({
+      status: "approved",
+      approvedAt: new Date(),
+      approvedBy: adminId,
+      updatedAt: new Date(),
+    })
+    .where(eq(deposits.id, row.id))
+    .returning();
+
+  return {
+    deposit: updatedDeposit,
+    promo,
+  };
+}
+
 export async function approvePendingDeposit(
   depositId: string,
   adminId: string,
 ) {
   return db.transaction(async (tx) => {
-    const locked = await tx.execute(sql`
-      select
-        ${deposits.id} as id,
-        ${deposits.userId} as user_id,
-        ${deposits.amountCents} as amount_cents,
-        ${deposits.promoCode} as promo_code,
-        ${deposits.status} as status
-      from ${deposits}
-      where ${deposits.id} = ${depositId}
-      for update
-    `);
-
-    const row = locked.rows[0] as
-      | {
-          id: string;
-          user_id: string;
-          amount_cents: number;
-          promo_code: string | null;
-          status: "pending" | "approved" | "rejected";
-        }
-      | undefined;
-
-    if (!row) {
-      throw new Error("deposit_not_found");
-    }
-
-    if (row.status !== "pending") {
-      throw new Error("deposit_already_processed");
-    }
-
-    await tx.insert(walletLedger).values({
-      userId: row.user_id,
-      entryType: "deposit",
-      amountCents: row.amount_cents,
-      status: "posted",
-      idempotencyKey: `deposit-approval:${row.id}`,
-      metadata: {
-        source: "deposit_approval",
-        depositId: row.id,
-      },
-    });
-
-    const promo = await claimAndApplyPromo(tx, {
-      id: row.id,
-      userId: row.user_id,
-      amountCents: row.amount_cents,
-      promoCode: row.promo_code,
-    });
-
-    const [updatedDeposit] = await tx
-      .update(deposits)
-      .set({
-        status: "approved",
-        approvedAt: new Date(),
-        approvedBy: adminId,
-        updatedAt: new Date(),
-      })
-      .where(eq(deposits.id, row.id))
-      .returning();
-
-    return {
-      deposit: updatedDeposit,
-      promo,
-    };
+    return approvePendingDepositInTx(tx, depositId, adminId);
   });
 }

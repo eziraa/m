@@ -1,11 +1,23 @@
 import { Router } from "express";
-import { and, desc, eq, sql, ilike, or, count, sum } from "drizzle-orm";
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  gte,
+  ilike,
+  lte,
+  or,
+  sql,
+} from "drizzle-orm";
 import { db } from "../db/client.js";
 import {
   rooms,
   users,
   walletLedger,
   deposits,
+  payments,
   withdrawals,
 } from "../db/schema.js";
 import { requireAuth } from "./authMiddleware.js";
@@ -15,6 +27,74 @@ import { listAvailableRooms } from "../game/gameService.js";
 import { amountToCents } from "../wallet/depositService.js";
 
 const router = Router();
+
+type PaymentListQuery = {
+  page?: string;
+  pageSize?: string;
+  status?: string;
+  source?: string;
+  search?: string;
+  minAmount?: string;
+  maxAmount?: string;
+  startDate?: string;
+  endDate?: string;
+  sortBy?: string;
+  sortOrder?: string;
+};
+
+function buildPaymentFilters(agentId: string, query: PaymentListQuery) {
+  const filters = [eq(payments.agentId, agentId)] as any[];
+
+  if (query.status && query.status !== "all") {
+    filters.push(eq(payments.status, query.status as any));
+  }
+
+  if (query.source && query.source !== "all") {
+    filters.push(ilike(payments.source, query.source));
+  }
+
+  if (query.search?.trim()) {
+    const term = `%${query.search.trim()}%`;
+    filters.push(
+      or(
+        ilike(payments.transactionNumber, term),
+        ilike(payments.phonenumber, term),
+        ilike(payments.smsContent, term),
+        ilike(payments.source, term),
+      ),
+    );
+  }
+
+  if (query.minAmount !== undefined && query.minAmount !== "") {
+    const minAmount = Number(query.minAmount);
+    if (Number.isFinite(minAmount)) {
+      filters.push(gte(payments.amount, minAmount));
+    }
+  }
+
+  if (query.maxAmount !== undefined && query.maxAmount !== "") {
+    const maxAmount = Number(query.maxAmount);
+    if (Number.isFinite(maxAmount)) {
+      filters.push(lte(payments.amount, maxAmount));
+    }
+  }
+
+  if (query.startDate) {
+    const parsed = new Date(query.startDate);
+    if (!Number.isNaN(parsed.getTime())) {
+      filters.push(gte(payments.datetime, parsed));
+    }
+  }
+
+  if (query.endDate) {
+    const parsed = new Date(query.endDate);
+    if (!Number.isNaN(parsed.getTime())) {
+      filters.push(lte(payments.datetime, parsed));
+    }
+  }
+
+  return filters;
+}
 
 // Apply middleware to all agent routes
 router.use("/agent", requireAuth, requireAgent);
@@ -303,50 +383,71 @@ router.patch(
 
 // ── PAYMENTS (DEPOSITS) ──────────────────────────────────────────────
 
-// Get deposits for referred users
+// Get submitted payment records for this agent
 router.get(
   "/agent/payments",
   asyncHandler(async (req, res) => {
     const agentId = req.identity!.userId;
-    const { status, limit = "10", page = "1" } = req.query;
-    const offset = (Number(page) - 1) * Number(limit);
+    const query = req.query as PaymentListQuery;
+    const page = Math.max(Number(query.page) || 1, 1);
+    const pageSize = Math.min(Math.max(Number(query.pageSize) || 20, 1), 100);
+    const offset = (page - 1) * pageSize;
+    const filters = buildPaymentFilters(agentId, query);
+    const whereClause = and(...filters);
 
-    const whereClause = and(
-      eq(users.referredByAgentId, agentId),
-      status && status !== "all"
-        ? eq(deposits.status, status as any)
-        : undefined,
-    );
+    const sortBy = query.sortBy === "amount" ? "amount" : "date";
+    const sortOrder = query.sortOrder === "asc" ? "asc" : "desc";
+    const orderByClause =
+      sortBy === "amount"
+        ? sortOrder === "asc"
+          ? asc(payments.amount)
+          : desc(payments.amount)
+        : sortOrder === "asc"
+          ? asc(payments.datetime)
+          : desc(payments.datetime);
 
-    const [totalRes] = await db
-      .select({ count: count() })
-      .from(deposits)
-      .innerJoin(users, eq(deposits.userId, users.id))
-      .where(whereClause);
-
-    const agentPayments = await db
-      .select({
-        id: deposits.id,
-        userId: deposits.userId,
-        username: users.username,
-        firstName: users.firstName,
-        amountCents: deposits.amountCents,
-        status: deposits.status,
-        createdAt: deposits.createdAt,
-      })
-      .from(deposits)
-      .innerJoin(users, eq(deposits.userId, users.id))
-      .where(whereClause)
-      .limit(Number(limit))
-      .offset(offset)
-      .orderBy(desc(deposits.createdAt));
+    const [rows, [{ count: total }]] = await Promise.all([
+      db
+        .select({
+          id: payments.id,
+          userId: payments.userId,
+          username: users.username,
+          firstName: users.firstName,
+          amount: payments.amount,
+          status: payments.status,
+          createdAt: payments.createdAt,
+          transaction_number: payments.transactionNumber,
+          phonenumber: payments.phonenumber,
+          source: payments.source,
+          datetime: payments.datetime,
+        })
+        .from(payments)
+        .leftJoin(users, eq(payments.userId, users.id))
+        .where(whereClause)
+        .orderBy(orderByClause)
+        .limit(pageSize)
+        .offset(offset),
+      db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(payments)
+        .where(whereClause),
+    ]);
 
     res.json({
-      payments: agentPayments.map((p) => ({
-        ...p,
-        amount: (p.amountCents / 100).toFixed(2),
+      success: true,
+      payments: rows.map((row) => ({
+        ...row,
+        username: row.username ?? null,
+        firstName: row.firstName ?? null,
+        amount: String(row.amount),
       })),
-      total: totalRes.count,
+      pagination: {
+        page,
+        pageSize,
+        total,
+        totalPages: Math.ceil(total / pageSize),
+      },
+      sort: { sortBy, sortOrder },
     });
   }),
 );
@@ -356,21 +457,24 @@ router.get(
   "/agent/payments/stats",
   asyncHandler(async (req, res) => {
     const agentId = req.identity!.userId;
+    const query = req.query as PaymentListQuery;
+    const filters = buildPaymentFilters(agentId, query);
+    const whereClause = and(...filters);
 
     const [stats] = await db
       .select({
-        totalAmountCents: sql<number>`coalesce(sum(case when ${deposits.status} = 'approved' then ${deposits.amountCents} else 0 end), 0)`,
-        count: count(deposits.id),
-        pendingCount: sql<number>`count(case when ${deposits.status} = 'pending' then 1 end)`,
+        totalCount: sql<number>`count(*)::int`,
+        pendingCount: sql<number>`sum(case when ${payments.status} = 'pending' then 1 else 0 end)::int`,
+        approvedCount: sql<number>`sum(case when ${payments.status} = 'approved' then 1 else 0 end)::int`,
+        rejectedCount: sql<number>`sum(case when ${payments.status} = 'rejected' then 1 else 0 end)::int`,
+        totalAmount: sql<number>`coalesce(sum(${payments.amount}), 0)::int`,
       })
-      .from(deposits)
-      .innerJoin(users, eq(deposits.userId, users.id))
-      .where(eq(users.referredByAgentId, agentId));
+      .from(payments)
+      .where(whereClause);
 
     res.json({
-      totalApproved: (stats.totalAmountCents / 100).toFixed(2),
-      totalCount: stats.count,
-      pendingCount: stats.pendingCount,
+      success: true,
+      stats,
     });
   }),
 );
@@ -382,75 +486,109 @@ router.post(
     const agentId = req.identity!.userId;
     const { sms_content } = req.body;
 
-    if (!sms_content) {
-      res.status(400).json({ error: "sms_content_required" });
+    if (!sms_content || typeof sms_content !== "string") {
+      res.status(400).json({ error: "Missing or invalid sms_content" });
       return;
     }
 
-    // Basic Telebirr Parsing
-    // Example: "You have received 100.00 ETB from ... Transaction No: 6KH1234567 ..."
-    const txMatch =
-      sms_content.match(/Transaction No\s*[:]\s*([A-Za-z0-9]+)/i) ||
-      sms_content.match(/Trans\.ID\s*[:]\s*([A-Za-z0-9]+)/i);
-    const amountMatch =
-      sms_content.match(/([0-9.,]+)\s*ETB/i) ||
-      sms_content.match(/received\s*([0-9.,]+)/i);
-    const phoneMatch = sms_content.match(/(09\d{8})/);
+    try {
+      if (/airtime/i.test(sms_content)) {
+        res.status(400).json({
+          error: "Transaction involves airtime, which is not supported",
+        });
+        return;
+      }
 
-    if (!txMatch || !amountMatch) {
-      res.status(400).json({ error: "failed_to_parse_sms" });
-      return;
+      const sourceMatch = sms_content.match(/^From:\s*(\d+)/m);
+      const source = sourceMatch ? sourceMatch[1] : "Telebirr";
+
+      const amountMatch = sms_content.match(/received ETB\s+([\d,.]+)/i);
+      const amount = amountMatch
+        ? Math.round(parseFloat(amountMatch[1].replace(/,/g, "")))
+        : null;
+
+      let phonenumber: string | null = null;
+      const numericPhoneMatch = sms_content.match(/from\s+(\d{9,15})/i);
+      if (numericPhoneMatch) {
+        phonenumber = numericPhoneMatch[1];
+      }
+
+      const maskedMatch = sms_content.match(
+        /from\s+([^\(]+)\((\d{4}\*+\d{2,4})\)/i,
+      );
+      if (maskedMatch) {
+        phonenumber = maskedMatch[2];
+      }
+
+      const datetimeMatch = sms_content.match(
+        /on\s+(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2}):(\d{2})/,
+      );
+
+      let datetime: Date | null = null;
+      if (datetimeMatch) {
+        const [, day, month, year, hour, minute, second] = datetimeMatch;
+        datetime = new Date(
+          Date.UTC(
+            parseInt(year),
+            parseInt(month) - 1,
+            parseInt(day),
+            parseInt(hour),
+            parseInt(minute),
+            parseInt(second),
+          ),
+        );
+      }
+
+      const txnMatch = sms_content.match(
+        /transaction number is\s+([A-Z0-9]+)/i,
+      );
+      const transactionNumber = txnMatch ? txnMatch[1] : null;
+
+      if (!amount || !phonenumber || !datetime || !transactionNumber) {
+        res.status(400).json({
+          error: "Could not extract all required fields from SMS",
+          debug: {
+            source,
+            amount,
+            phonenumber,
+            datetime,
+            transaction_number: transactionNumber,
+          },
+        });
+        return;
+      }
+
+      const [payment] = await db
+        .insert(payments)
+        .values({
+          agentId,
+          source,
+          amount,
+          phonenumber,
+          datetime,
+          transactionNumber,
+          smsContent: sms_content,
+          status: "pending",
+        })
+        .returning();
+
+      res.status(201).json({
+        success: true,
+        payment,
+      });
+    } catch (error: any) {
+      const message = error instanceof Error ? error.message : String(error);
+      const duplicate =
+        message.includes("uq_payments_transaction_number") ||
+        message.includes("duplicate key");
+
+      res.status(duplicate ? 409 : 500).json({
+        error: duplicate
+          ? "Payment with this transaction number already exists"
+          : "Failed to parse SMS content",
+        details: duplicate ? undefined : message,
+      });
     }
-
-    const transactionNumber = txMatch[1];
-    const amountStr = amountMatch[1].replace(/,/g, "");
-    const amountCents = Math.round(parseFloat(amountStr) * 100);
-    const phone = phoneMatch ? phoneMatch[1] : "unknown";
-
-    // Find user by phone if possible (Telegram ID or username might be better, but phone is in SMS)
-    // For now, we'll create a ledger entry if we can find a user by "something".
-    // In this app, users might not have phone numbers in DB.
-    // We might need to ask the agent to specify the user, but the UI only sends SMS content.
-
-    // Let's assume we need to find the user. If we can't find by phone, we might have an issue.
-    // However, the agent dashboard is for referred users.
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(
-        and(
-          eq(users.referredByAgentId, agentId),
-          or(eq(users.username, phone), eq(users.telegramId, phone)),
-        ),
-      ) // Mocking phone lookup
-      .limit(1);
-
-    // If no user found, we can't credit anyone.
-    // But since the UI is generic, maybe we should at least log it?
-    // The prompt says "prepare enpoints that can serve correct data".
-
-    // For now, I'll implement the logic to insert into ledger if user is found.
-    if (!user) {
-      res.status(404).json({ error: "user_not_found_for_this_phone" });
-      return;
-    }
-
-    await db.insert(walletLedger).values({
-      userId: user.id,
-      agentId: agentId,
-      entryType: "deposit",
-      amountCents: amountCents,
-      status: "posted",
-      idempotencyKey: `manual_telebirr_${transactionNumber}`,
-      metadata: {
-        source: "telebirr_manual",
-        transactionNumber,
-        sms_content,
-        phone,
-      },
-    });
-
-    res.json({ success: true, transactionNumber });
   }),
 );
 
@@ -461,37 +599,94 @@ router.post(
     const agentId = req.identity!.userId;
     const { sms_content } = req.body;
 
-    if (!sms_content) {
-      res.status(400).json({ error: "sms_content_required" });
+    if (!sms_content || typeof sms_content !== "string") {
+      res.status(400).json({ error: "Missing or invalid sms_content" });
       return;
     }
 
-    // Basic CBE Parsing
-    // Example: "Dear Ezira your Account ... has been Credited with 100.00 ETB ... Transaction No FT123456 ..."
-    const txMatch =
-      sms_content.match(/Transaction No\s*([A-Za-z0-9]+)/i) ||
-      sms_content.match(/Ref\s*([A-Za-z0-9]+)/i);
-    const amountMatch =
-      sms_content.match(/Credited with\s*([0-9.,]+)\s*ETB/i) ||
-      sms_content.match(/([0-9.,]+)\s*ETB/i);
+    try {
+      const source = "CBE";
 
-    if (!txMatch || !amountMatch) {
-      res.status(400).json({ error: "failed_to_parse_sms" });
-      return;
+      const amountMatch = sms_content.match(/Credited with ETB\s+([\d,.]+)/i);
+      const amount = amountMatch
+        ? Math.round(parseFloat(amountMatch[1].replace(/,/g, "")))
+        : null;
+
+      let senderName = "Unknown";
+      const nameMatch = sms_content.match(/from\s+([^,]+),/i);
+      if (nameMatch) {
+        senderName = nameMatch[1].trim();
+      }
+
+      const phonenumber = senderName;
+
+      const datetimeMatch = sms_content.match(
+        /on\s+(\d{2})\/(\d{2})\/(\d{4})\s+at\s+(\d{2}):(\d{2}):(\d{2})/i,
+      );
+
+      let datetime: Date | null = null;
+      if (datetimeMatch) {
+        const [, day, month, year, hour, minute, second] = datetimeMatch;
+        datetime = new Date(
+          Date.UTC(
+            parseInt(year),
+            parseInt(month) - 1,
+            parseInt(day),
+            parseInt(hour) - 3,
+            parseInt(minute),
+            parseInt(second),
+          ),
+        );
+      }
+
+      const txnMatch = sms_content.match(/Ref No\s+([A-Z0-9]+)/i);
+      const transactionNumber = txnMatch ? txnMatch[1] : null;
+
+      if (!amount || !phonenumber || !datetime || !transactionNumber) {
+        res.status(400).json({
+          error: "Could not extract all required fields from CBE SMS",
+          debug: {
+            source,
+            amount,
+            phonenumber,
+            datetime,
+            transaction_number: transactionNumber,
+          },
+        });
+        return;
+      }
+
+      const [payment] = await db
+        .insert(payments)
+        .values({
+          agentId,
+          source,
+          amount,
+          phonenumber,
+          datetime,
+          transactionNumber,
+          smsContent: sms_content,
+          status: "pending",
+        })
+        .returning();
+
+      res.status(201).json({
+        success: true,
+        payment,
+      });
+    } catch (error: any) {
+      const message = error instanceof Error ? error.message : String(error);
+      const duplicate =
+        message.includes("uq_payments_transaction_number") ||
+        message.includes("duplicate key");
+
+      res.status(duplicate ? 409 : 500).json({
+        error: duplicate
+          ? "Payment with this transaction number already exists"
+          : "Failed to parse CBE SMS content",
+        details: duplicate ? undefined : message,
+      });
     }
-
-    const transactionNumber = txMatch[1];
-    const amountStr = amountMatch[1].replace(/,/g, "");
-    const amountCents = Math.round(parseFloat(amountStr) * 100);
-
-    // Again, we need a way to link this to a user.
-    // Usually, the SMS content for CBE doesn't have the *sender's* phone number, only the receiver's account.
-    // This is a common problem with manual SMS submission.
-    // For now, I'll return an error saying user lookup failed until I have a better way.
-
-    res.status(400).json({
-      error: "manual_cbe_requires_user_identification_logic_not_implemented",
-    });
   }),
 );
 

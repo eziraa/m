@@ -18,6 +18,7 @@ import authRouter from "./http/authRouter.js";
 import adminRouter from "./http/adminRouter.js";
 import agentRouter from "./http/agentRouter.js";
 import gameRouter from "./http/gameRouter.js";
+import paymentsRouter from "./http/paymentsRouter.js";
 import { httpRateLimit } from "./http/rateLimitMiddleware.js";
 import telegramWebhookRouter from "./http/telegramWebhook.js";
 import userRouter from "./http/userRouter.js";
@@ -32,6 +33,44 @@ import { closeRateLimitClient } from "./utils/rateLimit.js";
 
 const app = express();
 app.set("trust proxy", 1);
+
+type RouteEntry = {
+  method: string;
+  path: string;
+};
+
+function collectRoutes(stack: any[], routes: RouteEntry[]) {
+  for (const layer of stack) {
+    if (layer.route?.path) {
+      const methods = Object.keys(layer.route.methods ?? {})
+        .filter((method) => layer.route.methods[method])
+        .map((method) => method.toUpperCase());
+
+      for (const method of methods) {
+        routes.push({
+          method,
+          path: String(layer.route.path),
+        });
+      }
+      continue;
+    }
+
+    if (layer.handle?.stack) {
+      collectRoutes(layer.handle.stack, routes);
+    }
+  }
+}
+
+function listRegisteredRoutes(): RouteEntry[] {
+  const routes: RouteEntry[] = [];
+  const stack = (app as any)?._router?.stack ?? [];
+  collectRoutes(stack, routes);
+
+  return routes.sort((a, b) => {
+    const byPath = a.path.localeCompare(b.path);
+    return byPath !== 0 ? byPath : a.method.localeCompare(b.method);
+  });
+}
 
 app.use((req, res, next) => {
   const origin = req.header("origin");
@@ -100,11 +139,23 @@ app.get("/metrics", (_req, res) => {
   });
 });
 
+if (env.NODE_ENV !== "production") {
+  app.get("/dev/routes", (_req, res) => {
+    const routes = listRegisteredRoutes();
+    res.status(200).json({
+      ok: true,
+      count: routes.length,
+      routes,
+    });
+  });
+}
+
 app.use(telegramWebhookRouter);
 app.use(authRouter);
 app.use(adminRouter);
 app.use(agentRouter);
 app.use(gameRouter);
+app.use(paymentsRouter);
 app.use(userRouter);
 app.use(walletRouter);
 app.use(roomsRouter);

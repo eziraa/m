@@ -14,6 +14,7 @@ import {
 const createDepositSchema = z.object({
   amount: z.number().positive(),
   promoCode: z.string().trim().max(64).nullable().optional(),
+  agentTelegramId: z.number().int().positive(),
 });
 
 const router = Router();
@@ -132,7 +133,8 @@ router.post(
 
       res.status(200).json({ ok: true, success: true });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "withdraw_failed";
+      const message =
+        error instanceof Error ? error.message : "withdraw_failed";
       res.status(400).json({ error: message });
     }
   }),

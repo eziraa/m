@@ -10,17 +10,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useApproveDepositMutation } from "@/lib/api";
-import { useAuth } from "@/hooks/use-auth";
 import { useTranslations } from "next-intl";
 
 type DepositFormValues = {
-  amount: string;
   sms: string;
   promoCode?: string;
 };
 
 export function DepositForm() {
-  const { user } = useAuth();
   const [copySuccess, setCopySuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [channel, setChannel] = useState<"telebirr" | "cbe">("telebirr");
@@ -29,12 +26,6 @@ export function DepositForm() {
   const submitDepositSchema = useMemo(
     () =>
       z.object({
-        amount: z
-          .string()
-          .min(1, t("errors.amountRequired"))
-          .refine((val) => Number(val) >= 1, {
-            message: t("errors.minimumDeposit"),
-          }),
         sms: z.string().min(10, t("errors.smsRequired")),
         promoCode: z
           .string()
@@ -63,9 +54,7 @@ export function DepositForm() {
         : undefined;
 
       const res = await approveDeposit({
-        amount: +data.amount,
         sms_content: data.sms,
-        user_id: user?.id || "",
         promoCode: normalizedPromoCode,
       }).unwrap();
 

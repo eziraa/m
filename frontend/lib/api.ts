@@ -786,9 +786,7 @@ export function useApproveDepositMutation() {
   const queryClient = useQueryClient();
   const mutation = useMutation({
     mutationFn: async (input: {
-      amount: number;
       sms_content: string;
-      user_id: string;
       promoCode?: string;
     }) => {
       const res = await fetch(`${API_BASE}/payments/submit`, {
@@ -1100,7 +1098,7 @@ export function useGetAgentPaymentsQuery(
 export function useGetAgentPaymentStatsQuery(args?: any) {
   const token = getAuthToken();
   return useQuery({
-    queryKey: ["agent-payment-stats"],
+    queryKey: ["agent-payment-stats", args],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (args) {
@@ -2100,6 +2098,7 @@ export function useSubmitTelebirrPaymentMutation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["agent-payments"] });
+      queryClient.invalidateQueries({ queryKey: ["agent-payment-stats"] });
       queryClient.invalidateQueries({ queryKey: ["agent-transactions"] });
     },
   });
@@ -2128,6 +2127,7 @@ export function useSubmitCBEPaymentMutation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["agent-payments"] });
+      queryClient.invalidateQueries({ queryKey: ["agent-payment-stats"] });
       queryClient.invalidateQueries({ queryKey: ["agent-transactions"] });
     },
   });

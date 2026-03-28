@@ -90,9 +90,9 @@ export type AgentUserDetail = AgentUser & {
 
 export type Payment = {
   id: string;
-  userId: string;
-  username: string;
-  firstName: string;
+  userId: string | null;
+  username: string | null;
+  firstName: string | null;
   amount: string;
   status: "pending" | "approved" | "rejected";
   createdAt: string;

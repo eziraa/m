@@ -70,6 +70,12 @@ export const withdrawalStatusEnum = pgEnum("withdrawal_status", [
   "rejected",
 ]);
 
+export const paymentStatusEnum = pgEnum("payment_status", [
+  "pending",
+  "approved",
+  "rejected",
+]);
+
 export const bonusTypeEnum = pgEnum("bonus_type", ["percentage", "fixed"]);
 export const postTargetEnum = pgEnum("post_target", ["users", "channel"]);
 export const postStatusEnum = pgEnum("post_status", [
@@ -518,6 +524,51 @@ export const deposits = pgTable(
   }),
 );
 
+export const payments = pgTable(
+  "payments",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    agentId: uuid("agent_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    source: text("source").notNull(),
+    amount: bigint("amount", { mode: "number" }).notNull(),
+    phonenumber: text("phonenumber").notNull(),
+    datetime: timestamp("datetime", { withTimezone: true }).notNull(),
+    transactionNumber: text("transaction_number").notNull(),
+    smsContent: text("sms_content").notNull(),
+    status: paymentStatusEnum("status").default("pending").notNull(),
+    approvedAt: timestamp("approved_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    transactionNumberUq: uniqueIndex("uq_payments_transaction_number").on(
+      table.transactionNumber,
+    ),
+    agentStatusCreatedIdx: index("idx_payments_agent_status_created").on(
+      table.agentId,
+      table.status,
+      table.createdAt,
+    ),
+    statusCreatedIdx: index("idx_payments_status_created").on(
+      table.status,
+      table.createdAt,
+    ),
+    sourceCreatedIdx: index("idx_payments_source_created").on(
+      table.source,
+      table.createdAt,
+    ),
+  }),
+);
+
 export const withdrawals = pgTable(
   "withdrawals",
   {
@@ -827,6 +878,7 @@ export type Board = typeof boards.$inferSelect;
 export type BingoClaim = typeof bingoClaims.$inferSelect;
 export type SessionWinner = typeof sessionWinners.$inferSelect;
 export type Deposit = typeof deposits.$inferSelect;
+export type Payment = typeof payments.$inferSelect;
 export type Withdrawal = typeof withdrawals.$inferSelect;
 export type PromoCode = typeof promoCodes.$inferSelect;
 export type PromoCodeUsage = typeof promoCodeUsages.$inferSelect;
