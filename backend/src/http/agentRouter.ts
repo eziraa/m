@@ -607,18 +607,28 @@ router.post(
     try {
       const source = "CBE";
 
-      const amountMatch = sms_content.match(/Credited with ETB\s+([\d,.]+)/i);
+      const amountMatch = sms_content.match(
+        /(?:Credited with|received)\s+ETB\s+([\d,.]+)/i,
+      );
       const amount = amountMatch
         ? Math.round(parseFloat(amountMatch[1].replace(/,/g, "")))
         : null;
 
-      let senderName = "Unknown";
-      const nameMatch = sms_content.match(/from\s+([^,]+),/i);
-      if (nameMatch) {
-        senderName = nameMatch[1].trim();
+      let phonenumber: string | null = null;
+      const accountWithNameMatch = sms_content.match(
+        /from account\s+([0-9*]+)\s+\(([^)]+)\)/i,
+      );
+      if (accountWithNameMatch) {
+        const [, account, name] = accountWithNameMatch;
+        phonenumber = `${name.trim()} (${account.trim()})`;
       }
 
-      const phonenumber = senderName;
+      if (!phonenumber) {
+        const nameMatch = sms_content.match(/from\s+([^,]+),/i);
+        if (nameMatch) {
+          phonenumber = nameMatch[1].trim();
+        }
+      }
 
       const datetimeMatch = sms_content.match(
         /on\s+(\d{2})\/(\d{2})\/(\d{4})\s+at\s+(\d{2}):(\d{2}):(\d{2})/i,
@@ -639,8 +649,14 @@ router.post(
         );
       }
 
-      const txnMatch = sms_content.match(/Ref No\s+([A-Z0-9]+)/i);
-      const transactionNumber = txnMatch ? txnMatch[1] : null;
+      if (!datetime) {
+        datetime = new Date();
+      }
+
+      const transactionNumber =
+        sms_content.match(/Mbreciept\.cbe\.com\.et\/([A-Z0-9-]{9,40})/i)?.[1] ??
+        sms_content.match(/Ref No\s+([A-Z0-9]+)/i)?.[1] ??
+        null;
 
       if (!amount || !phonenumber || !datetime || !transactionNumber) {
         res.status(400).json({

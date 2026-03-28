@@ -27,6 +27,7 @@ function extractTransactionNumber(smsContent: string): string | null {
     /receipt\/([A-Z0-9]{9,20})/i,
     /\?id=([A-Z0-9]{9,32})/i,
     /BranchReceipt\/([A-Z0-9]{9,32})/i,
+    /Mbreciept\.cbe\.com\.et\/([A-Z0-9-]{9,40})/i,
     /transaction number is\s+([A-Z0-9]+)/i,
     /Transaction No\s*:?\s*([A-Z0-9]+)/i,
     /Trans\.?ID\s*:?\s*([A-Z0-9]+)/i,
@@ -113,18 +114,29 @@ function parseTelebirrPayment(smsContent: string): ParsedPendingPayment | null {
 
 function parseCbePayment(smsContent: string): ParsedPendingPayment | null {
   const source = "CBE";
-  const amountMatch = smsContent.match(/Credited with ETB\s+([\d,.]+)/i);
+  const amountMatch = smsContent.match(
+    /(?:Credited with|received)\s+ETB\s+([\d,.]+)/i,
+  );
   const amount = amountMatch
     ? Math.round(parseFloat(amountMatch[1].replace(/,/g, "")))
     : null;
 
-  let senderName = "Unknown";
-  const nameMatch = smsContent.match(/from\s+([^,]+),/i);
-  if (nameMatch) {
-    senderName = nameMatch[1].trim();
+  let phonenumber: string | null = null;
+
+  const accountWithNameMatch = smsContent.match(
+    /from account\s+([0-9*]+)\s+\(([^)]+)\)/i,
+  );
+  if (accountWithNameMatch) {
+    const [, account, name] = accountWithNameMatch;
+    phonenumber = `${name.trim()} (${account.trim()})`;
   }
 
-  const phonenumber = senderName;
+  if (!phonenumber) {
+    const nameMatch = smsContent.match(/from\s+([^,]+),/i);
+    if (nameMatch) {
+      phonenumber = nameMatch[1].trim();
+    }
+  }
 
   const datetimeMatch = smsContent.match(
     /on\s+(\d{2})\/(\d{2})\/(\d{4})\s+at\s+(\d{2}):(\d{2}):(\d{2})/i,
@@ -145,8 +157,11 @@ function parseCbePayment(smsContent: string): ParsedPendingPayment | null {
     );
   }
 
-  const txnMatch = smsContent.match(/Ref No\s+([A-Z0-9]+)/i);
-  const transactionNumber = txnMatch ? txnMatch[1] : null;
+  if (!datetime) {
+    datetime = new Date();
+  }
+
+  const transactionNumber = extractTransactionNumber(smsContent);
 
   if (!amount || !phonenumber || !datetime || !transactionNumber) {
     return null;
