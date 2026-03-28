@@ -435,6 +435,8 @@ export async function submitBingoClaim(
     winner: {
       sessionId: string;
       userId: string;
+      winnerName: string;
+      payoutCents: number;
     } | null;
   };
 }

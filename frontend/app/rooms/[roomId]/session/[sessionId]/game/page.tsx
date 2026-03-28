@@ -130,6 +130,31 @@ export default function GameSessionPage() {
   const sessionStateRef = useRef<SessionState | null>(null);
   const markedRef = useRef<Set<number>>(new Set([12]));
 
+  async function resolveViewerResult(boardOverride?: MyBoard | null) {
+    const token = localStorage.getItem(TOKEN_KEY) || "";
+    const board = boardOverride ?? myBoard;
+    if (!token || !board || redirectedToResultRef.current) {
+      return;
+    }
+
+    try {
+      const latestState = await fetchSessionState(token, params.sessionId);
+      setSessionState(latestState);
+
+      if (latestState.viewerResult) {
+        persistAndRedirect(
+          board,
+          latestState.viewerResult,
+          latestState.recentCalls.map((x) => x.number),
+          Array.from(markedRef.current).sort((a, b) => a - b),
+          latestState.potCents ?? 0,
+        );
+      }
+    } catch {
+      // Best-effort fallback when a result event is delayed or missed.
+    }
+  }
+
   function persistAndRedirect(
     board: MyBoard,
     result: ViewerResult,
@@ -288,6 +313,8 @@ export default function GameSessionPage() {
           myBoard,
           payload.viewerResult,
           payload.recentCalls.map((x) => x.number),
+          Array.from(markedRef.current).sort((a, b) => a - b),
+          payload.potCents ?? sessionStateRef.current?.potCents ?? 0,
         );
         return;
       }
@@ -404,6 +431,7 @@ export default function GameSessionPage() {
     const onBingoVerified = (payload: {
       sessionId: string;
       winnerUserId: string;
+      winnerName?: string;
     }) => {
       if (payload.sessionId !== params.sessionId) return;
       setSessionState((prev) =>
@@ -414,7 +442,12 @@ export default function GameSessionPage() {
             }
           : prev,
       );
-      setMsg("Bingo verified. Game is finishing.");
+      setMsg(
+        payload.winnerName
+          ? `${payload.winnerName} claimed Bingo. Game is finishing.`
+          : "Bingo verified. Game is finishing.",
+      );
+      void resolveViewerResult(myBoard);
     };
 
     const onFinished = (payload: {
@@ -442,11 +475,10 @@ export default function GameSessionPage() {
         winnerUserId ? "Game finished. Winner announced." : "Game finished.",
       );
 
-      // Redirects are handled only by session_result_ready or viewerResult.
-      // Keeping game_finished status-only avoids racing the personalized result.
       void payload.winnerName;
       void payload.potCents;
       void payload.reason;
+      void resolveViewerResult(myBoard);
     };
 
     const onResultReady = (payload: {
@@ -671,7 +703,8 @@ export default function GameSessionPage() {
       });
 
       if (result.winner) {
-        setMsg("Bingo accepted. Winner announced.");
+        setMsg(`${result.winner.winnerName} claimed Bingo and won.`);
+        await resolveViewerResult(myBoard);
       } else {
         setMsg("Bingo rejected by server.");
       }

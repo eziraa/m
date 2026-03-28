@@ -737,6 +737,15 @@ export async function callBingo(identity: RequestIdentity, input: ClaimInput) {
       throw new Error("board_not_in_session");
 
     const matrix = ensureBoardMatrix(board.boardMatrix);
+    const [winnerProfile] = await tx
+      .select({
+        username: users.username,
+        firstName: users.firstName,
+        lastName: users.lastName,
+      })
+      .from(users)
+      .where(eq(users.id, identity.userId))
+      .limit(1);
     const requiredNumbers = requiredNumbersForPattern(
       matrix,
       input.winningPattern,
@@ -850,6 +859,14 @@ export async function callBingo(identity: RequestIdentity, input: ClaimInput) {
       (gross * env.AGENT_COMMISSION_BPS) / 10000,
     );
     const payoutCents = Math.max(gross - commissionCents, 0);
+    const losingParticipants = await tx
+      .select({
+        userId: boards.userId,
+        lossCents: sql<number>`coalesce(sum(${boards.purchaseAmountCents}), 0)`,
+      })
+      .from(boards)
+      .where(eq(boards.sessionId, input.sessionId))
+      .groupBy(boards.userId);
 
     await tx
       .update(sessionWinners)
@@ -888,6 +905,30 @@ export async function callBingo(identity: RequestIdentity, input: ClaimInput) {
       });
     }
 
+    const loserLedgerRows = losingParticipants
+      .filter((participant) => participant.userId !== identity.userId)
+      .map((participant) => ({
+        userId: participant.userId,
+        agentId: session.sessionAgentId,
+        sessionId: input.sessionId,
+        boardId: null,
+        entryType: "board_purchase" as const,
+        amountCents: -Math.abs(participant.lossCents ?? 0),
+        status: "posted" as const,
+        idempotencyKey: `claim-loss:${insertedClaim.id}:${participant.userId}`,
+        metadata: {
+          claimId: insertedClaim.id,
+          source: "bingo_loss",
+          winnerUserId: identity.userId,
+          roomAmountCents: participant.lossCents ?? 0,
+        },
+      }))
+      .filter((row) => row.amountCents !== 0);
+
+    if (loserLedgerRows.length > 0) {
+      await tx.insert(walletLedger).values(loserLedgerRows);
+    }
+
     await tx
       .update(gameSessions)
       .set({
@@ -907,6 +948,12 @@ export async function callBingo(identity: RequestIdentity, input: ClaimInput) {
       notifyWinner: {
         sessionId: input.sessionId,
         winnerUserId: identity.userId,
+        winnerName:
+          winnerProfile?.username ||
+          [winnerProfile?.firstName, winnerProfile?.lastName]
+            .filter(Boolean)
+            .join(" ") ||
+          "Player",
         boardId: input.boardId,
         pattern: input.winningPattern,
         payoutCents,
@@ -922,6 +969,7 @@ export async function callBingo(identity: RequestIdentity, input: ClaimInput) {
       {
         sessionId: txResult.notifyWinner.sessionId,
         winnerUserId: txResult.notifyWinner.winnerUserId,
+        winnerName: txResult.notifyWinner.winnerName,
         boardId: txResult.notifyWinner.boardId,
         pattern: txResult.notifyWinner.pattern,
         payoutCents: txResult.notifyWinner.payoutCents,
@@ -938,6 +986,13 @@ export async function callBingo(identity: RequestIdentity, input: ClaimInput) {
   return {
     replay: txResult.replay,
     claim: txResult.claim,
-    winner: txResult.winner,
+    winner: txResult.notifyWinner
+      ? {
+          sessionId: txResult.winner!.sessionId,
+          userId: txResult.winner!.userId,
+          winnerName: txResult.notifyWinner.winnerName,
+          payoutCents: txResult.notifyWinner.payoutCents,
+        }
+      : txResult.winner,
   };
 }
