@@ -13,9 +13,12 @@ type PlayOptions = AudioControllerOptions & {
 
 export class AudioController {
   private static readonly MUTE_STORAGE_KEY = "bingo_sound_muted";
+  private static readonly SILENT_AUDIO_SRC =
+    "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=";
   private static instance: AudioController | null = null;
   private audio: HTMLAudioElement | null = null;
   private currentSrc: string | null = null;
+  private readonly audioCache = new Map<string, HTMLAudioElement>();
   private muted = false;
   private unlocked = false;
 
@@ -43,16 +46,20 @@ export class AudioController {
 
   unlock(): void {
     this.unlocked = true;
+    void this.primeAudioPlayback();
   }
 
   preload(src: string, options: AudioControllerOptions = {}): void {
     if (typeof window === "undefined") return;
-    this.ensureAudio(src, options);
+    const audio = this.ensureAudio(src, options);
+    audio.load();
   }
 
   async play(src: string, options: PlayOptions = {}): Promise<boolean> {
     if (typeof window === "undefined") return false;
     const audio = this.ensureAudio(src, options);
+    this.audio = audio;
+    this.currentSrc = src;
 
     if (options.restart || audio.currentTime === audio.duration) {
       audio.currentTime = 0;
@@ -93,11 +100,12 @@ export class AudioController {
   }
 
   destroy(): void {
-    if (this.audio) {
-      this.audio.pause();
-      this.audio.src = "";
-      this.audio.load();
+    for (const audio of this.audioCache.values()) {
+      audio.pause();
+      audio.src = "";
+      audio.load();
     }
+    this.audioCache.clear();
     this.audio = null;
     this.currentSrc = null;
   }
@@ -119,8 +127,8 @@ export class AudioController {
 
   setMuted(muted: boolean, persist: boolean = true): void {
     this.muted = muted;
-    if (this.audio) {
-      this.audio.muted = muted;
+    for (const audio of this.audioCache.values()) {
+      audio.muted = muted;
     }
     if (persist) {
       this.persistMuted();
@@ -157,24 +165,47 @@ export class AudioController {
     src: string,
     options: AudioControllerOptions,
   ): HTMLAudioElement {
-    if (!this.audio || this.currentSrc !== src) {
-      if (this.audio) {
-        this.audio.pause();
-      }
-      this.audio = new Audio(src);
-      this.currentSrc = src;
+    let audio = this.audioCache.get(src);
+    if (!audio) {
+      audio = new Audio(src);
+      this.audioCache.set(src, audio);
     }
 
-    this.audio.muted = this.muted;
+    audio.muted = this.muted;
 
-    if (options.preload) this.audio.preload = options.preload;
-    if (options.volume !== undefined) this.audio.volume = options.volume;
-    if (options.loop !== undefined) this.audio.loop = options.loop;
+    if (options.preload) audio.preload = options.preload;
+    if (options.volume !== undefined) audio.volume = options.volume;
+    if (options.loop !== undefined) audio.loop = options.loop;
     if (options.playbackRate !== undefined) {
-      this.audio.playbackRate = options.playbackRate;
+      audio.playbackRate = options.playbackRate;
     }
 
-    return this.audio;
+    return audio;
+  }
+
+  private async primeAudioPlayback(): Promise<void> {
+    if (typeof window === "undefined") return;
+
+    const audio = this.ensureAudio(AudioController.SILENT_AUDIO_SRC, {
+      preload: "auto",
+    });
+    const previousMuted = audio.muted;
+    const previousVolume = audio.volume;
+
+    audio.muted = true;
+    audio.volume = 0;
+    audio.currentTime = 0;
+
+    try {
+      await audio.play();
+      audio.pause();
+      audio.currentTime = 0;
+    } catch {
+      // Browsers can still reject priming outside a direct gesture.
+    } finally {
+      audio.muted = this.muted || previousMuted;
+      audio.volume = previousVolume;
+    }
   }
 
   private loadMutedFromStorage(): void {

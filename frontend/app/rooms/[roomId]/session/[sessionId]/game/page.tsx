@@ -502,10 +502,19 @@ export default function GameSessionPage() {
 
   useEffect(() => {
     if (typeof window === "undefined" || !audioController.current) return;
+
+    const unlockAudio = () => {
+      audioController.current?.unlock();
+    };
+
+    window.addEventListener("pointerdown", unlockAudio, { passive: true });
+    window.addEventListener("touchstart", unlockAudio, { passive: true });
+    window.addEventListener("keydown", unlockAudio);
+
     // Preload all sounds 1-75
     for (let i = 1; i <= 75; i++) {
       const letter = letterForNumber(i);
-      audioController.current.preload(`/audio/sm/${letter}${i}.m4a`, {
+      audioController.current.preload(`/audio/am/${letter}${i}.m4a`, {
         preload: "auto",
       });
     }
@@ -524,6 +533,12 @@ export default function GameSessionPage() {
     audioController.current.preload("/audio/Board blocked.m4a", {
       preload: "auto",
     });
+
+    return () => {
+      window.removeEventListener("pointerdown", unlockAudio);
+      window.removeEventListener("touchstart", unlockAudio);
+      window.removeEventListener("keydown", unlockAudio);
+    };
   }, []);
 
   useEffect(() => {
