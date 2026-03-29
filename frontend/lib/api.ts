@@ -398,6 +398,7 @@ export type WinningPatternInput = {
   type: "row" | "column" | "diagonal" | "full_house" | "corners";
   index?: number;
   diagonal?: "main" | "anti";
+  lineIndices?: number[];
 };
 
 export async function submitBingoClaim(

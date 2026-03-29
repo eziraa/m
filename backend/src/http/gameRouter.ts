@@ -32,6 +32,7 @@ const bingoSchema = z.object({
     type: z.enum(["row", "column", "diagonal", "full_house", "corners"]),
     index: z.number().int().min(0).max(4).optional(),
     diagonal: z.enum(["main", "anti"]).optional(),
+    lineIndices: z.array(z.number().int().min(0).max(24)).max(25).optional(),
   }),
   idempotencyKey: z.string().min(8).max(128),
   clientLastSeq: z.number().int().min(0),

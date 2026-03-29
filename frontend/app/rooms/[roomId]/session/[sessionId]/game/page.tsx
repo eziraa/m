@@ -28,6 +28,25 @@ type MyBoard = {
 };
 
 const BINGO_LETTERS = ["B", "I", "N", "G", "O"] as const;
+const FULL_HOUSE_INDICES = Array.from({ length: 25 }, (_, index) => index);
+const CORNER_INDICES = [0, 4, 20, 24] as const;
+
+function buildWinningLines() {
+  const rows = Array.from({ length: 5 }, (_, row) =>
+    Array.from({ length: 5 }, (_, col) => row * 5 + col),
+  );
+  const columns = Array.from({ length: 5 }, (_, col) =>
+    Array.from({ length: 5 }, (_, row) => row * 5 + col),
+  );
+  const diagonals = [
+    Array.from({ length: 5 }, (_, i) => i * 5 + i),
+    Array.from({ length: 5 }, (_, i) => i * 5 + (4 - i)),
+  ];
+
+  return [...rows, ...columns, ...diagonals, [...CORNER_INDICES]];
+}
+
+const WINNING_LINES = buildWinningLines();
 
 function columnColorClass(index: number): string {
   if (index === 0) return "bg-blue-500";
@@ -55,58 +74,103 @@ function letterForNumber(n: number) {
   return "O";
 }
 
+// Returns the exact winning cell indices for a row, column, diagonal, or corners pattern.
+function getWinningLine(
+  markedIndices: number[],
+  lastCalledIndex?: number | null,
+): number[] | null {
+  const grid: boolean[][] = Array(5)
+    .fill(0)
+    .map(() => Array(5).fill(false));
+
+  markedIndices.forEach((idx) => {
+    const row = Math.floor(idx / 5);
+    const col = idx % 5;
+    if (row >= 0 && row < 5 && col >= 0 && col < 5) {
+      grid[row][col] = true;
+    }
+  });
+
+  // Center FREE cell.
+  grid[2][2] = true;
+
+  const includesLastCalled = (indices: number[]) =>
+    lastCalledIndex === undefined || lastCalledIndex === null
+      ? true
+      : indices.includes(lastCalledIndex);
+
+  for (const indices of WINNING_LINES) {
+    const isComplete = indices.every((idx) => {
+      const row = Math.floor(idx / 5);
+      const col = idx % 5;
+      return grid[row][col];
+    });
+
+    if (isComplete && includesLastCalled(indices)) {
+      return indices;
+    }
+  }
+
+  return null;
+}
+
 function winningPatternFromBoard(
   board: number[][],
   marked: Set<number>,
   calledSet: Set<number>,
+  lastCalledNumber?: number | null,
 ): WinningPatternInput | null {
   const flat = board.flat();
-  const isSatisfied = (index: number) => {
+  const effectiveMarked = Array.from(marked).filter((index) => {
     if (index === 12) return true;
     const number = flat[index];
-    if (typeof number !== "number") return false;
-    return marked.has(index) && calledSet.has(number);
-  };
+    return typeof number === "number" && calledSet.has(number);
+  });
+  const lastCalledIndex =
+    typeof lastCalledNumber === "number" ? flat.indexOf(lastCalledNumber) : null;
+  const winningLine = getWinningLine(effectiveMarked, lastCalledIndex);
 
-  for (let row = 0; row < 5; row += 1) {
-    const indices = [
-      row * 5,
-      row * 5 + 1,
-      row * 5 + 2,
-      row * 5 + 3,
-      row * 5 + 4,
-    ];
-    if (indices.every(isSatisfied)) {
-      return { type: "row", index: row };
+  if (winningLine) {
+    if (winningLine.length === 4) {
+      return { type: "corners", lineIndices: winningLine };
+    }
+
+    if (winningLine.every((idx, pos) => idx === pos * 5 + pos)) {
+      return {
+        type: "diagonal",
+        diagonal: "main",
+        lineIndices: winningLine,
+      };
+    }
+
+    if (winningLine.every((idx, pos) => idx === pos * 5 + (4 - pos))) {
+      return {
+        type: "diagonal",
+        diagonal: "anti",
+        lineIndices: winningLine,
+      };
+    }
+
+    const first = winningLine[0];
+    const row = Math.floor(first / 5);
+    if (winningLine.every((idx) => Math.floor(idx / 5) === row)) {
+      return { type: "row", index: row, lineIndices: winningLine };
+    }
+
+    const col = first % 5;
+    if (winningLine.every((idx) => idx % 5 === col)) {
+      return { type: "column", index: col, lineIndices: winningLine };
     }
   }
 
-  for (let col = 0; col < 5; col += 1) {
-    const indices = [col, col + 5, col + 10, col + 15, col + 20];
-    if (indices.every(isSatisfied)) {
-      return { type: "column", index: col };
-    }
-  }
+  const hasFullHouse = FULL_HOUSE_INDICES.every((index) => {
+    if (index === 12) return true;
+    const number = flat[index];
+    return marked.has(index) && typeof number === "number" && calledSet.has(number);
+  });
 
-  const mainDiagonal = [0, 6, 12, 18, 24];
-  if (mainDiagonal.every(isSatisfied)) {
-    return { type: "diagonal", diagonal: "main" };
-  }
-
-  const antiDiagonal = [4, 8, 12, 16, 20];
-  if (antiDiagonal.every(isSatisfied)) {
-    return { type: "diagonal", diagonal: "anti" };
-  }
-
-  // Corners: (0,0), (0,4), (4,0), (4,4)
-  const cornerIndices = [0, 4, 20, 24]; // Indices for top-left, top-right, bottom-left, bottom-right
-  if (cornerIndices.every(isSatisfied)) {
-    return { type: "corners" };
-  }
-
-  const fullHouse = Array.from({ length: 25 }, (_, idx) => idx);
-  if (fullHouse.every(isSatisfied)) {
-    return { type: "full_house" };
+  if (hasFullHouse) {
+    return { type: "full_house", lineIndices: FULL_HOUSE_INDICES };
   }
 
   return null;
@@ -654,6 +718,7 @@ export default function GameSessionPage() {
       myBoard.boardMatrix,
       marked,
       calledSet,
+      latestCalled,
     );
     if (!pattern) {
       const blockedKey = `bingo_blocked_${params.sessionId}`;
