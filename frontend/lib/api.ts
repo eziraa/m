@@ -461,6 +461,9 @@ export async function fetchTransactions(
       case "withdrawal":
         type = "withdrawal";
         break;
+      case "adjustment":
+        type = "adjustment";
+        break;
       case "session_win":
         type = "game_win";
         break;
@@ -1038,6 +1041,9 @@ export function useGetAgentUsersQuery(args: any, options?: { skip?: boolean }) {
       if (args.page) params.set("page", args.page.toString());
       if (args.pageSize) params.set("limit", args.pageSize.toString());
       if (args.search) params.set("search", args.search);
+      if (args.role && args.role !== "all") params.set("role", args.role);
+      if (args.sortBy) params.set("sortBy", args.sortBy);
+      if (args.sortOrder) params.set("sortOrder", args.sortOrder);
 
       const res = await fetch(`${API_BASE}/agent/users?${params.toString()}`, {
         headers: { authorization: `Bearer ${token}` },
@@ -1048,6 +1054,53 @@ export function useGetAgentUsersQuery(args: any, options?: { skip?: boolean }) {
     enabled: !!token && !options?.skip,
   });
   return query;
+}
+
+export function useCreateAgentBalanceAdjustmentMutation() {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: async ({
+      userId,
+      amount,
+      note,
+    }: {
+      userId: string;
+      amount: number;
+      note?: string;
+    }) => {
+      const res = await fetch(
+        `${API_BASE}/agent/users/${userId}/balance-adjustments`,
+        {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            authorization: `Bearer ${getAuthToken()}`,
+          },
+          body: JSON.stringify({ amount, note }),
+        },
+      );
+      const data = await readJson(res);
+      if (!res.ok) throw { data };
+      return data;
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["agent-users"] });
+      queryClient.invalidateQueries({
+        queryKey: ["agent-user", variables.userId],
+      });
+      queryClient.invalidateQueries({ queryKey: ["agent-transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["agent-transaction-stats"] });
+    },
+  });
+  const mutate = (args: {
+    userId: string;
+    amount: number;
+    note?: string;
+  }) => {
+    const promise = mutation.mutateAsync(args);
+    return Object.assign(promise, { unwrap: () => promise });
+  };
+  return [mutate, { isLoading: mutation.isPending }] as const;
 }
 
 export function useDeleteUserMutation() {

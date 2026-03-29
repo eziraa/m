@@ -424,6 +424,7 @@
       "referralCommission": "የግብዣ ኮሚሽን",
       "bonus": "ቦነስ",
       "welcomeBonus": "የእንኳን ደህና መጡ ቦነስ",
+      "adjustment": "Adjustment",
       "gameFee": "የጨዋታ ክፍያ",
       "default": "ግብይት"
     },
@@ -1240,7 +1241,41 @@
         "details": "ዝርዝር",
         "delete": "ሰርዝ",
         "cancel": "ተው",
-        "deleting": "..."
+        "deleting": "...",
+        "adjustBalance": "Adjust Balance"
+      },
+      "adjustment": {
+        "title": "Adjust user balance",
+        "description": "Search only within your referred users, then post a wallet adjustment.",
+        "searchLabel": "Find user",
+        "searchPlaceholder": "Search by name, username, or email",
+        "searching": "Searching...",
+        "userLabel": "Referred users",
+        "empty": "No referred users matched your search.",
+        "currentBalance": "Current balance",
+        "amountLabel": "Adjustment amount",
+        "amountPlaceholder": "Use positive or negative ETB amounts",
+        "amountHint": "Positive values add balance. Negative values deduct balance.",
+        "noteLabel": "Note",
+        "notePlaceholder": "Optional note for the transaction history",
+        "selectedUser": "Selected user: {user}",
+        "transactionType": "Transaction type: adjustment",
+        "actions": {
+          "cancel": "Cancel",
+          "submit": "Save adjustment",
+          "submitting": "Saving..."
+        },
+        "fallback": {
+          "user": "Unknown user",
+          "noUsername": "no-username"
+        },
+        "toast": {
+          "selectUser": "Select a user first",
+          "invalidAmount": "Enter a non-zero amount",
+          "success": "Balance adjusted for {user}",
+          "insufficientFunds": "This deduction would make the user balance negative",
+          "failed": "Failed to adjust balance"
+        }
       },
       "confirmDelete": {
         "title": "ተጠቃሚውን ሰርዝ?",
@@ -1316,7 +1351,8 @@
       "game_lost": "የጨዋታ ክፍያ",
       "referral_reward": "የግብዣ ሽልማት",
       "welcome_bonus": "የእንኳን ደህና መጡ ቦነስ",
-      "referral_commission": "የግብዣ ኮሚሽን"
+      "referral_commission": "የግብዣ ኮሚሽን",
+      "adjustment": "Adjustment"
     },
     "status": {
       "completed": "ተጠናቋል",

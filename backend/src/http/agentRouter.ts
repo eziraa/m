@@ -11,6 +11,8 @@ import {
   or,
   sql,
 } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
+import { z } from "zod";
 import { db } from "../db/client.js";
 import {
   rooms,
@@ -27,6 +29,14 @@ import { listAvailableRooms } from "../game/gameService.js";
 import { amountToCents } from "../wallet/depositService.js";
 
 const router = Router();
+
+const agentBalanceAdjustmentSchema = z.object({
+  amount: z
+    .number()
+    .finite()
+    .refine((value) => value !== 0, "amount_must_not_be_zero"),
+  note: z.string().trim().max(300).optional(),
+});
 
 function normalizeTransactionNumberCandidate(value: string): string {
   const trimmed = value.trim();
@@ -237,29 +247,54 @@ router.get(
   "/agent/users",
   asyncHandler(async (req, res) => {
     const agentId = req.identity!.userId;
-    const { search, limit = "10", page = "1" } = req.query;
-    const offset = (Number(page) - 1) * Number(limit);
+    const page = Math.max(Number(req.query.page ?? "1") || 1, 1);
+    const limit = Math.min(
+      Math.max(Number(req.query.limit ?? "10") || 10, 1),
+      100,
+    );
+    const offset = (page - 1) * limit;
+    const search = String(req.query.search ?? "").trim();
+    const role = String(req.query.role ?? "all").trim().toUpperCase();
+    const sortBy = String(req.query.sortBy ?? "createdAt").trim();
+    const sortOrder = String(req.query.sortOrder ?? "desc").trim();
 
-    let whereClause = eq(users.referredByAgentId, agentId);
+    const filters = [eq(users.referredByAgentId, agentId)] as any[];
     if (search) {
       const searchStr = `%${search}%`;
-      whereClause = and(
-        whereClause,
+      filters.push(
         or(
           ilike(users.username, searchStr),
           ilike(users.firstName, searchStr),
           ilike(users.lastName, searchStr),
           ilike(users.email, searchStr),
         ),
-      ) as any;
+      );
     }
+    if (role && role !== "ALL" && ["USER", "AGENT", "ADMIN"].includes(role)) {
+      filters.push(eq(users.role, role as "USER" | "AGENT" | "ADMIN"));
+    }
+
+    const whereClause = and(...filters);
+    const balanceCentsExpr =
+      sql<number>`coalesce(sum(case when ${walletLedger.status} = 'posted' then ${walletLedger.amountCents} else 0 end), 0)`;
+    const orderByClause =
+      sortBy === "balance"
+        ? sortOrder === "asc"
+          ? asc(balanceCentsExpr)
+          : desc(balanceCentsExpr)
+        : sortBy === "username"
+          ? sortOrder === "asc"
+            ? asc(sql`coalesce(${users.username}, ${users.firstName}, '')`)
+            : desc(sql`coalesce(${users.username}, ${users.firstName}, '')`)
+          : sortOrder === "asc"
+            ? asc(users.createdAt)
+            : desc(users.createdAt);
 
     const [totalRes] = await db
       .select({ count: count() })
       .from(users)
       .where(whereClause);
 
-    // Fetch users and calculate balance from walletLedger
     const agentUsers = await db
       .select({
         id: users.id,
@@ -270,38 +305,136 @@ router.get(
         isActive: users.isActive,
         createdAt: users.createdAt,
         role: users.role,
+        balanceCents: balanceCentsExpr,
       })
       .from(users)
+      .leftJoin(walletLedger, eq(walletLedger.userId, users.id))
       .where(whereClause)
-      .limit(Number(limit))
+      .groupBy(
+        users.id,
+        users.username,
+        users.firstName,
+        users.lastName,
+        users.email,
+        users.isActive,
+        users.createdAt,
+        users.role,
+      )
+      .orderBy(orderByClause)
+      .limit(limit)
       .offset(offset)
-      .orderBy(desc(users.createdAt));
-
-    // For each user, fetch balance from walletLedger
-    const userIds = agentUsers.map((u) => u.id);
-    let balances: Record<string, number> = {};
-    if (userIds.length > 0) {
-      const { inArray } = await import("drizzle-orm");
-      const balanceRows = await db
-        .select({
-          userId: walletLedger.userId,
-          balanceCents: sql<number>`coalesce(sum(case when ${walletLedger.status} = 'posted' then ${walletLedger.amountCents} else 0 end), 0)`,
-        })
-        .from(walletLedger)
-        .where(inArray(walletLedger.userId, userIds))
-        .groupBy(walletLedger.userId);
-      for (const row of balanceRows) {
-        balances[row.userId] = row.balanceCents;
-      }
-    }
+      ;
 
     res.json({
       users: agentUsers.map((u) => ({
         ...u,
-        balance: ((balances[u.id] ?? 0) / 100).toFixed(2),
+        balance: ((u.balanceCents ?? 0) / 100).toFixed(2),
       })),
       total: totalRes.count,
+      page,
+      pageSize: limit,
     });
+  }),
+);
+
+router.post(
+  "/agent/users/:id/balance-adjustments",
+  asyncHandler(async (req, res) => {
+    const agentId = req.identity!.userId;
+    const userId = String(req.params.id);
+    const parsed = agentBalanceAdjustmentSchema.safeParse(req.body);
+
+    if (!parsed.success) {
+      res
+        .status(400)
+        .json({ error: "invalid_request", details: parsed.error.flatten() });
+      return;
+    }
+
+    const amountCents = amountToCents(parsed.data.amount);
+
+    try {
+      const result = await db.transaction(async (tx) => {
+        const [targetUser] = await tx
+          .select({
+            id: users.id,
+            username: users.username,
+            firstName: users.firstName,
+          })
+          .from(users)
+          .where(and(eq(users.id, userId), eq(users.referredByAgentId, agentId)))
+          .for("update");
+
+        if (!targetUser) {
+          throw new Error("user_not_found");
+        }
+
+        const [summary] = await tx
+          .select({
+            balanceCents:
+              sql<number>`coalesce(sum(case when ${walletLedger.status} = 'posted' then ${walletLedger.amountCents} else 0 end), 0)`,
+          })
+          .from(walletLedger)
+          .where(eq(walletLedger.userId, userId));
+
+        const currentBalanceCents = summary?.balanceCents ?? 0;
+        const nextBalanceCents = currentBalanceCents + amountCents;
+        if (nextBalanceCents < 0) {
+          throw new Error("insufficient_funds");
+        }
+
+        const [entry] = await tx
+          .insert(walletLedger)
+          .values({
+            userId,
+            agentId,
+            entryType: "adjustment",
+            amountCents,
+            balanceAfterCents: nextBalanceCents,
+            status: "posted",
+            idempotencyKey: `agent_adjustment:${userId}:${randomUUID()}`,
+            metadata: {
+              source: "agent",
+              reason: "agent_adjustment",
+              comment: parsed.data.note?.trim() || "",
+              adjustedBy: agentId,
+            },
+          })
+          .returning({
+            id: walletLedger.id,
+            createdAt: walletLedger.createdAt,
+          });
+
+        return {
+          entry,
+          targetUser,
+          balance: (nextBalanceCents / 100).toFixed(2),
+          amount: (amountCents / 100).toFixed(2),
+        };
+      });
+
+      res.status(201).json({
+        ok: true,
+        adjustment: {
+          id: result.entry.id,
+          type: "adjustment",
+          amount: result.amount,
+          balance: result.balance,
+          createdAt: result.entry.createdAt,
+          user: result.targetUser,
+        },
+      });
+    } catch (error) {
+      const reason =
+        error instanceof Error ? error.message : "balance_adjustment_failed";
+      const status =
+        reason === "user_not_found"
+          ? 404
+          : reason === "insufficient_funds"
+            ? 409
+            : 500;
+      res.status(status).json({ error: reason });
+    }
   }),
 );
 

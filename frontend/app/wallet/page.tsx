@@ -130,6 +130,7 @@ export default function WalletPage() {
       case "referral_reward":
       case "referral_commission":
       case "welcome_bonus":
+      case "adjustment":
       case "bonus":
         return <Star className="text-emerald-400" size={20} />;
       default:
@@ -168,6 +169,8 @@ export default function WalletPage() {
         return t("transaction.referralCommission");
       case "welcome_bonus":
         return t("transaction.welcomeBonus");
+      case "adjustment":
+        return t("transaction.adjustment");
       case "game_fee":
         return t("transaction.gameFee");
       case "bonus":

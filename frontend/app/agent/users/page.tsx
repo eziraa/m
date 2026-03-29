@@ -13,6 +13,7 @@ import {
   RefreshCw,
   ArrowDown,
   ArrowUp,
+  Wallet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +28,7 @@ import { useGetAgentUsersQuery } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslations } from "next-intl";
+import { AgentBalanceAdjustmentDialog } from "@/components/agent/AgentBalanceAdjustmentDialog";
 
 export default function AgentUsersPage() {
   const t = useTranslations("agent.users");
@@ -36,6 +38,7 @@ export default function AgentUsersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [isAdjustmentDialogOpen, setIsAdjustmentDialogOpen] = useState(false);
   const [roleFilter, setRoleFilter] = useState<
     "all" | "USER" | "Agent" | "AGENT"
   >("all");
@@ -99,6 +102,14 @@ export default function AgentUsersPage() {
           </h1>
           <p className="text-xs text-muted-foreground">{t("subtitle")}</p>
         </div>
+        <Button
+          variant="outline"
+          onClick={() => setIsAdjustmentDialogOpen(true)}
+          className="h-9 rounded-lg"
+        >
+          <Wallet className="h-4 w-4" />
+          {t("actions.adjustBalance")}
+        </Button>
         <Button
           variant="outline"
           size="icon"
@@ -440,6 +451,11 @@ export default function AgentUsersPage() {
           </div>
         </div>
       </div>
+
+      <AgentBalanceAdjustmentDialog
+        open={isAdjustmentDialogOpen}
+        onOpenChange={setIsAdjustmentDialogOpen}
+      />
     </div>
   );
 }

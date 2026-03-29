@@ -77,6 +77,7 @@ export default function TransactionsPage() {
       case "referral_reward":
       case "referral_commission":
       case "welcome_bonus":
+      case "adjustment":
       case "bonus":
         return <Gift className="text-amber-400" size={18} />;
       default:
@@ -91,6 +92,7 @@ export default function TransactionsPage() {
       case "referral_reward":
       case "referral_commission":
       case "welcome_bonus":
+      case "adjustment":
         return "text-emerald-400";
       case "withdrawal":
         return "text-rose-400";

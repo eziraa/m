@@ -1,6 +1,7 @@
 export type TransactionType =
   | "deposit"
   | "withdrawal"
+  | "adjustment"
   | "game_win"
   | "game_lost"
   | "game_fee"

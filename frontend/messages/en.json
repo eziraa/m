@@ -425,7 +425,8 @@
       "welcomeBonus": "Welcome Bonus",
       "default": "Transaction",
       "gameFee": "Game Fee",
-      "bonus": "Bonus"
+      "bonus": "Bonus",
+      "adjustment": "Adjustment"
     },
     "status": {
       "completed": "Completed",
@@ -1237,9 +1238,43 @@
       },
       "actions": {
         "details": "Details",
+        "adjustBalance": "Adjust Balance",
         "delete": "Delete",
         "cancel": "Cancel",
         "deleting": "..."
+      },
+      "adjustment": {
+        "title": "Adjust user balance",
+        "description": "Search only within your referred users, then post a wallet adjustment.",
+        "searchLabel": "Find user",
+        "searchPlaceholder": "Search by name, username, or email",
+        "searching": "Searching...",
+        "userLabel": "Referred users",
+        "empty": "No referred users matched your search.",
+        "currentBalance": "Current balance",
+        "amountLabel": "Adjustment amount",
+        "amountPlaceholder": "Use positive or negative ETB amounts",
+        "amountHint": "Positive values add balance. Negative values deduct balance.",
+        "noteLabel": "Note",
+        "notePlaceholder": "Optional note for the transaction history",
+        "selectedUser": "Selected user: {user}",
+        "transactionType": "Transaction type: adjustment",
+        "actions": {
+          "cancel": "Cancel",
+          "submit": "Save adjustment",
+          "submitting": "Saving..."
+        },
+        "fallback": {
+          "user": "Unknown user",
+          "noUsername": "no-username"
+        },
+        "toast": {
+          "selectUser": "Select a user first",
+          "invalidAmount": "Enter a non-zero amount",
+          "success": "Balance adjusted for {user}",
+          "insufficientFunds": "This deduction would make the user balance negative",
+          "failed": "Failed to adjust balance"
+        }
       },
       "confirmDelete": {
         "title": "Delete User?",
@@ -1320,7 +1355,8 @@
       "game_lost": "Game Fee",
       "referral_reward": "Referral Reward",
       "welcome_bonus": "Welcome Bonus",
-      "referral_commission": "Referral Commission"
+      "referral_commission": "Referral Commission",
+      "adjustment": "Adjustment"
     },
     "status": {
       "completed": "Completed",
