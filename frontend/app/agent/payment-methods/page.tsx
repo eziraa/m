@@ -58,9 +58,15 @@ type MethodKind = "cbe" | "telebirr" | "other";
 
 export default function AgentPaymentMethodsPage() {
   const t = useTranslations("agent.paymentMethods");
-  const { data: methods, isLoading, refetch } = useAgentPaymentMethodsAgentQuery();
-  const [create, { isLoading: creating }] = useCreateAgentPaymentMethodMutation();
-  const [update, { isLoading: updating }] = useUpdateAgentPaymentMethodMutation();
+  const {
+    data: methods,
+    isLoading,
+    refetch,
+  } = useAgentPaymentMethodsAgentQuery();
+  const [create, { isLoading: creating }] =
+    useCreateAgentPaymentMethodMutation();
+  const [update, { isLoading: updating }] =
+    useUpdateAgentPaymentMethodMutation();
   const [del, { isLoading: deleting }] = useDeleteAgentPaymentMethodMutation();
 
   const [editing, setEditing] = useState<AgentPaymentMethodRow | null>(null);
@@ -162,15 +168,15 @@ export default function AgentPaymentMethodsPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 pb-8">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
+      <header className="flex  gap-3 flex-row items-center justify-between">
+        <div className="flex-1">
           <h1 className="flex items-center gap-2 text-xl font-semibold">
             <CreditCard className="h-5 w-5 text-primary" />
             {t("title")}
           </h1>
           <p className="text-xs text-muted-foreground">{t("subtitle")}</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex  items-center gap-2">
           <Button
             variant="outline"
             size="icon"
@@ -178,7 +184,9 @@ export default function AgentPaymentMethodsPage() {
             disabled={isLoading}
             className="h-11 w-11 rounded-lg"
           >
-            <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+            <RefreshCw
+              className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
+            />
           </Button>
           <Button onClick={openCreateModal} className="min-h-[44px] rounded-lg">
             <Plus className="mr-2 h-4 w-4" />
@@ -191,7 +199,8 @@ export default function AgentPaymentMethodsPage() {
         <CardHeader className="border-b bg-muted/30">
           <CardTitle className="text-base">{t("list.title")}</CardTitle>
           <CardDescription>
-            {sorted.length} {sorted.length === 1 ? "method" : "methods"} configured
+            {sorted.length} {sorted.length === 1 ? "method" : "methods"}{" "}
+            configured
           </CardDescription>
         </CardHeader>
         <CardContent className="p-4">
@@ -215,7 +224,10 @@ export default function AgentPaymentMethodsPage() {
               <p className="mt-1 text-xs text-muted-foreground">
                 Add your first payment method to start receiving payments.
               </p>
-              <Button onClick={openCreateModal} className="mt-5 min-h-[44px] rounded-lg">
+              <Button
+                onClick={openCreateModal}
+                className="mt-5 min-h-[44px] rounded-lg"
+              >
                 <Plus className="mr-2 h-4 w-4" />
                 {t("form.add")}
               </Button>
@@ -241,7 +253,9 @@ export default function AgentPaymentMethodsPage() {
                                 : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                             }`}
                           >
-                            {m.isActive === false ? t("list.inactive") : "Active"}
+                            {m.isActive === false
+                              ? t("list.inactive")
+                              : "Active"}
                           </span>
                         </div>
                         <h3 className="mt-3 truncate text-base font-semibold">
@@ -292,7 +306,9 @@ export default function AgentPaymentMethodsPage() {
                       </div>
                       <div className="mt-2 flex items-center gap-2 text-sm font-medium">
                         <CircleCheck className="h-4 w-4 text-primary" />
-                        {m.isActive === false ? t("list.inactive") : "Visible to users"}
+                        {m.isActive === false
+                          ? t("list.inactive")
+                          : "Visible to users"}
                       </div>
                     </div>
                   </div>
@@ -303,7 +319,10 @@ export default function AgentPaymentMethodsPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={isFormOpen} onOpenChange={(open) => (!open ? resetForm() : setIsFormOpen(true))}>
+      <Dialog
+        open={isFormOpen}
+        onOpenChange={(open) => (!open ? resetForm() : setIsFormOpen(true))}
+      >
         <DialogContent className="max-w-xl">
           <DialogHeader>
             <DialogTitle>
@@ -316,7 +335,10 @@ export default function AgentPaymentMethodsPage() {
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <label className="text-xs font-medium">{t("form.kind")}</label>
-                <Select value={kind} onValueChange={(v) => setKind(v as MethodKind)}>
+                <Select
+                  value={kind}
+                  onValueChange={(v) => setKind(v as MethodKind)}
+                >
                   <SelectTrigger className="h-11">
                     <SelectValue />
                   </SelectTrigger>
@@ -328,7 +350,9 @@ export default function AgentPaymentMethodsPage() {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-medium">{t("form.sortOrder")}</label>
+                <label className="text-xs font-medium">
+                  {t("form.sortOrder")}
+                </label>
                 <Input
                   type="number"
                   min={0}
@@ -340,7 +364,9 @@ export default function AgentPaymentMethodsPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium">{t("form.holderName")}</label>
+              <label className="text-xs font-medium">
+                {t("form.holderName")}
+              </label>
               <Input
                 value={holderName}
                 onChange={(e) => setHolderName(e.target.value)}
@@ -351,7 +377,9 @@ export default function AgentPaymentMethodsPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium">{t("form.accountNumber")}</label>
+              <label className="text-xs font-medium">
+                {t("form.accountNumber")}
+              </label>
               <Input
                 value={accountNumber}
                 onChange={(e) => setAccountNumber(e.target.value)}
@@ -397,7 +425,9 @@ export default function AgentPaymentMethodsPage() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{t("confirmDelete.title")}</AlertDialogTitle>
-            <AlertDialogDescription>{t("confirmDelete.body")}</AlertDialogDescription>
+            <AlertDialogDescription>
+              {t("confirmDelete.body")}
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("confirmDelete.cancel")}</AlertDialogCancel>
