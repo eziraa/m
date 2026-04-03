@@ -211,7 +211,11 @@ function WonContent() {
             boardNum={displayBoardNum}
           />
         ) : (
-          <div className="h-[226px] w-full max-w-60 animate-pulse rounded-[12px] bg-white/5" />
+          <div className="h-[226px] w-full mx-auto max-w-60 animate-pulse rounded-[12px] bg-white/5">
+            <div className="flex items-center justify-center h-full text-sm text-gray-500">
+              Loading your winning board...
+            </div>
+          </div>
         )}
 
         {/* CTA Buttons */}
