@@ -15,6 +15,7 @@ import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { db } from "../db/client.js";
 import {
+  agentPaymentMethods,
   rooms,
   users,
   walletLedger,
@@ -37,6 +38,19 @@ const agentBalanceAdjustmentSchema = z.object({
     .refine((value) => value !== 0, "amount_must_not_be_zero"),
   note: z.string().trim().max(300).optional(),
 });
+
+const agentPaymentMethodKindSchema = z.enum(["cbe", "telebirr", "other"]);
+
+const createAgentPaymentMethodSchema = z.object({
+  kind: agentPaymentMethodKindSchema,
+  accountNumber: z.string().trim().min(1).max(256),
+  holderName: z.string().trim().min(1).max(256),
+  sortOrder: z.number().int().min(0).max(1_000_000).optional(),
+  isActive: z.boolean().optional(),
+});
+
+const updateAgentPaymentMethodSchema =
+  createAgentPaymentMethodSchema.partial();
 
 function normalizeTransactionNumberCandidate(value: string): string {
   const trimmed = value.trim();
@@ -233,6 +247,119 @@ router.delete(
 
     if (!deleted) {
       res.status(404).json({ error: "room_not_found" });
+      return;
+    }
+
+    res.json({ success: true });
+  }),
+);
+
+// ── PAYMENT METHODS (accounts shown to referred players on deposit) ───
+
+router.get(
+  "/agent/payment-methods",
+  asyncHandler(async (req, res) => {
+    const agentId = req.identity!.userId;
+    const rows = await db
+      .select()
+      .from(agentPaymentMethods)
+      .where(eq(agentPaymentMethods.agentId, agentId))
+      .orderBy(asc(agentPaymentMethods.sortOrder), desc(agentPaymentMethods.createdAt));
+
+    res.json({ paymentMethods: rows });
+  }),
+);
+
+router.post(
+  "/agent/payment-methods",
+  asyncHandler(async (req, res) => {
+    const agentId = req.identity!.userId;
+    const parsed = createAgentPaymentMethodSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({
+        error: "invalid_request",
+        details: parsed.error.flatten(),
+      });
+      return;
+    }
+
+    const [row] = await db
+      .insert(agentPaymentMethods)
+      .values({
+        agentId,
+        kind: parsed.data.kind,
+        accountNumber: parsed.data.accountNumber,
+        holderName: parsed.data.holderName,
+        sortOrder: parsed.data.sortOrder ?? 0,
+        isActive: parsed.data.isActive ?? true,
+      })
+      .returning();
+
+    res.status(201).json({ paymentMethod: row });
+  }),
+);
+
+router.put(
+  "/agent/payment-methods/:id",
+  asyncHandler(async (req, res) => {
+    const agentId = req.identity!.userId;
+    const id = String(req.params.id);
+    const parsed = updateAgentPaymentMethodSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({
+        error: "invalid_request",
+        details: parsed.error.flatten(),
+      });
+      return;
+    }
+
+    const patch = parsed.data;
+
+    const [updated] = await db
+      .update(agentPaymentMethods)
+      .set({
+        ...(patch.kind !== undefined ? { kind: patch.kind } : {}),
+        ...(patch.accountNumber !== undefined
+          ? { accountNumber: patch.accountNumber }
+          : {}),
+        ...(patch.holderName !== undefined
+          ? { holderName: patch.holderName }
+          : {}),
+        ...(patch.sortOrder !== undefined
+          ? { sortOrder: patch.sortOrder }
+          : {}),
+        ...(patch.isActive !== undefined ? { isActive: patch.isActive } : {}),
+        updatedAt: new Date(),
+      })
+      .where(
+        and(eq(agentPaymentMethods.id, id), eq(agentPaymentMethods.agentId, agentId)),
+      )
+      .returning();
+
+    if (!updated) {
+      res.status(404).json({ error: "payment_method_not_found" });
+      return;
+    }
+
+    res.json({ paymentMethod: updated });
+  }),
+);
+
+router.delete(
+  "/agent/payment-methods/:id",
+  asyncHandler(async (req, res) => {
+    const agentId = req.identity!.userId;
+    const id = String(req.params.id);
+
+    const [deleted] = await db
+      .delete(agentPaymentMethods)
+      .where(
+        and(eq(agentPaymentMethods.id, id), eq(agentPaymentMethods.agentId, agentId)),
+      )
+      .returning();
+
+    if (!deleted) {
+      res.status(404).json({ error: "payment_method_not_found" });
       return;
     }
 

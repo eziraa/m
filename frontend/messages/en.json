@@ -506,7 +506,9 @@
       "ownerLabel": "Account Owner",
       "owner": "Tadele Workie",
       "numberLabel": "Account Number",
-      "copy": "Copy account"
+      "copy": "Copy account",
+      "noMethods": "Payment details are not set for your agent yet. Contact your agent for where to send money.",
+      "pickAccount": "If you have multiple options:"
     },
     "amount": {
       "label": "Amount",
@@ -711,6 +713,43 @@
     }
   },
   "agent": {
+    "paymentMethods": {
+      "title": "Payment methods",
+      "subtitle": "Accounts your players see when depositing (Telebirr, CBE, etc.).",
+      "form": {
+        "addTitle": "Add method",
+        "editTitle": "Edit method",
+        "cancelEdit": "Cancel edit",
+        "kind": "Method",
+        "kindOther": "Other",
+        "sortOrder": "Display order",
+        "holderName": "Account holder",
+        "holderPlaceholder": "Name as on the account",
+        "accountNumber": "Account / phone",
+        "accountPlaceholder": "Account number or phone",
+        "active": "Show to players",
+        "add": "Add",
+        "save": "Save changes"
+      },
+      "list": {
+        "title": "Your methods",
+        "empty": "No payment methods yet. Add one above.",
+        "inactive": "Hidden"
+      },
+      "confirmDelete": {
+        "title": "Delete this method?",
+        "body": "Players will no longer see these account details.",
+        "cancel": "Cancel",
+        "confirm": "Delete"
+      },
+      "toast": {
+        "created": "Payment method added",
+        "updated": "Saved",
+        "deleted": "Removed",
+        "saveFailed": "Could not save",
+        "deleteFailed": "Could not delete"
+      }
+    },
     "nav": {
       "posts": "Posts",
       "scheduled": "Scheduled",

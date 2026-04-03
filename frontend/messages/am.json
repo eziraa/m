@@ -506,7 +506,9 @@
       "ownerLabel": "የሂሳብ ባለቤት",
       "owner": "ታደለ ወርቀ",
       "numberLabel": "የሂሳብ ቁጥር",
-      "copy": "ሂሳብ ቁጥር ቅዳ"
+      "copy": "ሂሳብ ቁጥር ቅዳ",
+      "noMethods": "ለወኪልዎ የክፍያ ዝርዝሮች እስካሁን አልተቀመጡም። ገንዘብ የሚላኩበትን ይጠይቁ።",
+      "pickAccount": "በርካታ አማራጮች ካሉ:"
     },
     "amount": {
       "label": "መጠን",
@@ -711,6 +713,43 @@
     "free": "ነፃ"
   },
   "agent": {
+    "paymentMethods": {
+      "title": "የክፍያ ዘዴዎች",
+      "subtitle": "ተጫዋቾች በተቀማጭ ጊዜ የሚያዩዎት ሂሳብ (ቴሌብር፣ CBE፣ ወዘተ)።",
+      "form": {
+        "addTitle": "ዘዴ ጨምር",
+        "editTitle": "ዘዴ አርም",
+        "cancelEdit": "አርም ሰርዝ",
+        "kind": "ዘዴ",
+        "kindOther": "ሌላ",
+        "sortOrder": "የማሳያ ቅደም ተከተል",
+        "holderName": "የሂሳብ ባለቤት",
+        "holderPlaceholder": "በሂሳብ ላይ እንደሚታየው ስም",
+        "accountNumber": "ሂሳብ / ስልክ",
+        "accountPlaceholder": "የሂሳብ ቁጥር ወይም ስልክ",
+        "active": "ለተጫዋቾች አሳይ",
+        "add": "ጨምር",
+        "save": "አስቀምጥ"
+      },
+      "list": {
+        "title": "የእርስዎ ዘዴዎች",
+        "empty": "እስካሁን አንድም የክፍያ ዘዴ የለም። ከላይ ያክሉ።",
+        "inactive": "የተደበቀ"
+      },
+      "confirmDelete": {
+        "title": "ይህን ዘደ ሰርዝ?",
+        "body": "ተጫዋቾች የሂሳብ ዝርዝሮችን አይመለከቱም።",
+        "cancel": "ተመለስ",
+        "confirm": "ሰርዝ"
+      },
+      "toast": {
+        "created": "የክፍያ ዘዴ ተጨመረ",
+        "updated": "ተቀምጧል",
+        "deleted": "ተገነሰ",
+        "saveFailed": "ማስቀመጥ አልተሳካም",
+        "deleteFailed": "መሰረዝ አልተሳካም"
+      }
+    },
     "nav": {
       "posts": "ፖስቶች",
       "manage": "ማስተዳደር",

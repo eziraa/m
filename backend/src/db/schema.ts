@@ -77,6 +77,13 @@ export const paymentStatusEnum = pgEnum("payment_status", [
   "rejected",
 ]);
 
+/** How players send money to the agent (deposit instructions). */
+export const agentPaymentMethodKindEnum = pgEnum("agent_payment_method_kind", [
+  "cbe",
+  "telebirr",
+  "other",
+]);
+
 export const bonusTypeEnum = pgEnum("bonus_type", ["percentage", "fixed"]);
 export const postTargetEnum = pgEnum("post_target", ["users", "channel"]);
 export const postStatusEnum = pgEnum("post_status", [
@@ -183,6 +190,35 @@ export const rooms = pgTable(
     statusCreatedIdx: index("idx_rooms_status_created").on(
       table.status,
       table.createdAt,
+    ),
+  }),
+);
+
+/** Bank / wallet accounts agents show to their referred players for deposits. */
+export const agentPaymentMethods = pgTable(
+  "agent_payment_methods",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    agentId: uuid("agent_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    kind: agentPaymentMethodKindEnum("kind").notNull(),
+    accountNumber: text("account_number").notNull(),
+    holderName: text("holder_name").notNull(),
+    isActive: boolean("is_active").default(true).notNull(),
+    sortOrder: integer("sort_order").default(0).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    agentIdx: index("idx_agent_payment_methods_agent").on(table.agentId),
+    agentKindIdx: index("idx_agent_payment_methods_agent_kind").on(
+      table.agentId,
+      table.kind,
     ),
   }),
 );
@@ -888,6 +924,7 @@ export type BingoClaim = typeof bingoClaims.$inferSelect;
 export type SessionWinner = typeof sessionWinners.$inferSelect;
 export type Deposit = typeof deposits.$inferSelect;
 export type Payment = typeof payments.$inferSelect;
+export type AgentPaymentMethod = typeof agentPaymentMethods.$inferSelect;
 export type Withdrawal = typeof withdrawals.$inferSelect;
 export type PromoCode = typeof promoCodes.$inferSelect;
 export type PromoCodeUsage = typeof promoCodeUsages.$inferSelect;

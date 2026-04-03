@@ -1,9 +1,13 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import { Router } from "express";
 import { z } from "zod";
 
 import { db } from "../db/client.js";
-import { walletLedger, withdrawals } from "../db/schema.js";
+import {
+  agentPaymentMethods,
+  walletLedger,
+  withdrawals,
+} from "../db/schema.js";
 import { asyncHandler } from "./asyncHandler.js";
 import { requireAuth } from "./authMiddleware.js";
 import {
@@ -18,6 +22,48 @@ const createDepositSchema = z.object({
 });
 
 const router = Router();
+
+/** Active deposit instructions for the current user's referring agent (players only). */
+router.get(
+  "/wallet/agent-payment-methods",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    if (!req.identity) {
+      res.status(401).json({ error: "unauthorized" });
+      return;
+    }
+
+    if (req.identity.role !== "USER") {
+      res.status(403).json({ error: "forbidden" });
+      return;
+    }
+
+    const agentId = req.identity.agentId;
+    if (!agentId) {
+      res.status(200).json({ ok: true, paymentMethods: [] });
+      return;
+    }
+
+    const rows = await db
+      .select({
+        id: agentPaymentMethods.id,
+        kind: agentPaymentMethods.kind,
+        accountNumber: agentPaymentMethods.accountNumber,
+        holderName: agentPaymentMethods.holderName,
+        sortOrder: agentPaymentMethods.sortOrder,
+      })
+      .from(agentPaymentMethods)
+      .where(
+        and(
+          eq(agentPaymentMethods.agentId, agentId),
+          eq(agentPaymentMethods.isActive, true),
+        ),
+      )
+      .orderBy(asc(agentPaymentMethods.sortOrder), asc(agentPaymentMethods.createdAt));
+
+    res.status(200).json({ ok: true, paymentMethods: rows });
+  }),
+);
 
 router.post(
   "/wallet/deposit",

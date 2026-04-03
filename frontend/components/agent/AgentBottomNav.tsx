@@ -11,6 +11,7 @@ import {
   Wallet,
   Activity,
   Landmark,
+  CreditCard,
 } from "lucide-react";
 
 const agentNavItems = [
@@ -19,6 +20,7 @@ const agentNavItems = [
   { label: "Transactions", href: "/agent/transactions", icon: ArrowRightLeft },
   { label: "Users", href: "/agent/users", icon: Users },
   { label: "Payments", href: "/agent/payments", icon: Landmark },
+  { label: "Pay details", href: "/agent/payment-methods", icon: CreditCard },
   { label: "Withdrawals", href: "/agent/withdrawals", icon: Wallet },
 ];
 

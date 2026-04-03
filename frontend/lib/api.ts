@@ -185,6 +185,56 @@ export async function fetchRoomsForAgent(token: string): Promise<RoomItem[]> {
   return json.rooms;
 }
 
+export type AgentPaymentMethodRow = {
+  id: string;
+  kind: "cbe" | "telebirr" | "other";
+  accountNumber: string;
+  holderName: string;
+  sortOrder: number;
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export async function fetchAgentPaymentMethodsForAgent(
+  token: string,
+): Promise<AgentPaymentMethodRow[]> {
+  const res = await fetch(`${API_BASE}/agent/payment-methods`, {
+    method: "GET",
+    headers: { authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error("agent_payment_methods_fetch_failed");
+  }
+
+  const json = (await res.json()) as {
+    paymentMethods: AgentPaymentMethodRow[];
+  };
+  return json.paymentMethods;
+}
+
+/** Deposit instructions for the current user's agent (USER token). */
+export async function fetchAgentPaymentMethodsForDeposit(
+  token: string,
+): Promise<AgentPaymentMethodRow[]> {
+  const res = await fetch(`${API_BASE}/wallet/agent-payment-methods`, {
+    method: "GET",
+    headers: { authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error("agent_payment_methods_fetch_failed");
+  }
+
+  const json = (await res.json()) as {
+    paymentMethods: AgentPaymentMethodRow[];
+  };
+  return json.paymentMethods;
+}
+
 export type WalletSummary = {
   currency: string;
   balanceCents: number;
@@ -593,6 +643,137 @@ export function useGetRoomsForAgentQuery(options?: { skip?: boolean }) {
     error: query.error,
     refetch: query.refetch,
   };
+}
+
+export function useAgentPaymentMethodsAgentQuery(options?: {
+  skip?: boolean;
+}) {
+  const token = getAuthToken();
+  const query = useQuery({
+    queryKey: ["agent", "payment-methods"],
+    queryFn: () => fetchAgentPaymentMethodsForAgent(token),
+    enabled: !options?.skip && !!token,
+  });
+  return {
+    data: query.data,
+    isLoading: query.isLoading,
+    isError: query.isError,
+    refetch: query.refetch,
+  };
+}
+
+export function useAgentPaymentMethodsDepositQuery(options?: {
+  skip?: boolean;
+}) {
+  const token = getAuthToken();
+  const query = useQuery({
+    queryKey: ["wallet", "agent-payment-methods"],
+    queryFn: () => fetchAgentPaymentMethodsForDeposit(token),
+    enabled: !options?.skip && !!token,
+  });
+  return {
+    data: query.data,
+    isLoading: query.isLoading,
+    isError: query.isError,
+    refetch: query.refetch,
+  };
+}
+
+export function useCreateAgentPaymentMethodMutation() {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: async (input: {
+      kind: "cbe" | "telebirr" | "other";
+      accountNumber: string;
+      holderName: string;
+      sortOrder?: number;
+      isActive?: boolean;
+    }) => {
+      const res = await fetch(`${API_BASE}/agent/payment-methods`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${getAuthToken()}`,
+        },
+        body: JSON.stringify(input),
+      });
+      const data = await res.json();
+      if (!res.ok) throw { data };
+      return data as { paymentMethod: AgentPaymentMethodRow };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["agent", "payment-methods"] });
+    },
+  });
+
+  const mutate = (input: Parameters<typeof mutation.mutateAsync>[0]) => {
+    const promise = mutation.mutateAsync(input);
+    return Object.assign(promise, { unwrap: () => promise });
+  };
+
+  return [mutate, { isLoading: mutation.isPending }] as const;
+}
+
+export function useUpdateAgentPaymentMethodMutation() {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: async (input: {
+      id: string;
+      kind?: "cbe" | "telebirr" | "other";
+      accountNumber?: string;
+      holderName?: string;
+      sortOrder?: number;
+      isActive?: boolean;
+    }) => {
+      const { id, ...body } = input;
+      const res = await fetch(`${API_BASE}/agent/payment-methods/${id}`, {
+        method: "PUT",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${getAuthToken()}`,
+        },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) throw { data };
+      return data as { paymentMethod: AgentPaymentMethodRow };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["agent", "payment-methods"] });
+    },
+  });
+
+  const mutate = (input: Parameters<typeof mutation.mutateAsync>[0]) => {
+    const promise = mutation.mutateAsync(input);
+    return Object.assign(promise, { unwrap: () => promise });
+  };
+
+  return [mutate, { isLoading: mutation.isPending }] as const;
+}
+
+export function useDeleteAgentPaymentMethodMutation() {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`${API_BASE}/agent/payment-methods/${id}`, {
+        method: "DELETE",
+        headers: { authorization: `Bearer ${getAuthToken()}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw { data };
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["agent", "payment-methods"] });
+    },
+  });
+
+  const mutate = (id: string) => {
+    const promise = mutation.mutateAsync(id);
+    return Object.assign(promise, { unwrap: () => promise });
+  };
+
+  return [mutate, { isLoading: mutation.isPending }] as const;
 }
 
 export function useGetTransactionsQuery(

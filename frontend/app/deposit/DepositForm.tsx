@@ -7,9 +7,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { useApproveDepositMutation } from "@/lib/api";
+import {
+  useAgentPaymentMethodsDepositQuery,
+  useApproveDepositMutation,
+} from "@/lib/api";
 import { useTranslations } from "next-intl";
 
 type DepositFormValues = {
@@ -37,6 +40,35 @@ export function DepositForm() {
   );
 
   const [approveDeposit] = useApproveDepositMutation();
+  const { data: agentPaymentMethods, isLoading: paymentMethodsLoading } =
+    useAgentPaymentMethodsDepositQuery();
+
+  const channelKind = useMemo<"telebirr" | "cbe">(
+    () => (channel === "cbe" ? "cbe" : "telebirr"),
+    [channel],
+  );
+
+  const methodsForChannel = useMemo(() => {
+    if (!agentPaymentMethods?.length) return [];
+    return agentPaymentMethods.filter((m) => m.kind === channelKind);
+  }, [agentPaymentMethods, channelKind]);
+
+  const [selectedMethodId, setSelectedMethodId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const first = methodsForChannel[0]?.id ?? null;
+    setSelectedMethodId((prev) => {
+      if (prev && methodsForChannel.some((m) => m.id === prev)) return prev;
+      return first;
+    });
+  }, [methodsForChannel]);
+
+  const selectedMethod = useMemo(
+    () =>
+      methodsForChannel.find((m) => m.id === selectedMethodId) ??
+      methodsForChannel[0],
+    [methodsForChannel, selectedMethodId],
+  );
   const {
     register,
     handleSubmit,
@@ -93,7 +125,9 @@ export function DepositForm() {
   };
 
   const handleCopy = () => {
-    const valueToCopy = isCbe ? "1000485490478" : "0935878383";
+    const valueToCopy =
+      selectedMethod?.accountNumber ??
+      (isCbe ? "1000485490478" : "0935878383");
     navigator.clipboard.writeText(valueToCopy);
     setCopySuccess(true);
     setTimeout(() => setCopySuccess(false), 1200);
@@ -146,36 +180,69 @@ export function DepositForm() {
         <div className="relative rounded-2xl bg-linear-to-r from-blue-500 to-blue-600 p-4 overflow-hidden">
           <div className="absolute -right-10 -bottom-8 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
           <div className="relative z-10 flex flex-col gap-2">
-            <div className="text-[10px] font-semibold tracking-wide text-indigo-100/80">
-              {t("account.ownerLabel")}
-            </div>
-            <div className="text-sm font-semibold text-white">
-              {isCbe ? "Muluken Kasawmar" : "Muluken Kasawmar"}
-            </div>
-
-            <div className=" flex items-center justify-between gap-3">
-              <div className="flex flex-col">
-                <span className="text-[10px] text-indigo-100/80 font-medium">
-                  {t("account.numberLabel")}
-                </span>
-                <span className="text-base font-semibold tracking-[0.16em] text-white">
-                  {isCbe ? "1000 4854 904 78" : "09 35 87 83 83"}
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={handleCopy}
-                disabled={copySuccess}
-                className="inline-flex items-center justify-center rounded-full bg-white/10 hover:bg-white/15 transition-colors p-2"
-                aria-label={t("account.copy")}
-              >
-                {copySuccess ? (
-                  <Check className="w-4 h-4 text-white" strokeWidth={2} />
-                ) : (
-                  <Copy className="w-4 h-4 text-white" strokeWidth={2} />
+            {paymentMethodsLoading ? (
+              <div className="h-20 rounded-lg bg-white/10 animate-pulse" />
+            ) : selectedMethod ? (
+              <>
+                {methodsForChannel.length > 1 && (
+                  <div className="flex flex-col gap-1 mb-1">
+                    <span className="text-[10px] text-indigo-100/90 font-medium">
+                      {t("account.pickAccount")}
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {methodsForChannel.map((m) => (
+                        <button
+                          key={m.id}
+                          type="button"
+                          onClick={() => setSelectedMethodId(m.id)}
+                          className={`text-[10px] px-2 py-1 rounded-full border transition-colors ${
+                            selectedMethod.id === m.id
+                              ? "bg-white text-blue-700 border-white"
+                              : "bg-white/10 text-white border-white/30 hover:bg-white/20"
+                          }`}
+                        >
+                          {m.holderName}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 )}
-              </button>
-            </div>
+                <div className="text-[10px] font-semibold tracking-wide text-indigo-100/80">
+                  {t("account.ownerLabel")}
+                </div>
+                <div className="text-sm font-semibold text-white">
+                  {selectedMethod.holderName}
+                </div>
+
+                <div className=" flex items-center justify-between gap-3">
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-[10px] text-indigo-100/80 font-medium">
+                      {t("account.numberLabel")}
+                    </span>
+                    <span className="text-base font-semibold tracking-[0.12em] text-white break-all">
+                      {selectedMethod.accountNumber}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleCopy}
+                    disabled={copySuccess}
+                    className="inline-flex shrink-0 items-center justify-center rounded-full bg-white/10 hover:bg-white/15 transition-colors p-2"
+                    aria-label={t("account.copy")}
+                  >
+                    {copySuccess ? (
+                      <Check className="w-4 h-4 text-white" strokeWidth={2} />
+                    ) : (
+                      <Copy className="w-4 h-4 text-white" strokeWidth={2} />
+                    )}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <p className="text-xs text-indigo-50/95 leading-relaxed">
+                {t("account.noMethods")}
+              </p>
+            )}
           </div>
         </div>
 
