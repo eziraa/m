@@ -130,7 +130,7 @@ export default function AgentRoomsPage() {
           rooms?.map((room: Room) => (
             <Card
               key={room.id}
-              className="group relative border bg-card rounded-2xl overflow-hidden p-4 flex flex-col items-center text-center gap-3 transition-all min-h-[180px]"
+              className="group relative border bg-card rounded-2xl overflow-hidden p-4 flex flex-col items-center text-center gap-3 transition-all "
             >
               {/* Actions Overlay */}
               <div className="absolute top-2 right-2 flex gap-1.5 z-20">
@@ -161,7 +161,7 @@ export default function AgentRoomsPage() {
                 >
                   {room.icon || "🎉"}
                 </div>
-                <div className="flex-1 w-full flex flex-col items-center gap-1.5">
+                <div className="pt-4 w-full flex flex-col items-center gap-1.5">
                   <span className="text-sm font-black truncate w-full px-1 leading-tight">
                     {room.name}
                   </span>
