@@ -470,7 +470,7 @@ export default function AgentUsersPage() {
           </span>
           <span className="k">• {total.toLocaleString()} records</span>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex justify-stretch items-center gap-3">
           <label className="flex items-center gap-1 text-xs text-muted-foreground">
             <span>Per page:</span>
             <select
@@ -488,7 +488,7 @@ export default function AgentUsersPage() {
               ))}
             </select>
           </label>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center flex-1 justify-stretch gap-2">
             <Button
               type="button"
               variant="outline"
