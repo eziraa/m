@@ -61,12 +61,12 @@ export function SubmitPaymentDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="min-h-11 w-full">
+        <Button variant="outline" size="sm" className="min-h-11 flex-1">
           <Plus className="mr-2 h-4 w-4" />
           Submit Transaction
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-106.25">
         <DialogHeader>
           <DialogTitle>Submit Manual Transaction</DialogTitle>
           <DialogDescription>
@@ -98,7 +98,7 @@ export function SubmitPaymentDialog() {
                   ? "Dear Ezira your Account 1*****8066 has been Credited..."
                   : "Telebirr SMS..."
               }
-              className="resize-none min-h-[120px]"
+              className="resize-none min-h-30"
               value={smsContent}
               onChange={(e) => setSmsContent(e.target.value)}
             />
@@ -108,6 +108,7 @@ export function SubmitPaymentDialog() {
           <Button
             variant="outline"
             onClick={() => setOpen(false)}
+            className="min-w-11"
             disabled={isSubmitting}
           >
             Cancel
@@ -115,6 +116,7 @@ export function SubmitPaymentDialog() {
           <Button
             onClick={handleSubmit}
             disabled={isSubmitting || !smsContent.trim()}
+            className="min-w-11"
           >
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Submit

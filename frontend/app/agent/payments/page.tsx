@@ -177,10 +177,10 @@ export default function AgentPaymentsPage() {
                 setPage(1);
               }}
               placeholder={t("filters.searchPlaceholder")}
-              className="min-h-[44px] w-full pl-9"
+              className="min-h-11 w-full pl-9"
             />
           </div>
-          <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+          <div className="flex flex-row items-center gap-2 justify-between lg:justify-end">
             <FilterSortModal
               open={isFilterModalOpen}
               onOpenChange={setIsFilterModalOpen}
@@ -200,7 +200,7 @@ export default function AgentPaymentsPage() {
                     value={draftMinAmount}
                     onChange={(e) => setDraftMinAmount(e.target.value)}
                     placeholder={t("filters.minAmount")}
-                    className="min-h-[44px]"
+                    className="min-h-11"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -212,7 +212,7 @@ export default function AgentPaymentsPage() {
                     value={draftMaxAmount}
                     onChange={(e) => setDraftMaxAmount(e.target.value)}
                     placeholder={t("filters.maxAmount")}
-                    className="min-h-[44px]"
+                    className="min-h-11"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -222,7 +222,7 @@ export default function AgentPaymentsPage() {
                   <select
                     value={draftStatus}
                     onChange={(e) => setDraftStatus(e.target.value)}
-                    className="min-h-[44px] w-full rounded-md border border-input bg-background px-3 text-sm"
+                    className="min-h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
                   >
                     {STATUS_OPTIONS.map((item) => (
                       <option key={item} value={item}>
@@ -240,7 +240,7 @@ export default function AgentPaymentsPage() {
                     value={draftSource === "all" ? "" : draftSource}
                     onChange={(e) => setDraftSource(e.target.value)}
                     placeholder={t("filters.sourcePlaceholder")}
-                    className="min-h-[44px]"
+                    className="min-h-11"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -251,7 +251,7 @@ export default function AgentPaymentsPage() {
                     type="date"
                     value={draftStartDate}
                     onChange={(e) => setDraftStartDate(e.target.value)}
-                    className="min-h-[44px]"
+                    className="min-h-11"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -262,7 +262,7 @@ export default function AgentPaymentsPage() {
                     type="date"
                     value={draftEndDate}
                     onChange={(e) => setDraftEndDate(e.target.value)}
-                    className="min-h-[44px]"
+                    className="min-h-11"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -274,7 +274,7 @@ export default function AgentPaymentsPage() {
                     onChange={(e) =>
                       setDraftSortBy(e.target.value as "amount" | "date")
                     }
-                    className="min-h-[44px] w-full rounded-md border border-input bg-background px-3 text-sm"
+                    className="min-h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
                   >
                     <option value="date">{t("filters.sortDate")}</option>
                     <option value="amount">{t("filters.sortAmount")}</option>
@@ -289,7 +289,7 @@ export default function AgentPaymentsPage() {
                     onChange={(e) =>
                       setDraftSortOrder(e.target.value as "asc" | "desc")
                     }
-                    className="min-h-[44px] w-full rounded-md border border-input bg-background px-3 text-sm"
+                    className="min-h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
                   >
                     <option value="desc">{t("filters.sortDesc")}</option>
                     <option value="asc">{t("filters.sortAsc")}</option>
