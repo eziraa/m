@@ -92,7 +92,11 @@ export const ResultBoard = memo(function ResultBoard({
               >
                 {isFree ? (
                   <Star
-                    className={"h-4 w-4 " + isFree ? "text-emerald-400" : ""}
+                    className={
+                      "h-4 w-4 " + !isFreeIncludedInWinning
+                        ? "text-emerald-400"
+                        : ""
+                    }
                   />
                 ) : (
                   cell

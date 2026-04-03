@@ -189,7 +189,7 @@ function WonContent() {
 
       {/* <Confetti /> */}
 
-      <div className="relative z-10 w-full max-w-md  pb-10">
+      <div className="relative z-10 w-full max-w-md  pb-10 flex flex-col items-center">
         {/* Header */}
         <div className="flex flex-col items-center mt-8 space-y-2 mb-2 text-center">
           <RewardBadge amount={displayPrizePool} />
