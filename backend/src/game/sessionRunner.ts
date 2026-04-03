@@ -15,6 +15,7 @@ import {
 import { getIo } from "../realtime/ioHub.js";
 import { logger } from "../utils/logger.js";
 import { incCounter } from "../utils/metrics.js";
+import { env } from "../config/env.js";
 
 const ownerId = `node-${process.pid}`;
 const leasePrefix = "session:owner:";
@@ -589,6 +590,20 @@ export async function getBoardSelectionState(
   if (!canAccessSessionOwner(identity, session.agentId, session.ownerRole)) {
     throw new Error("forbidden_agent_scope");
   }
+  const [totals] = await db
+    .select({
+      potCents: sql<number>`coalesce(sum(${boards.purchaseAmountCents}), 0)`,
+    })
+    .from(boards)
+    .where(eq(boards.sessionId, session.id));
+  const grossPotCents = totals?.potCents ?? 0;
+  const commissionCents = Math.floor(
+    (grossPotCents * env.AGENT_COMMISSION_BPS) / 10000,
+  );
+  const netPayoutPreviewCents = Math.max(
+    grossPotCents - commissionCents - session.stakeCents,
+    0,
+  );
 
   let startsInSec = 0;
   if (session.status === "waiting") {
@@ -623,6 +638,7 @@ export async function getBoardSelectionState(
     startsInSec,
     stakeCents: session.stakeCents,
     stakeLabel: (session.stakeCents / 100).toFixed(2),
+    netPayoutPreviewCents,
     viewerResult,
   };
 }

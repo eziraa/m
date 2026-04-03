@@ -589,6 +589,14 @@ export async function getSessionParticipationStats(sessionId: string) {
     throw new Error("session_not_found");
   }
 
+  const commissionCents = Math.floor(
+    ((stats.potCents ?? 0) * env.AGENT_COMMISSION_BPS) / 10000,
+  );
+  const netPayoutPreviewCents = Math.max(
+    (stats.potCents ?? 0) - commissionCents - (stats.stakeCents ?? 0),
+    0,
+  );
+
   return {
     status: stats.status,
     stakeCents: stats.stakeCents,
@@ -597,6 +605,7 @@ export async function getSessionParticipationStats(sessionId: string) {
     boardsCount: stats.boardsCount,
     potCents: stats.potCents,
     potLabel: centsToEtbString(stats.potCents),
+    netPayoutPreviewCents,
   };
 }
 

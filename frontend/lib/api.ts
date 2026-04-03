@@ -272,6 +272,7 @@ export type BoardSelectionState = {
   startsInSec: number;
   stakeCents: number;
   stakeLabel: string;
+  netPayoutPreviewCents?: number;
   viewerResult: ViewerResult | null;
 };
 

@@ -40,7 +40,7 @@ export default function RoomPage() {
   const [picked, setPicked] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
-  const [prizePoolCents, setPrizePoolCents] = useState(0);
+  const [earnPreviewCents, setEarnPreviewCents] = useState(0);
   const [stakeLabelLive, setStakeLabelLive] = useState("0.00");
 
   const { data: walletData } = useGetWalletQuery();
@@ -82,6 +82,7 @@ export default function RoomPage() {
       setState(nextState);
       setStartsIn(nextState.startsInSec);
       setStakeLabelLive(nextState.stakeLabel);
+      setEarnPreviewCents(nextState.netPayoutPreviewCents ?? 0);
       setMsg("");
     } catch {
       setMsg(t("errors.failedLoad"));
@@ -114,6 +115,7 @@ export default function RoomPage() {
         setState(nextState);
         setStartsIn(nextState.startsInSec);
         setStakeLabelLive(nextState.stakeLabel);
+        setEarnPreviewCents(nextState.netPayoutPreviewCents ?? 0);
       } catch {
         if (!alive) return;
         setMsg(t("errors.failedLoad"));
@@ -156,6 +158,7 @@ export default function RoomPage() {
       startsInSec?: number;
       potCents?: number;
       stakeLabel?: string;
+      netPayoutPreviewCents?: number;
       viewerResult?: { targetPath: string } | null;
     }) => {
       if (payload.sessionId !== state.sessionId) return;
@@ -170,8 +173,8 @@ export default function RoomPage() {
         const nextStatus = payload.status;
         setState((prev) => (prev ? { ...prev, status: nextStatus } : prev));
       }
-      if (typeof payload.potCents === "number") {
-        setPrizePoolCents(payload.potCents);
+      if (typeof payload.netPayoutPreviewCents === "number") {
+        setEarnPreviewCents(payload.netPayoutPreviewCents);
       }
       if (typeof payload.stakeLabel === "string") {
         setStakeLabelLive(payload.stakeLabel);
@@ -183,12 +186,15 @@ export default function RoomPage() {
       status: string;
       potCents: number;
       stakeLabel: string;
+      netPayoutPreviewCents?: number;
     }) => {
       if (payload.sessionId !== state.sessionId) return;
       setState((prev) =>
         prev ? { ...prev, status: payload.status ?? prev.status } : prev,
       );
-      setPrizePoolCents(payload.potCents);
+      if (typeof payload.netPayoutPreviewCents === "number") {
+        setEarnPreviewCents(payload.netPayoutPreviewCents);
+      }
       setStakeLabelLive(payload.stakeLabel);
     };
 
@@ -218,7 +224,7 @@ export default function RoomPage() {
 
   const numbers = useMemo(() => boardNumbers(), []);
   const canJoin = state?.status === "waiting" || state?.status === "countdown";
-  const prizePool = prizePoolCents / 100;
+  const earnPreview = earnPreviewCents / 100;
   const status = state?.status ?? "waiting";
   const isLive = status === "playing";
   const bgNumbers = useMemo(
@@ -309,7 +315,7 @@ export default function RoomPage() {
               {t("stats.earn")}
             </span>
             <span className="text-lg flex items-end font-black">
-              {prizePool.toFixed(2)}
+              {earnPreview.toFixed(2)}
               <span className="text-[10px] ml-2 opacity-60">ETB</span>
             </span>
           </div>

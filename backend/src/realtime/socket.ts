@@ -144,6 +144,7 @@ export function createSocketServer(server: HttpServer) {
           stakeCents: snapshot.stakeCents,
           potLabel: snapshot.potLabel,
           stakeLabel: snapshot.stakeLabel,
+          netPayoutPreviewCents: boardSelection.netPayoutPreviewCents,
           viewerResult: snapshot.viewerResult,
         });
 
@@ -176,6 +177,7 @@ export function createSocketServer(server: HttpServer) {
           stakeCents: 0,
           potLabel: "0.00",
           stakeLabel: "0.00",
+          netPayoutPreviewCents: 0,
           viewerResult,
         });
 
