@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 export default function AgentTransactionsPage() {
   const t = useTranslations("agent.nav");
   return (
-    <div className="flex flex-col gap-4 pb-28">
+    <div className="flex flex-col gap-4 pb-10">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
           {t("transactions")}

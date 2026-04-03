@@ -10,13 +10,15 @@ import {
   Activity,
   Landmark,
   ArrowLeft,
+  CreditCard,
 } from "lucide-react";
 
 interface SidebarProps {
   className?: string;
+  onNavigate?: () => void;
 }
 
-export function AgentSidebar({ className }: SidebarProps) {
+export function AgentSidebar({ className, onNavigate }: SidebarProps) {
   const pathname = usePathname();
 
   const navItems = [
@@ -40,7 +42,11 @@ export function AgentSidebar({ className }: SidebarProps) {
       href: "/agent/payments",
       icon: Landmark,
     },
-
+    {
+      label: "Pay details",
+      href: "/agent/payment-methods",
+      icon: CreditCard,
+    },
     {
       label: "Withdrawals",
       href: "/agent/withdrawals",
@@ -51,16 +57,17 @@ export function AgentSidebar({ className }: SidebarProps) {
   return (
     <div
       className={cn(
-        "hidden md:flex h-screen w-64 flex-col fixed left-0 top-0 border-r bg-sidebar text-sidebar-foreground z-40",
+        "z-40 flex h-full w-64 flex-col border-r bg-background text-foreground",
         className,
       )}
     >
       <div className="flex h-16 items-center border-b px-6">
         <Link
           href="/agent"
-          className="flex items-center gap-2 font-bold text-xl tracking-tight"
+          onClick={onNavigate}
+          className="flex items-center gap-2 text-xl font-bold tracking-tight"
         >
-          <span className="text-primary text-2xl">⚡</span>
+          <span className="text-2xl text-primary">A</span>
           <span>Bingo Agent</span>
         </Link>
       </div>
@@ -74,10 +81,11 @@ export function AgentSidebar({ className }: SidebarProps) {
               <Link
                 key={index}
                 href={item.href}
+                onClick={onNavigate}
                 className={cn(
-                  "group flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                  "group flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground",
                   isActive
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm ring-1 ring-sidebar-border"
+                    ? "bg-accent text-accent-foreground shadow-sm ring-1 ring-border"
                     : "text-muted-foreground",
                 )}
               >
@@ -96,13 +104,13 @@ export function AgentSidebar({ className }: SidebarProps) {
         </nav>
       </div>
 
-      {/* Back to App */}
-      <div className="border-t px-2 py-3">
+      <div className="border-t p-4">
         <Link
           href="/"
-          className="group flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          onClick={onNavigate}
+          className="group flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-all hover:bg-accent hover:text-accent-foreground"
         >
-          <ArrowLeft className="h-4 w-4 shrink-0 transition-colors text-muted-foreground group-hover:text-foreground" />
+          <ArrowLeft className="h-4 w-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
           Back to App
         </Link>
       </div>
