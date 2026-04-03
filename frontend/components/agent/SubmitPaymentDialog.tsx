@@ -61,7 +61,7 @@ export function SubmitPaymentDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" className="min-h-11 w-full">
           <Plus className="mr-2 h-4 w-4" />
           Submit Transaction
         </Button>
