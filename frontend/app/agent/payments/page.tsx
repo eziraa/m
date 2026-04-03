@@ -20,6 +20,7 @@ import {
   Calendar,
   CreditCard,
   Loader2,
+  RefreshCw,
   Search,
   Wallet,
 } from "lucide-react";
@@ -72,8 +73,11 @@ export default function AgentPaymentsPage() {
     sortOrder,
   });
 
-  const { data: statsData, isFetching: statsFetching } =
-    useGetAgentPaymentStatsQuery(filters);
+  const {
+    data: statsData,
+    isFetching: statsFetching,
+    refetch,
+  } = useGetAgentPaymentStatsQuery(filters);
 
   const payments = data?.payments ?? [];
   const pagination = data?.pagination;
@@ -140,11 +144,28 @@ export default function AgentPaymentsPage() {
   return (
     <div className="space-y-5 pb-28">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-            {t("title")}
-          </h1>
-          <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
+        <div className="flex flex-row gap-3 justify-between">
+          <div className="flex-1">
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+              {t("title")}
+            </h1>
+            <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
+          </div>
+
+          {/* refresh button */}
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => {
+              refetch();
+            }}
+            disabled={isLoading}
+            className="h-9 w-9 rounded-lg"
+          >
+            <RefreshCw
+              className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
+            />
+          </Button>
         </div>
         <div className="flex w-full flex-col gap-2 self-start lg:w-auto lg:min-w-[24rem] lg:self-auto">
           <div className="relative w-full">
@@ -412,10 +433,13 @@ export default function AgentPaymentsPage() {
                             {new Date(payment.createdAt).toLocaleDateString()}
                           </span>
                           <span className="text-[10px] text-muted-foreground/70">
-                            {new Date(payment.createdAt).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
+                            {new Date(payment.createdAt).toLocaleTimeString(
+                              [],
+                              {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              },
+                            )}
                           </span>
                         </div>
                       </div>
