@@ -162,8 +162,8 @@ export default function AgentRoomsPage() {
                   </div>
                 </div>
 
-                <div className="flex flex-row gap-3">
-                  <h2 className="line-clamp-2 text-base font-semibold leading-tight text-foreground">
+                <div className="flex flex-row gap-3 items-center ">
+                  <h2 className=" text-base font-semibold leading-tight text-foreground">
                     {room.name}
                   </h2>
                   <Badge className="h-7 rounded-full border-blue-500/30 bg-blue-500/15 px-3 text-xs font-bold text-blue-500">
