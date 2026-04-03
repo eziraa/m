@@ -151,7 +151,7 @@ export default function AgentUsersPage() {
             </div>
             <Button
               variant="outline"
-              size="icon"
+              size="xs"
               onClick={() => refetch()}
               className="h-11 w-11 rounded-lg"
             >
@@ -238,6 +238,7 @@ export default function AgentUsersPage() {
               variant="outline"
               onClick={() => setIsAdjustmentDialogOpen(true)}
               className="min-h-11 flex-1 rounded-lg"
+              size={"xs"}
             >
               <Wallet className="h-4 w-4" />
               {t("actions.adjustBalance")}

@@ -43,8 +43,8 @@ export function FilterSortModal({
       <DialogTrigger asChild>
         <Button
           variant="outline"
-          size={"sm"}
-          className="min-h-[44px] gap-2 rounded-lg px-4 py-1.5 text-sm"
+          size={"xs"}
+          className="min-h-11 gap-2 rounded-lg px-4 py-1.5 text-sm"
         >
           <SlidersHorizontal className="h-4 w-4" />
           {triggerLabel}
@@ -62,12 +62,12 @@ export function FilterSortModal({
           <Button
             type="button"
             variant="outline"
-            className="min-h-[44px]"
+            className="min-h-11"
             onClick={onReset}
           >
             {resetLabel}
           </Button>
-          <Button type="button" className="min-h-[44px]" onClick={onApply}>
+          <Button type="button" className="min-h-11" onClick={onApply}>
             {applyLabel}
           </Button>
         </DialogFooter>
