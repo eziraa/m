@@ -212,8 +212,8 @@ function WonContent() {
           />
         ) : (
           <div className="h-[226px] w-full mx-auto max-w-60 animate-pulse rounded-[12px] bg-white/5">
-            <div className="flex items-center justify-center h-full text-sm text-gray-500">
-              Loading your winning board...
+            <div className="flex items-center justify-center w-full  h-full text-sm text-gray-300">
+              Loading
             </div>
           </div>
         )}
