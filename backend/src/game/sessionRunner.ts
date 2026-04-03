@@ -212,15 +212,15 @@ async function runCountdown(sessionId: string) {
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 
-  // Check if any players joined (boards exist for this session)
-  const playerCount = await db
-    .select({ count: sql`count(*)` })
+  // Check how many unique users joined (boards exist for this session)
+  const userCount = await db
+    .select({ count: sql`count(distinct ${boards.userId})` })
     .from(boards)
     .where(eq(boards.sessionId, sessionId))
     .then((rows) => Number(rows[0]?.count ?? 0));
 
-  if (playerCount === 0) {
-    // No players, increment countdownResets
+  if (userCount < 2) {
+    // Not enough players, increment countdownResets
     const newResets = (session.countdownResets ?? 0) + 1;
     if (newResets > 3) {
       // Close and delete session
@@ -235,7 +235,7 @@ async function runCountdown(sessionId: string) {
       await db.delete(gameSessions).where(eq(gameSessions.id, sessionId));
       io?.to(`session:${sessionId}`).emit("session_cancelled", {
         sessionId,
-        reason: "no_players",
+        reason: "not_enough_players",
       });
       return;
     } else {
@@ -254,7 +254,7 @@ async function runCountdown(sessionId: string) {
     }
   }
 
-  // Players joined, start game
+  // Enough players joined, start game
   await db
     .update(gameSessions)
     .set({ status: "playing", startedAt: new Date(), updatedAt: new Date() })
