@@ -51,6 +51,7 @@ export const ledgerTypeEnum = pgEnum("ledger_type", [
   "board_purchase",
   "session_win",
   "commission",
+  "game_fee",
   "withdrawal",
   "adjustment",
   "referral_reward",
@@ -772,7 +773,9 @@ export const postDeliveries = pgTable(
     postId: uuid("post_id")
       .notNull()
       .references(() => broadcastPosts.id, { onDelete: "cascade" }),
-    userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+    userId: uuid("user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
     chatId: text("chat_id").notNull(),
     status: deliveryStatusEnum("status").default("pending").notNull(),
     messageId: text("message_id"),
@@ -795,8 +798,14 @@ export const postDeliveries = pgTable(
       table.status,
       table.createdAt,
     ),
-    chatIdx: index("idx_post_deliveries_chat").on(table.chatId, table.createdAt),
-    userIdx: index("idx_post_deliveries_user").on(table.userId, table.createdAt),
+    chatIdx: index("idx_post_deliveries_chat").on(
+      table.chatId,
+      table.createdAt,
+    ),
+    userIdx: index("idx_post_deliveries_user").on(
+      table.userId,
+      table.createdAt,
+    ),
     deletionIdx: index("idx_post_deliveries_deletion").on(
       table.postId,
       table.deletionStatus,

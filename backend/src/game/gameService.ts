@@ -983,7 +983,7 @@ export async function callBingo(identity: RequestIdentity, input: ClaimInput) {
 
       await tx
         .update(sessionWinners)
-        .set({ payoutCents, commissionCents, gameFeeCents })
+        .set({ payoutCents, commissionCents })
         .where(eq(sessionWinners.claimId, insertedClaim.id));
 
       await tx.insert(walletLedger).values({
