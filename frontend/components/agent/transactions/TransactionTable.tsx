@@ -3,7 +3,7 @@
 import React, { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useGetAgentTransactionsQuery } from "@/lib/api";
-import { Loader2, MoreHorizontal, XCircle } from "lucide-react";
+import { Loader2, MoreHorizontal, Search, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Transaction } from "@/lib/types";
 import {
@@ -30,7 +30,6 @@ export default function TransactionTable() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [selected, setSelected] = useState<Transaction | null>(null);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-  const [draftSearch, setDraftSearch] = useState(search);
   const [draftType, setDraftType] = useState(type);
   const [draftStatus, setDraftStatus] = useState(status);
   const [draftOrderBy, setDraftOrderBy] = useState(orderBy);
@@ -59,15 +58,13 @@ export default function TransactionTable() {
 
   useEffect(() => {
     if (!isFilterModalOpen) return;
-    setDraftSearch(search);
     setDraftType(type);
     setDraftStatus(status);
     setDraftOrderBy(orderBy);
     setDraftSortOrder(sortOrder);
-  }, [isFilterModalOpen, orderBy, search, sortOrder, status, type]);
+  }, [isFilterModalOpen, orderBy, sortOrder, status, type]);
 
   const handleApplyFilters = () => {
-    setSearch(draftSearch);
     setType(draftType);
     setStatus(draftStatus);
     setOrderBy(draftOrderBy);
@@ -77,7 +74,6 @@ export default function TransactionTable() {
   };
 
   const handleResetFilters = () => {
-    setDraftSearch("");
     setDraftType("all");
     setDraftStatus("all");
     setDraftOrderBy("createdAt");
@@ -122,100 +118,103 @@ export default function TransactionTable() {
               Showing {transactions.length} of {total} records
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2 self-start">
-            {isFetching ? (
-              <span className="inline-flex min-h-[44px] items-center rounded-md border px-3 text-xs text-muted-foreground">
-                <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                Updating...
-              </span>
-            ) : null}
-            <FilterSortModal
-              open={isFilterModalOpen}
-              onOpenChange={setIsFilterModalOpen}
-              title="Filter & Sort Transactions"
-              description="Refine the current transaction list while keeping the existing query flow intact."
-              onApply={handleApplyFilters}
-              onReset={handleResetFilters}
-            >
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">
-                  Search
-                </label>
-                <Input
-                  placeholder="Search by user or transaction details"
-                  value={draftSearch}
-                  onChange={(event) => setDraftSearch(event.target.value)}
-                  className="min-h-[44px]"
-                />
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">
-                    Sort field
-                  </label>
-                  <select
-                    value={draftOrderBy}
-                    onChange={(event) =>
-                      setDraftOrderBy(event.target.value as "createdAt" | "amount")
-                    }
-                    className="min-h-[44px] w-full rounded-md border border-input bg-background px-3 text-sm"
-                  >
-                    <option value="createdAt">Date</option>
-                    <option value="amount">Amount</option>
-                  </select>
+          <div className="flex w-full flex-col gap-2 self-start lg:w-auto lg:min-w-[22rem]">
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search by user or transaction details"
+                value={search}
+                onChange={(event) => {
+                  setSearch(event.target.value);
+                  setPage(1);
+                }}
+                className="min-h-[44px] w-full pl-9"
+              />
+            </div>
+            <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+              {isFetching ? (
+                <span className="inline-flex min-h-[44px] items-center rounded-md border px-3 text-xs text-muted-foreground">
+                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                  Updating...
+                </span>
+              ) : null}
+              <FilterSortModal
+                open={isFilterModalOpen}
+                onOpenChange={setIsFilterModalOpen}
+                title="Filter & Sort Transactions"
+                description="Refine the current transaction list while keeping the existing query flow intact."
+                onApply={handleApplyFilters}
+                onReset={handleResetFilters}
+              >
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">
+                      Sort field
+                    </label>
+                    <select
+                      value={draftOrderBy}
+                      onChange={(event) =>
+                        setDraftOrderBy(event.target.value as "createdAt" | "amount")
+                      }
+                      className="min-h-[44px] w-full rounded-md border border-input bg-background px-3 text-sm"
+                    >
+                      <option value="createdAt">Date</option>
+                      <option value="amount">Amount</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">
+                      Sort order
+                    </label>
+                    <select
+                      value={draftSortOrder}
+                      onChange={(event) =>
+                        setDraftSortOrder(event.target.value as "asc" | "desc")
+                      }
+                      className="min-h-[44px] w-full rounded-md border border-input bg-background px-3 text-sm"
+                    >
+                      <option value="desc">Descending</option>
+                      <option value="asc">Ascending</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">
+                      Type
+                    </label>
+                    <select
+                      value={draftType}
+                      onChange={(event) => setDraftType(event.target.value)}
+                      className="min-h-[44px] w-full rounded-md border border-input bg-background px-3 text-sm"
+                    >
+                      <option value="all">All Types</option>
+                      <option value="deposit">Deposit</option>
+                      <option value="withdrawal">Withdrawal</option>
+                      <option value="game_win">Game Win</option>
+                      <option value="game_lost">Game Lost</option>
+                      <option value="bonus">Bonus</option>
+                      <option value="welcome_bonus">Welcome Bonus</option>
+                      <option value="referral_reward">Referral Reward</option>
+                      <option value="referral_commission">Referral Commission</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">
+                      Status
+                    </label>
+                    <select
+                      value={draftStatus}
+                      onChange={(event) => setDraftStatus(event.target.value)}
+                      className="min-h-[44px] w-full rounded-md border border-input bg-background px-3 text-sm"
+                    >
+                      <option value="all">All Statuses</option>
+                      <option value="pending">Pending</option>
+                      <option value="completed">Completed</option>
+                      <option value="failed">Failed</option>
+                    </select>
+                  </div>
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">
-                    Sort order
-                  </label>
-                  <select
-                    value={draftSortOrder}
-                    onChange={(event) =>
-                      setDraftSortOrder(event.target.value as "asc" | "desc")
-                    }
-                    className="min-h-[44px] w-full rounded-md border border-input bg-background px-3 text-sm"
-                  >
-                    <option value="desc">Descending</option>
-                    <option value="asc">Ascending</option>
-                  </select>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">
-                    Type
-                  </label>
-                  <select
-                    value={draftType}
-                    onChange={(event) => setDraftType(event.target.value)}
-                    className="min-h-[44px] w-full rounded-md border border-input bg-background px-3 text-sm"
-                  >
-                    <option value="all">All Types</option>
-                    <option value="deposit">Deposit</option>
-                    <option value="withdrawal">Withdrawal</option>
-                    <option value="game_win">Game Win</option>
-                    <option value="game_lost">Game Lost</option>
-                    <option value="bonus">Bonus</option>
-                    <option value="welcome_bonus">Welcome Bonus</option>
-                    <option value="referral_reward">Referral Reward</option>
-                    <option value="referral_commission">Referral Commission</option>
-                  </select>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">
-                    Status
-                  </label>
-                  <select
-                    value={draftStatus}
-                    onChange={(event) => setDraftStatus(event.target.value)}
-                    className="min-h-[44px] w-full rounded-md border border-input bg-background px-3 text-sm"
-                  >
-                    <option value="all">All Statuses</option>
-                    <option value="pending">Pending</option>
-                    <option value="completed">Completed</option>
-                    <option value="failed">Failed</option>
-                  </select>
-                </div>
-              </div>
-            </FilterSortModal>
+              </FilterSortModal>
+            </div>
           </div>
         </div>
       </div>

@@ -19,6 +19,7 @@ import {
   Calendar,
   CreditCard,
   Loader2,
+  Search,
   Wallet,
 } from "lucide-react";
 import { SubmitPaymentDialog } from "@/components/agent/SubmitPaymentDialog";
@@ -42,7 +43,6 @@ export default function AgentPaymentsPage() {
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [draftStatus, setDraftStatus] = useState(status);
   const [draftSource, setDraftSource] = useState(source);
-  const [draftSearch, setDraftSearch] = useState(search);
   const [draftMinAmount, setDraftMinAmount] = useState(minAmount);
   const [draftMaxAmount, setDraftMaxAmount] = useState(maxAmount);
   const [draftStartDate, setDraftStartDate] = useState(startDate);
@@ -83,7 +83,6 @@ export default function AgentPaymentsPage() {
     if (!isFilterModalOpen) return;
     setDraftStatus(status);
     setDraftSource(source);
-    setDraftSearch(search);
     setDraftMinAmount(minAmount);
     setDraftMaxAmount(maxAmount);
     setDraftStartDate(startDate);
@@ -95,7 +94,6 @@ export default function AgentPaymentsPage() {
     isFilterModalOpen,
     maxAmount,
     minAmount,
-    search,
     sortBy,
     sortOrder,
     source,
@@ -106,7 +104,6 @@ export default function AgentPaymentsPage() {
   const resetFilters = () => {
     setDraftStatus("all");
     setDraftSource("all");
-    setDraftSearch("");
     setDraftMinAmount("");
     setDraftMaxAmount("");
     setDraftStartDate("");
@@ -129,7 +126,6 @@ export default function AgentPaymentsPage() {
   const applyFilters = () => {
     setStatus(draftStatus);
     setSource(draftSource.trim() || "all");
-    setSearch(draftSearch);
     setMinAmount(draftMinAmount);
     setMaxAmount(draftMaxAmount);
     setStartDate(draftStartDate);
@@ -149,13 +145,25 @@ export default function AgentPaymentsPage() {
           </h1>
           <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
-        <div className="flex flex-col gap-2 self-start sm:flex-row sm:items-center sm:self-auto">
-          {(isFetching || statsFetching) && (
-            <div className="inline-flex min-h-[44px] items-center gap-2 rounded-md border px-3 py-2 text-xs text-muted-foreground">
-              <Loader2 className="h-3.5 w-3.5 animate-spin" /> Updating
-            </div>
-          )}
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="flex w-full flex-col gap-2 self-start lg:w-auto lg:min-w-[24rem] lg:self-auto">
+          <div className="relative w-full">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              placeholder={t("filters.searchPlaceholder")}
+              className="min-h-[44px] w-full pl-9"
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+            {(isFetching || statsFetching) && (
+              <div className="inline-flex min-h-[44px] items-center gap-2 rounded-md border px-3 py-2 text-xs text-muted-foreground">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Updating
+              </div>
+            )}
             <FilterSortModal
               open={isFilterModalOpen}
               onOpenChange={setIsFilterModalOpen}
@@ -166,17 +174,6 @@ export default function AgentPaymentsPage() {
               resetLabel={t("filters.reset")}
             >
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-1.5 sm:col-span-2">
-                  <label className="text-xs font-medium text-muted-foreground">
-                    {t("filters.searchPlaceholder")}
-                  </label>
-                  <Input
-                    value={draftSearch}
-                    onChange={(e) => setDraftSearch(e.target.value)}
-                    placeholder={t("filters.searchPlaceholder")}
-                    className="min-h-[44px]"
-                  />
-                </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-muted-foreground">
                     {t("filters.minAmount")}

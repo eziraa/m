@@ -4,6 +4,7 @@ import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Users,
+  Search,
   MoreVertical,
   ExternalLink,
   User as UserIcon,
@@ -44,7 +45,6 @@ export default function AgentUsersPage() {
     "all" | "USER" | "Agent" | "AGENT"
   >("all");
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-  const [draftSearchQuery, setDraftSearchQuery] = useState(searchQuery);
   const [draftSortBy, setDraftSortBy] = useState(sortBy);
   const [draftSortOrder, setDraftSortOrder] = useState(sortOrder);
   const [draftRoleFilter, setDraftRoleFilter] = useState(roleFilter);
@@ -74,18 +74,16 @@ export default function AgentUsersPage() {
 
   useEffect(() => {
     if (!isFilterModalOpen) return;
-    setDraftSearchQuery(searchQuery);
     setDraftSortBy(sortBy);
     setDraftSortOrder(sortOrder);
     setDraftRoleFilter(roleFilter);
-  }, [isFilterModalOpen, roleFilter, searchQuery, sortBy, sortOrder]);
+  }, [isFilterModalOpen, roleFilter, sortBy, sortOrder]);
 
   const handleViewDetails = (userId: string) => {
     router.push(`/agent/users/${userId}`);
   };
 
   const applyFilters = () => {
-    setSearchQuery(draftSearchQuery);
     setSortBy(draftSortBy);
     setSortOrder(draftSortOrder);
     setRoleFilter(draftRoleFilter);
@@ -94,7 +92,6 @@ export default function AgentUsersPage() {
   };
 
   const resetFilters = () => {
-    setDraftSearchQuery("");
     setDraftSortBy("createdAt");
     setDraftSortOrder("desc");
     setDraftRoleFilter("all");
@@ -138,103 +135,106 @@ export default function AgentUsersPage() {
           </h1>
           <p className="text-xs text-muted-foreground">{t("subtitle")}</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
-          <FilterSortModal
-            open={isFilterModalOpen}
-            onOpenChange={setIsFilterModalOpen}
-            title={t("title")}
-            description={t("subtitle")}
-            onApply={applyFilters}
-            onReset={resetFilters}
-          >
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">
-                {t("searchPlaceholder")}
-              </label>
-              <Input
-                value={draftSearchQuery}
-                onChange={(e) => setDraftSearchQuery(e.target.value)}
-                placeholder={t("searchPlaceholder")}
-                className="min-h-[44px]"
-              />
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">
-                  Sort field
-                </label>
-                <select
-                  value={draftSortBy}
-                  onChange={(e) => setDraftSortBy(e.target.value)}
-                  className="min-h-[44px] w-full rounded-md border bg-background px-3 text-sm"
-                >
-                  <option value="createdAt">Created At</option>
-                  <option value="balance">Balance</option>
-                  <option value="username">Username</option>
-                </select>
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">
-                  Sort order
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <Button
-                    type="button"
-                    variant={draftSortOrder === "asc" ? "default" : "outline"}
-                    className="min-h-[44px]"
-                    onClick={() => setDraftSortOrder("asc")}
+        <div className="flex w-full flex-col gap-2 self-start lg:w-auto lg:min-w-[22rem] lg:self-auto">
+          <div className="relative w-full">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setPage(1);
+              }}
+              placeholder={t("searchPlaceholder")}
+              className="min-h-[44px] w-full pl-9"
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+            <FilterSortModal
+              open={isFilterModalOpen}
+              onOpenChange={setIsFilterModalOpen}
+              title={t("title")}
+              description={t("subtitle")}
+              onApply={applyFilters}
+              onReset={resetFilters}
+            >
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">
+                    Sort field
+                  </label>
+                  <select
+                    value={draftSortBy}
+                    onChange={(e) => setDraftSortBy(e.target.value)}
+                    className="min-h-[44px] w-full rounded-md border bg-background px-3 text-sm"
                   >
-                    <ArrowUp className="h-4 w-4" />
-                    Asc
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={draftSortOrder === "desc" ? "default" : "outline"}
-                    className="min-h-[44px]"
-                    onClick={() => setDraftSortOrder("desc")}
+                    <option value="createdAt">Created At</option>
+                    <option value="balance">Balance</option>
+                    <option value="username">Username</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">
+                    Sort order
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      type="button"
+                      variant={draftSortOrder === "asc" ? "default" : "outline"}
+                      className="min-h-[44px]"
+                      onClick={() => setDraftSortOrder("asc")}
+                    >
+                      <ArrowUp className="h-4 w-4" />
+                      Asc
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={draftSortOrder === "desc" ? "default" : "outline"}
+                      className="min-h-[44px]"
+                      onClick={() => setDraftSortOrder("desc")}
+                    >
+                      <ArrowDown className="h-4 w-4" />
+                      Desc
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-1.5 sm:col-span-2">
+                  <label className="text-xs font-medium text-muted-foreground">
+                    Role
+                  </label>
+                  <select
+                    value={draftRoleFilter}
+                    onChange={(event) =>
+                      setDraftRoleFilter(
+                        event.target.value as "all" | "USER" | "Agent" | "AGENT",
+                      )
+                    }
+                    className="min-h-[44px] w-full rounded-md border bg-background px-3 text-sm"
                   >
-                    <ArrowDown className="h-4 w-4" />
-                    Desc
-                  </Button>
+                    <option value="all">All Roles</option>
+                    <option value="USER">User</option>
+                    <option value="Agent">Agent</option>
+                    <option value="AGENT">Agent</option>
+                  </select>
                 </div>
               </div>
-              <div className="space-y-1.5 sm:col-span-2">
-                <label className="text-xs font-medium text-muted-foreground">
-                  Role
-                </label>
-                <select
-                  value={draftRoleFilter}
-                  onChange={(event) =>
-                    setDraftRoleFilter(
-                      event.target.value as "all" | "USER" | "Agent" | "AGENT",
-                    )
-                  }
-                  className="min-h-[44px] w-full rounded-md border bg-background px-3 text-sm"
-                >
-                  <option value="all">All Roles</option>
-                  <option value="USER">User</option>
-                  <option value="Agent">Agent</option>
-                  <option value="AGENT">Agent</option>
-                </select>
-              </div>
-            </div>
-          </FilterSortModal>
-          <Button
-            variant="outline"
-            onClick={() => setIsAdjustmentDialogOpen(true)}
-            className="min-h-[44px] rounded-lg"
-          >
-            <Wallet className="h-4 w-4" />
-            {t("actions.adjustBalance")}
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => refetch()}
-            className="h-11 w-11 rounded-lg"
-          >
-            <RefreshCw className="h-4 w-4" />
-          </Button>
+            </FilterSortModal>
+            <Button
+              variant="outline"
+              onClick={() => setIsAdjustmentDialogOpen(true)}
+              className="min-h-[44px] rounded-lg"
+            >
+              <Wallet className="h-4 w-4" />
+              {t("actions.adjustBalance")}
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => refetch()}
+              className="h-11 w-11 rounded-lg"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </header>
 

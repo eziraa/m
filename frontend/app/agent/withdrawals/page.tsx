@@ -19,6 +19,7 @@ import {
   XCircle,
   Loader2,
   Filter,
+  Search,
   ChevronUp,
   ChevronDown,
   ArrowUpRight,
@@ -43,7 +44,6 @@ export default function AgentWithdrawalsPage() {
   const [rejectReason, setRejectReason] = useState("");
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [draftStatusFilter, setDraftStatusFilter] = useState(statusFilter);
-  const [draftSearch, setDraftSearch] = useState(search);
   const [draftSortOrder, setDraftSortOrder] = useState(sortOrder);
   const [draftOrderBy, setDraftOrderBy] = useState(orderBy);
 
@@ -64,10 +64,9 @@ export default function AgentWithdrawalsPage() {
   useEffect(() => {
     if (!isFilterModalOpen) return;
     setDraftStatusFilter(statusFilter);
-    setDraftSearch(search);
     setDraftSortOrder(sortOrder);
     setDraftOrderBy(orderBy);
-  }, [isFilterModalOpen, orderBy, search, sortOrder, statusFilter]);
+  }, [isFilterModalOpen, orderBy, sortOrder, statusFilter]);
 
   const handleApprove = async (id: string) => {
     try {
@@ -101,7 +100,6 @@ export default function AgentWithdrawalsPage() {
 
   const applyFilters = () => {
     setStatusFilter(draftStatusFilter);
-    setSearch(draftSearch);
     setSortOrder(draftSortOrder);
     setOrderBy(draftOrderBy);
     setPage(1);
@@ -110,7 +108,6 @@ export default function AgentWithdrawalsPage() {
 
   const resetFilters = () => {
     setDraftStatusFilter("pending");
-    setDraftSearch("");
     setDraftSortOrder("desc");
     setDraftOrderBy("createdAt");
     setStatusFilter("pending");
@@ -158,78 +155,81 @@ export default function AgentWithdrawalsPage() {
             {t("totalRequests", { count: data?.total ?? 0 })}
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2 self-start">
-          {isFetching ? (
-            <div className="inline-flex min-h-[44px] items-center rounded-md border px-3 text-xs text-muted-foreground">
-              <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-              Updating
-            </div>
-          ) : null}
-          <FilterSortModal
-            open={isFilterModalOpen}
-            onOpenChange={setIsFilterModalOpen}
-            title={t("title")}
-            description={t("totalRequests", { count: data?.total ?? 0 })}
-            onApply={applyFilters}
-            onReset={resetFilters}
-          >
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">
-                {t("searchPlaceholder")}
-              </label>
-              <Input
-                placeholder={t("searchPlaceholder")}
-                value={draftSearch}
-                onChange={(e) => setDraftSearch(e.target.value)}
-                className="min-h-[44px]"
-              />
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">
-                  Status
-                </label>
-                <select
-                  value={draftStatusFilter}
-                  onChange={(e) => setDraftStatusFilter(e.target.value)}
-                  className="min-h-[44px] w-full rounded-md border border-input bg-background px-3 text-sm"
-                >
-                  <option value="all">{t("status.all")}</option>
-                  <option value="pending">{t("status.pending")}</option>
-                  <option value="approved">{t("status.approved")}</option>
-                  <option value="rejected">{t("status.rejected")}</option>
-                </select>
+        <div className="flex w-full flex-col gap-2 self-start lg:w-auto lg:min-w-[22rem]">
+          <div className="relative w-full">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder={t("searchPlaceholder")}
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              className="min-h-[44px] w-full pl-9"
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+            {isFetching ? (
+              <div className="inline-flex min-h-[44px] items-center rounded-md border px-3 text-xs text-muted-foreground">
+                <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                Updating
               </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">
-                  Sort field
-                </label>
-                <select
-                  value={draftOrderBy}
-                  onChange={(e) => setDraftOrderBy(e.target.value)}
-                  className="min-h-[44px] w-full rounded-md border border-input bg-background px-3 text-sm"
-                >
-                  <option value="createdAt">{t("filters.sortDate")}</option>
-                  <option value="amount">{t("filters.sortAmount")}</option>
-                </select>
+            ) : null}
+            <FilterSortModal
+              open={isFilterModalOpen}
+              onOpenChange={setIsFilterModalOpen}
+              title={t("title")}
+              description={t("totalRequests", { count: data?.total ?? 0 })}
+              onApply={applyFilters}
+              onReset={resetFilters}
+            >
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">
+                    Status
+                  </label>
+                  <select
+                    value={draftStatusFilter}
+                    onChange={(e) => setDraftStatusFilter(e.target.value)}
+                    className="min-h-[44px] w-full rounded-md border border-input bg-background px-3 text-sm"
+                  >
+                    <option value="all">{t("status.all")}</option>
+                    <option value="pending">{t("status.pending")}</option>
+                    <option value="approved">{t("status.approved")}</option>
+                    <option value="rejected">{t("status.rejected")}</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">
+                    Sort field
+                  </label>
+                  <select
+                    value={draftOrderBy}
+                    onChange={(e) => setDraftOrderBy(e.target.value)}
+                    className="min-h-[44px] w-full rounded-md border border-input bg-background px-3 text-sm"
+                  >
+                    <option value="createdAt">{t("filters.sortDate")}</option>
+                    <option value="amount">{t("filters.sortAmount")}</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5 sm:col-span-2">
+                  <label className="text-xs font-medium text-muted-foreground">
+                    Sort order
+                  </label>
+                  <select
+                    value={draftSortOrder}
+                    onChange={(e) =>
+                      setDraftSortOrder(e.target.value as "asc" | "desc")
+                    }
+                    className="min-h-[44px] w-full rounded-md border border-input bg-background px-3 text-sm"
+                  >
+                    <option value="desc">{t("filters.sortDesc")}</option>
+                    <option value="asc">{t("filters.sortAsc")}</option>
+                  </select>
+                </div>
               </div>
-              <div className="space-y-1.5 sm:col-span-2">
-                <label className="text-xs font-medium text-muted-foreground">
-                  Sort order
-                </label>
-                <select
-                  value={draftSortOrder}
-                  onChange={(e) =>
-                    setDraftSortOrder(e.target.value as "asc" | "desc")
-                  }
-                  className="min-h-[44px] w-full rounded-md border border-input bg-background px-3 text-sm"
-                >
-                  <option value="desc">{t("filters.sortDesc")}</option>
-                  <option value="asc">{t("filters.sortAsc")}</option>
-                </select>
-              </div>
-            </div>
-          </FilterSortModal>
+            </FilterSortModal>
+          </div>
         </div>
       </div>
 
