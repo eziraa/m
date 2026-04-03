@@ -58,10 +58,19 @@ export const ResultBoard = memo(function ResultBoard({
             const isWinning = !isFree && winningSet.has(key);
             const isCalled = !isFree && calledSet.has(cell);
 
+            const isFreeIncludedInWinning =
+              isFree &&
+              winningPositions.some(
+                ([r, c]) => r === rowIndex && c === colIndex,
+              );
+
             let bgClass = "bg-[#2d2d30]";
             let textClass = "text-zinc-300";
 
-            if (isFree) {
+            if (isFreeIncludedInWinning) {
+              bgClass = "bg-emerald-500 border border-emerald-400";
+              textClass = "text-white";
+            } else if (isFree) {
               bgClass = "border border-green-500/40 bg-green-500/20";
               textClass = "text-green-500";
             } else if (isWinning) {
@@ -81,7 +90,13 @@ export const ResultBoard = memo(function ResultBoard({
                   textClass,
                 )}
               >
-                {isFree ? <Star className="h-4 w-4 text-green-500" /> : cell}
+                {isFree ? (
+                  <Star
+                    className={"h-4 w-4 " + isFree ? "text-emerald-400" : ""}
+                  />
+                ) : (
+                  cell
+                )}
               </div>
             );
           }),
