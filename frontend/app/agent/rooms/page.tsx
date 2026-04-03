@@ -77,7 +77,7 @@ export default function AgentRoomsPage() {
 
   return (
     <div className="space-y-4">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <header className="flex  gap-3 flex-row items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold flex items-center gap-2">
             <Zap className="h-5 w-5 text-primary" />
@@ -85,7 +85,7 @@ export default function AgentRoomsPage() {
           </h1>
           <p className="text-xs text-muted-foreground">{t("subtitle")}</p>
         </div>
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        <div className="flex items-center gap-2 ">
           <Button
             variant="outline"
             size="icon"
