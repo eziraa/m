@@ -17,7 +17,7 @@ export function AgentLayout({ children }: AgentLayoutProps) {
         <AgentSidebar />
       </aside>
 
-      <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:hidden">
+      <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/95 px-2 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:hidden">
         <button
           onClick={() => setIsMobileOpen((prev) => !prev)}
           className="inline-flex h-9 w-9 items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"

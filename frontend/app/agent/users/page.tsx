@@ -126,7 +126,7 @@ export default function AgentUsersPage() {
   };
 
   return (
-    <div className="space-y-4 px-4">
+    <div className="space-y-4 px-2">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="flex items-center gap-2 text-xl font-semibold">
