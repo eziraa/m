@@ -167,7 +167,7 @@ export default function AgentPaymentMethodsPage() {
   const isSubmitting = creating || updating;
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 pb-8">
+    <div className="mx-auto max-w-4xl space-y-6 pb-8 px-2">
       <header className="flex  gap-3 flex-row items-center justify-between">
         <div className="flex-1">
           <h1 className="flex items-center gap-2 text-xl font-semibold">
