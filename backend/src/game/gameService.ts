@@ -710,20 +710,20 @@ export async function callBingo(identity: RequestIdentity, input: ClaimInput) {
   try {
     txResult = await db.transaction(async (tx) => {
       const existingClaim = await tx
-      .select({
-        id: bingoClaims.id,
-        status: bingoClaims.status,
-        rejectionReason: bingoClaims.rejectionReason,
-      })
-      .from(bingoClaims)
-      .where(
-        and(
-          eq(bingoClaims.sessionId, input.sessionId),
-          eq(bingoClaims.userId, identity.userId),
-          eq(bingoClaims.idempotencyKey, input.idempotencyKey),
-        ),
-      )
-      .limit(1);
+        .select({
+          id: bingoClaims.id,
+          status: bingoClaims.status,
+          rejectionReason: bingoClaims.rejectionReason,
+        })
+        .from(bingoClaims)
+        .where(
+          and(
+            eq(bingoClaims.sessionId, input.sessionId),
+            eq(bingoClaims.userId, identity.userId),
+            eq(bingoClaims.idempotencyKey, input.idempotencyKey),
+          ),
+        )
+        .limit(1);
 
       if (existingClaim.length > 0) {
         logger.info("bingo_claim_replay_detected", {
@@ -741,18 +741,18 @@ export async function callBingo(identity: RequestIdentity, input: ClaimInput) {
       }
 
       const [session] = await tx
-      .select({
-        id: gameSessions.id,
-        roomId: gameSessions.roomId,
-        status: gameSessions.status,
-        sessionAgentId: gameSessions.agentId,
-        ownerRole: users.role,
-      })
-      .from(gameSessions)
-      .innerJoin(rooms, eq(rooms.id, gameSessions.roomId))
-      .innerJoin(users, eq(users.id, rooms.agentId))
-      .where(eq(gameSessions.id, input.sessionId))
-      .limit(1);
+        .select({
+          id: gameSessions.id,
+          roomId: gameSessions.roomId,
+          status: gameSessions.status,
+          sessionAgentId: gameSessions.agentId,
+          ownerRole: users.role,
+        })
+        .from(gameSessions)
+        .innerJoin(rooms, eq(rooms.id, gameSessions.roomId))
+        .innerJoin(users, eq(users.id, rooms.agentId))
+        .where(eq(gameSessions.id, input.sessionId))
+        .limit(1);
 
       if (!session) throw new Error("session_not_found");
       if (session.status !== "playing") throw new Error("session_not_playing");
@@ -771,296 +771,356 @@ export async function callBingo(identity: RequestIdentity, input: ClaimInput) {
         throw new Error("forbidden_agent_scope");
       }
 
-    const [board] = await tx
-      .select({
-        id: boards.id,
-        boardMatrix: boards.boardMatrix,
-        userId: boards.userId,
-        sessionId: boards.sessionId,
-      })
-      .from(boards)
-      .where(eq(boards.id, input.boardId))
-      .limit(1);
+      const [board] = await tx
+        .select({
+          id: boards.id,
+          boardMatrix: boards.boardMatrix,
+          userId: boards.userId,
+          sessionId: boards.sessionId,
+        })
+        .from(boards)
+        .where(eq(boards.id, input.boardId))
+        .limit(1);
 
-    if (!board) throw new Error("board_not_found");
-    if (board.userId !== identity.userId) throw new Error("board_not_owned");
-    if (board.sessionId !== input.sessionId)
-      throw new Error("board_not_in_session");
+      if (!board) throw new Error("board_not_found");
+      if (board.userId !== identity.userId) throw new Error("board_not_owned");
+      if (board.sessionId !== input.sessionId)
+        throw new Error("board_not_in_session");
 
-    const matrix = ensureBoardMatrix(board.boardMatrix);
-    const [winnerProfile] = await tx
-      .select({
-        username: users.username,
-        firstName: users.firstName,
-        lastName: users.lastName,
-      })
-      .from(users)
-      .where(eq(users.id, identity.userId))
-      .limit(1);
-    const requiredNumbers = requiredNumbersForPattern(
-      matrix,
-      input.winningPattern,
-    );
-    logger.info("bingo_claim_pattern_resolved", {
-      sessionId: input.sessionId,
-      boardId: input.boardId,
-      userId: identity.userId,
-      requiredNumbers,
-    });
-
-    const calledRows = await tx
-      .select({ number: sessionCalledNumbers.number })
-      .from(sessionCalledNumbers)
-      .where(
-        and(
-          eq(sessionCalledNumbers.sessionId, input.sessionId),
-          inArray(sessionCalledNumbers.number, requiredNumbers),
-        ),
+      const matrix = ensureBoardMatrix(board.boardMatrix);
+      const [winnerProfile] = await tx
+        .select({
+          username: users.username,
+          firstName: users.firstName,
+          lastName: users.lastName,
+        })
+        .from(users)
+        .where(eq(users.id, identity.userId))
+        .limit(1);
+      const requiredNumbers = requiredNumbersForPattern(
+        matrix,
+        input.winningPattern,
       );
-
-    const calledSet = new Set(calledRows.map((x) => x.number));
-    const isValid = requiredNumbers.every((n) => calledSet.has(n));
-    logger.info("bingo_claim_pattern_checked", {
-      sessionId: input.sessionId,
-      boardId: input.boardId,
-      userId: identity.userId,
-      requiredNumbers,
-      calledNumbers: calledRows.map((x) => x.number),
-      isValid,
-    });
-
-    const [insertedClaim] = await tx
-      .insert(bingoClaims)
-      .values({
+      logger.info("bingo_claim_pattern_resolved", {
         sessionId: input.sessionId,
-        roomId: session.roomId,
-        userId: identity.userId,
         boardId: input.boardId,
-        pattern: input.winningPattern.type,
-        markedCells: input.markedCells,
-        clientLastSeq: input.clientLastSeq,
-        status: isValid ? "accepted" : "rejected",
-        rejectionReason: isValid ? null : "pattern_numbers_not_called",
-        idempotencyKey: input.idempotencyKey,
-        resolvedAt: new Date(),
-      })
-      .returning({
-        id: bingoClaims.id,
-        status: bingoClaims.status,
-        rejectionReason: bingoClaims.rejectionReason,
+        userId: identity.userId,
+        requiredNumbers,
       });
 
-    if (!isValid) {
-      incCounter("bingo_claim_rejected_total");
-      logger.warn("bingo_claim_rejected", {
+      const calledRows = await tx
+        .select({ number: sessionCalledNumbers.number })
+        .from(sessionCalledNumbers)
+        .where(
+          and(
+            eq(sessionCalledNumbers.sessionId, input.sessionId),
+            inArray(sessionCalledNumbers.number, requiredNumbers),
+          ),
+        );
+
+      const calledSet = new Set(calledRows.map((x) => x.number));
+      const isValid = requiredNumbers.every((n) => calledSet.has(n));
+      logger.info("bingo_claim_pattern_checked", {
+        sessionId: input.sessionId,
+        boardId: input.boardId,
+        userId: identity.userId,
+        requiredNumbers,
+        calledNumbers: calledRows.map((x) => x.number),
+        isValid,
+      });
+
+      const [insertedClaim] = await tx
+        .insert(bingoClaims)
+        .values({
+          sessionId: input.sessionId,
+          roomId: session.roomId,
+          userId: identity.userId,
+          boardId: input.boardId,
+          pattern: input.winningPattern.type,
+          markedCells: input.markedCells,
+          clientLastSeq: input.clientLastSeq,
+          status: isValid ? "accepted" : "rejected",
+          rejectionReason: isValid ? null : "pattern_numbers_not_called",
+          idempotencyKey: input.idempotencyKey,
+          resolvedAt: new Date(),
+        })
+        .returning({
+          id: bingoClaims.id,
+          status: bingoClaims.status,
+          rejectionReason: bingoClaims.rejectionReason,
+        });
+
+      if (!isValid) {
+        incCounter("bingo_claim_rejected_total");
+        logger.warn("bingo_claim_rejected", {
+          sessionId: input.sessionId,
+          boardId: input.boardId,
+          userId: identity.userId,
+          claimId: insertedClaim.id,
+          reason: "pattern_numbers_not_called",
+        });
+        const io = getIo();
+        io?.to(`user:${identity.userId}`).emit("bingo_rejected", {
+          sessionId: input.sessionId,
+          reason: "pattern_numbers_not_called",
+        });
+        return {
+          replay: false,
+          claim: insertedClaim,
+          winner: null,
+          notifyWinner: null,
+        };
+      }
+
+      // Single-winner guarantee relies on unique(session_id) on session_winners.
+      const winnerRows = await tx
+        .insert(sessionWinners)
+        .values({
+          sessionId: input.sessionId,
+          roomId: session.roomId,
+          userId: identity.userId,
+          boardId: input.boardId,
+          claimId: insertedClaim.id,
+          payoutCents: 0,
+          commissionCents: 0,
+        })
+        .onConflictDoNothing()
+        .returning({
+          sessionId: sessionWinners.sessionId,
+          userId: sessionWinners.userId,
+        });
+
+      if (winnerRows.length === 0) {
+        incCounter("bingo_claim_rejected_total");
+        logger.warn("bingo_claim_rejected", {
+          sessionId: input.sessionId,
+          boardId: input.boardId,
+          userId: identity.userId,
+          claimId: insertedClaim.id,
+          reason: "winner_already_declared",
+        });
+        await tx
+          .update(bingoClaims)
+          .set({
+            status: "rejected",
+            rejectionReason: "winner_already_declared",
+            resolvedAt: new Date(),
+          })
+          .where(eq(bingoClaims.id, insertedClaim.id));
+
+        const io = getIo();
+        io?.to(`user:${identity.userId}`).emit("bingo_rejected", {
+          sessionId: input.sessionId,
+          reason: "winner_already_declared",
+        });
+
+        return {
+          replay: false,
+          claim: {
+            ...insertedClaim,
+            status: "rejected" as const,
+            rejectionReason: "winner_already_declared",
+          },
+          winner: null,
+          notifyWinner: null,
+        };
+      }
+
+      const [{ totalPotCents }] = await tx
+        .select({
+          totalPotCents: sql<number>`coalesce(sum(${boards.purchaseAmountCents}), 0)`,
+        })
+        .from(boards)
+        .where(eq(boards.sessionId, input.sessionId));
+
+      const gross = totalPotCents ?? 0;
+      const commissionCents = Math.floor(
+        (gross * env.AGENT_COMMISSION_BPS) / 10000,
+      );
+      const payoutCents = Math.max(gross - commissionCents, 0);
+
+      // Calculate game fee based on number of boards and room price
+      const winnerBoardsCount = await tx
+        .select({ count: sql<number>`count(*)::int` })
+        .from(boards)
+        .where(
+          and(
+            eq(boards.sessionId, input.sessionId),
+            eq(boards.userId, identity.userId),
+          ),
+        );
+      const boardCount = winnerBoardsCount[0]?.count ?? 0;
+
+      // Fetch the room price for the session
+      const [roomInfo] = await tx
+        .select({ boardPriceCents: rooms.boardPriceCents })
+        .from(rooms)
+        .where(eq(rooms.id, session.roomId))
+        .limit(1);
+      const boardPriceCents = roomInfo?.boardPriceCents ?? 0;
+      const gameFeeCents = boardCount * boardPriceCents;
+
+      logger.info("bingo_claim_financials_computed", {
         sessionId: input.sessionId,
         boardId: input.boardId,
         userId: identity.userId,
         claimId: insertedClaim.id,
-        reason: "pattern_numbers_not_called",
+        gross,
+        payoutCents,
+        commissionCents,
+        gameFeeCents,
+        boardCount,
       });
-      const io = getIo();
-      io?.to(`user:${identity.userId}`).emit("bingo_rejected", {
+
+      const losingParticipants = await tx
+        .select({
+          userId: boards.userId,
+          lossCents: sql<number>`coalesce(sum(${boards.purchaseAmountCents}), 0)`,
+        })
+        .from(boards)
+        .where(eq(boards.sessionId, input.sessionId))
+        .groupBy(boards.userId);
+
+      await tx
+        .update(sessionWinners)
+        .set({ payoutCents, commissionCents, gameFeeCents })
+        .where(eq(sessionWinners.claimId, insertedClaim.id));
+
+      await tx.insert(walletLedger).values({
+        userId: identity.userId,
+        agentId: session.sessionAgentId,
         sessionId: input.sessionId,
-        reason: "pattern_numbers_not_called",
+        boardId: input.boardId,
+        entryType: "session_win",
+        amountCents: payoutCents,
+        status: "posted",
+        idempotencyKey: `claim-win:${insertedClaim.id}`,
+        metadata: {
+          claimId: insertedClaim.id,
+          source: "bingo_win",
+        },
       });
+
+      if (gameFeeCents > 0) {
+        await tx.insert(walletLedger).values({
+          userId: identity.userId,
+          agentId: session.sessionAgentId,
+          sessionId: input.sessionId,
+          boardId: input.boardId,
+          entryType: "game_fee",
+          amountCents: -gameFeeCents,
+          status: "posted",
+          idempotencyKey: `claim-game-fee:${insertedClaim.id}`,
+          metadata: {
+            claimId: insertedClaim.id,
+            source: "bingo_game_fee",
+            boardCount,
+          },
+        });
+
+        // Credit the house/agent for the game fee
+        await tx.insert(walletLedger).values({
+          userId: session.sessionAgentId,
+          agentId: session.sessionAgentId,
+          sessionId: input.sessionId,
+          boardId: input.boardId,
+          entryType: "game_fee",
+          amountCents: gameFeeCents,
+          status: "posted",
+          idempotencyKey: `claim-game-fee-credit:${insertedClaim.id}`,
+          metadata: {
+            claimId: insertedClaim.id,
+            source: "bingo_game_fee_credit",
+            boardCount,
+          },
+        });
+      }
+
+      if (commissionCents > 0) {
+        await tx.insert(walletLedger).values({
+          userId: session.sessionAgentId,
+          agentId: session.sessionAgentId,
+          sessionId: input.sessionId,
+          boardId: input.boardId,
+          entryType: "commission",
+          amountCents: commissionCents,
+          status: "posted",
+          idempotencyKey: `claim-commission:${insertedClaim.id}`,
+          metadata: {
+            claimId: insertedClaim.id,
+            source: "session_commission",
+          },
+        });
+      }
+
+      const loserLedgerRows = losingParticipants
+        .filter((participant) => participant.userId !== identity.userId)
+        .map((participant) => ({
+          userId: participant.userId,
+          agentId: session.sessionAgentId,
+          sessionId: input.sessionId,
+          boardId: null,
+          entryType: "board_purchase" as const,
+          amountCents: -Math.abs(participant.lossCents ?? 0),
+          status: "posted" as const,
+          idempotencyKey: `claim-loss:${insertedClaim.id}:${participant.userId}`,
+          metadata: {
+            claimId: insertedClaim.id,
+            source: "bingo_loss",
+            winnerUserId: identity.userId,
+            roomAmountCents: participant.lossCents ?? 0,
+          },
+        }))
+        .filter((row) => row.amountCents !== 0);
+
+      if (loserLedgerRows.length > 0) {
+        await tx.insert(walletLedger).values(loserLedgerRows);
+      }
+      logger.info("bingo_claim_ledger_written", {
+        sessionId: input.sessionId,
+        boardId: input.boardId,
+        userId: identity.userId,
+        claimId: insertedClaim.id,
+        payoutCents,
+        commissionCents,
+        loserCount: loserLedgerRows.length,
+        losers: loserLedgerRows.map((row) => ({
+          userId: row.userId,
+          amountCents: row.amountCents,
+        })),
+      });
+
+      await tx
+        .update(gameSessions)
+        .set({
+          winnerUserId: identity.userId,
+          status: "finished",
+          finishedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(gameSessions.id, input.sessionId));
+
+      incCounter("bingo_claim_valid_total");
+
       return {
         replay: false,
         claim: insertedClaim,
-        winner: null,
-        notifyWinner: null,
-      };
-    }
-
-    // Single-winner guarantee relies on unique(session_id) on session_winners.
-    const winnerRows = await tx
-      .insert(sessionWinners)
-      .values({
-        sessionId: input.sessionId,
-        roomId: session.roomId,
-        userId: identity.userId,
-        boardId: input.boardId,
-        claimId: insertedClaim.id,
-        payoutCents: 0,
-        commissionCents: 0,
-      })
-      .onConflictDoNothing()
-      .returning({
-        sessionId: sessionWinners.sessionId,
-        userId: sessionWinners.userId,
-      });
-
-    if (winnerRows.length === 0) {
-      incCounter("bingo_claim_rejected_total");
-      logger.warn("bingo_claim_rejected", {
-        sessionId: input.sessionId,
-        boardId: input.boardId,
-        userId: identity.userId,
-        claimId: insertedClaim.id,
-        reason: "winner_already_declared",
-      });
-      await tx
-        .update(bingoClaims)
-        .set({
-          status: "rejected",
-          rejectionReason: "winner_already_declared",
-          resolvedAt: new Date(),
-        })
-        .where(eq(bingoClaims.id, insertedClaim.id));
-
-      const io = getIo();
-      io?.to(`user:${identity.userId}`).emit("bingo_rejected", {
-        sessionId: input.sessionId,
-        reason: "winner_already_declared",
-      });
-
-      return {
-        replay: false,
-        claim: {
-          ...insertedClaim,
-          status: "rejected" as const,
-          rejectionReason: "winner_already_declared",
-        },
-        winner: null,
-        notifyWinner: null,
-      };
-    }
-
-    const [{ totalPotCents }] = await tx
-      .select({
-        totalPotCents: sql<number>`coalesce(sum(${boards.purchaseAmountCents}), 0)`,
-      })
-      .from(boards)
-      .where(eq(boards.sessionId, input.sessionId));
-
-    const gross = totalPotCents ?? 0;
-    const commissionCents = Math.floor(
-      (gross * env.AGENT_COMMISSION_BPS) / 10000,
-    );
-    const payoutCents = Math.max(gross - commissionCents, 0);
-    logger.info("bingo_claim_financials_computed", {
-      sessionId: input.sessionId,
-      boardId: input.boardId,
-      userId: identity.userId,
-      claimId: insertedClaim.id,
-      gross,
-      payoutCents,
-      commissionCents,
-    });
-    const losingParticipants = await tx
-      .select({
-        userId: boards.userId,
-        lossCents: sql<number>`coalesce(sum(${boards.purchaseAmountCents}), 0)`,
-      })
-      .from(boards)
-      .where(eq(boards.sessionId, input.sessionId))
-      .groupBy(boards.userId);
-
-    await tx
-      .update(sessionWinners)
-      .set({ payoutCents, commissionCents })
-      .where(eq(sessionWinners.claimId, insertedClaim.id));
-
-    await tx.insert(walletLedger).values({
-      userId: identity.userId,
-      agentId: session.sessionAgentId,
-      sessionId: input.sessionId,
-      boardId: input.boardId,
-      entryType: "session_win",
-      amountCents: payoutCents,
-      status: "posted",
-      idempotencyKey: `claim-win:${insertedClaim.id}`,
-      metadata: {
-        claimId: insertedClaim.id,
-        source: "bingo_win",
-      },
-    });
-
-    if (commissionCents > 0) {
-      await tx.insert(walletLedger).values({
-        userId: session.sessionAgentId,
-        agentId: session.sessionAgentId,
-        sessionId: input.sessionId,
-        boardId: input.boardId,
-        entryType: "commission",
-        amountCents: commissionCents,
-        status: "posted",
-        idempotencyKey: `claim-commission:${insertedClaim.id}`,
-        metadata: {
-          claimId: insertedClaim.id,
-          source: "session_commission",
-        },
-      });
-    }
-
-    const loserLedgerRows = losingParticipants
-      .filter((participant) => participant.userId !== identity.userId)
-      .map((participant) => ({
-        userId: participant.userId,
-        agentId: session.sessionAgentId,
-        sessionId: input.sessionId,
-        boardId: null,
-        entryType: "board_purchase" as const,
-        amountCents: -Math.abs(participant.lossCents ?? 0),
-        status: "posted" as const,
-        idempotencyKey: `claim-loss:${insertedClaim.id}:${participant.userId}`,
-        metadata: {
-          claimId: insertedClaim.id,
-          source: "bingo_loss",
+        winner: winnerRows[0],
+        notifyWinner: {
+          sessionId: input.sessionId,
           winnerUserId: identity.userId,
-          roomAmountCents: participant.lossCents ?? 0,
+          winnerName:
+            winnerProfile?.username ||
+            [winnerProfile?.firstName, winnerProfile?.lastName]
+              .filter(Boolean)
+              .join(" ") ||
+            "Player",
+          boardId: input.boardId,
+          pattern: input.winningPattern,
+          payoutCents,
+          commissionCents,
         },
-      }))
-      .filter((row) => row.amountCents !== 0);
-
-    if (loserLedgerRows.length > 0) {
-      await tx.insert(walletLedger).values(loserLedgerRows);
-    }
-    logger.info("bingo_claim_ledger_written", {
-      sessionId: input.sessionId,
-      boardId: input.boardId,
-      userId: identity.userId,
-      claimId: insertedClaim.id,
-      payoutCents,
-      commissionCents,
-      loserCount: loserLedgerRows.length,
-      losers: loserLedgerRows.map((row) => ({
-        userId: row.userId,
-        amountCents: row.amountCents,
-      })),
-    });
-
-    await tx
-      .update(gameSessions)
-      .set({
-        winnerUserId: identity.userId,
-        status: "finished",
-        finishedAt: new Date(),
-        updatedAt: new Date(),
-      })
-      .where(eq(gameSessions.id, input.sessionId));
-
-    incCounter("bingo_claim_valid_total");
-
-    return {
-      replay: false,
-      claim: insertedClaim,
-      winner: winnerRows[0],
-      notifyWinner: {
-        sessionId: input.sessionId,
-        winnerUserId: identity.userId,
-        winnerName:
-          winnerProfile?.username ||
-          [winnerProfile?.firstName, winnerProfile?.lastName]
-            .filter(Boolean)
-            .join(" ") ||
-          "Player",
-        boardId: input.boardId,
-        pattern: input.winningPattern,
-        payoutCents,
-        commissionCents,
-      },
-    };
+      };
     });
   } catch (error) {
     logger.error("bingo_claim_failed", {
