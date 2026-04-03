@@ -109,10 +109,11 @@ export function GameResultView({
               {board.map((row, rowIndex) => (
                 <div key={rowIndex} className="flex gap-2">
                   {row.map((num, colIndex) => {
+                    const isFree = num === 0;
                     const isWinning = winningPositions.some(
                       ([r, c]) => r === rowIndex && c === colIndex,
                     );
-                    const isCalled = calledNumbers.includes(num);
+                    const isCalled = !isFree && calledNumbers.includes(num);
 
                     return (
                       <div
@@ -120,15 +121,15 @@ export function GameResultView({
                         className={cx(
                           "size-10 md:size-12 border-2 flex items-center justify-center rounded-xl font-bold text-sm md:text-base transition-all duration-500",
                           isWinning
-                            ? "bg-amber-500 border-amber-300 text-white shadow-[0_0_20px_rgba(251,191,36,0.5)] z-10"
+                            ? "bg-emerald-500 border-emerald-400 text-white shadow-[0_0_16px_rgba(16,185,129,0.4)] z-10"
                             : isCalled
-                              ? "bg-primary/20 text-primary border-primary/40"
+                              ? "bg-blue-600 border-blue-500 text-white"
                               : "bg-muted/20 text-muted-foreground border-muted/30",
                         )}
                       >
-                        {num === 0 ? (
-                          <span className="text-[10px] md:text-xs font-black">
-                            FREE
+                        {isFree ? (
+                          <span className="text-[10px] md:text-xs font-semibold lowercase">
+                            free
                           </span>
                         ) : (
                           num

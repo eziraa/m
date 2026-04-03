@@ -1,7 +1,6 @@
 "use client";
 
 import { memo, useMemo } from "react";
-import { Star } from "lucide-react";
 
 type WinningPosition = [number, number];
 
@@ -55,30 +54,35 @@ export const ResultBoard = memo(function ResultBoard({
           row.map((cell, colIndex) => {
             const key = `${rowIndex}:${colIndex}`;
             const isWinning = winningSet.has(key);
-            const isCalled = calledSet.has(cell);
+            const isFree = cell === 0;
+            const isCalled = !isFree && calledSet.has(cell);
 
             let bgClass = "bg-[#2d2d30]";
             let textClass = "text-zinc-300";
 
             if (isWinning) {
-              bgClass = "bg-green-500 animate-pulse";
+              bgClass = "bg-emerald-500 border border-emerald-400";
               textClass = "text-white";
             } else if (isCalled) {
-              bgClass = "border-1 border-blue-500";
+              bgClass = "bg-blue-600 border border-blue-500";
               textClass = "text-white";
+            } else if (isFree) {
+              textClass = "text-zinc-400";
             }
 
             return (
               <div
                 key={`${rowIndex}-${colIndex}`}
                 className={cx(
-                  "flex items-center justify-center rounded-[4px] h-8 w-10 font-bold shadow-md transition-all",
+                  "flex items-center justify-center rounded-[4px] h-8 w-10 text-[11px] font-bold shadow-md transition-all",
                   bgClass,
                   textClass,
                 )}
               >
-                {cell === 0 ? (
-                  <Star fill="white" stroke="none" size={16} />
+                {isFree ? (
+                  <span className="font-semibold lowercase tracking-wide">
+                    free
+                  </span>
                 ) : (
                   cell
                 )}
