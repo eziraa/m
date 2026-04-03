@@ -246,15 +246,6 @@ export default function AgentUsersPage() {
         </div>
       </header>
 
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-xs text-muted-foreground">
-          {total.toLocaleString()} total
-        </p>
-        {isFetching ? (
-          <p className="text-xs text-muted-foreground">Updating list...</p>
-        ) : null}
-      </div>
-
       <div className="relative overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm">
         {isLoading ? (
           <div className="p-4">
@@ -476,9 +467,7 @@ export default function AgentUsersPage() {
           <span>
             Page {page} / {totalPages}
           </span>
-          <span className="hidden sm:inline-block">
-            • {total.toLocaleString()} records
-          </span>
+          <span className="k">• {total.toLocaleString()} records</span>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <label className="flex items-center gap-1 text-xs text-muted-foreground">
