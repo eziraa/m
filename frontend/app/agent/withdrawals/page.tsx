@@ -156,25 +156,19 @@ export default function AgentWithdrawalsPage() {
           </p>
         </div>
         <div className="flex w-full flex-col gap-2 self-start lg:w-auto lg:min-w-[22rem]">
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder={t("searchPlaceholder")}
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-              className="min-h-[44px] w-full pl-9"
-            />
-          </div>
-          <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-            {isFetching ? (
-              <div className="inline-flex min-h-[44px] items-center rounded-md border px-3 text-xs text-muted-foreground">
-                <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                Updating
-              </div>
-            ) : null}
+          <div className="flex flex-wrap items-center justify-between gap-2 lg:justify-end">
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder={t("searchPlaceholder")}
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
+                className="flex-1 w-full pl-9"
+              />
+            </div>
             <FilterSortModal
               open={isFilterModalOpen}
               onOpenChange={setIsFilterModalOpen}
@@ -308,12 +302,17 @@ export default function AgentWithdrawalsPage() {
                           <div className="text-sm font-black text-foreground">
                             {Number(w.amount).toFixed(2)}
                           </div>
-                          <div className="text-[9px] text-foreground/40">ETB</div>
+                          <div className="text-[9px] text-foreground/40">
+                            ETB
+                          </div>
                         </div>
                         {isExpanded ? (
                           <ChevronUp size={14} className="text-foreground/30" />
                         ) : (
-                          <ChevronDown size={14} className="text-foreground/30" />
+                          <ChevronDown
+                            size={14}
+                            className="text-foreground/30"
+                          />
                         )}
                       </div>
                     </button>
@@ -339,7 +338,9 @@ export default function AgentWithdrawalsPage() {
                                 {Number(w.userBalance || 0).toFixed(2)} ETB
                               </Badge>
                             </div>
-                            <div>{getStatusBadge(w.status as WithdrawalStatus)}</div>
+                            <div>
+                              {getStatusBadge(w.status as WithdrawalStatus)}
+                            </div>
                           </div>
                           {w.rejectionReason && (
                             <div className="rounded-lg bg-red-500/5 p-2 text-xs text-red-400/70">

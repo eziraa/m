@@ -129,7 +129,7 @@ export default function TransactionTable() {
                     setSearch(event.target.value);
                     setPage(1);
                   }}
-                  className="min-h-[44px] w-full pl-9"
+                  className="flex-1 w-full pl-9"
                 />
               </div>
               <FilterSortModal
