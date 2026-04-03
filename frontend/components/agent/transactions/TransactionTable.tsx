@@ -119,25 +119,19 @@ export default function TransactionTable() {
             </p>
           </div>
           <div className="flex w-full flex-col gap-2 self-start lg:w-auto lg:min-w-[22rem]">
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search by user or transaction details"
-                value={search}
-                onChange={(event) => {
-                  setSearch(event.target.value);
-                  setPage(1);
-                }}
-                className="min-h-[44px] w-full pl-9"
-              />
-            </div>
-            <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-              {isFetching ? (
-                <span className="inline-flex min-h-[44px] items-center rounded-md border px-3 text-xs text-muted-foreground">
-                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                  Updating...
-                </span>
-              ) : null}
+            <div className="flex flex-wrap items-center justify-between gap-2 lg:justify-end">
+              <div className="relative w-full">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Search by user or transaction details"
+                  value={search}
+                  onChange={(event) => {
+                    setSearch(event.target.value);
+                    setPage(1);
+                  }}
+                  className="min-h-[44px] w-full pl-9"
+                />
+              </div>
               <FilterSortModal
                 open={isFilterModalOpen}
                 onOpenChange={setIsFilterModalOpen}
@@ -154,7 +148,9 @@ export default function TransactionTable() {
                     <select
                       value={draftOrderBy}
                       onChange={(event) =>
-                        setDraftOrderBy(event.target.value as "createdAt" | "amount")
+                        setDraftOrderBy(
+                          event.target.value as "createdAt" | "amount",
+                        )
                       }
                       className="min-h-[44px] w-full rounded-md border border-input bg-background px-3 text-sm"
                     >
@@ -194,7 +190,9 @@ export default function TransactionTable() {
                       <option value="bonus">Bonus</option>
                       <option value="welcome_bonus">Welcome Bonus</option>
                       <option value="referral_reward">Referral Reward</option>
-                      <option value="referral_commission">Referral Commission</option>
+                      <option value="referral_commission">
+                        Referral Commission
+                      </option>
                     </select>
                   </div>
                   <div className="space-y-1.5">
@@ -359,7 +357,9 @@ export default function TransactionTable() {
                   <div className="min-w-0 flex-1">
                     <span
                       className={`text-lg font-black tracking-tight ${
-                        Number(tx.amount) > 0 ? "text-success" : "text-foreground"
+                        Number(tx.amount) > 0
+                          ? "text-success"
+                          : "text-foreground"
                       }`}
                     >
                       {Number(tx.amount) > 0 ? "+" : ""}
