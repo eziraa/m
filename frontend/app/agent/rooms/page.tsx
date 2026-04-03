@@ -80,8 +80,8 @@ export default function AgentRoomsPage() {
       <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl font-semibold flex items-center gap-2">
-              <Zap className="h-5 w-5 text-primary" />
-              {t("title")}
+            <Zap className="h-5 w-5 text-primary" />
+            {t("title")}
           </h1>
           <p className="text-xs text-muted-foreground">{t("subtitle")}</p>
         </div>
@@ -152,29 +152,40 @@ export default function AgentRoomsPage() {
                 </Button>
               </div>
 
-              <div
-                className={cn(
-                  "h-16 w-16 shrink-0 rounded-2xl bg-linear-to-br shadow-xl flex items-center justify-center text-3xl mt-1",
-                  room.color || "from-blue-400 to-blue-600",
-                )}
-              >
-                {room.icon || "🎉"}
+              <div className="flex w-full justify-between">
+                <div
+                  className={cn(
+                    "h-16 w-16 shrink-0 rounded-2xl bg-linear-to-br shadow-xl flex items-center justify-center text-3xl mt-1",
+                    room.color || "from-blue-400 to-blue-600",
+                  )}
+                >
+                  {room.icon || "🎉"}
+                </div>
+                <div className="flex-1 w-full flex flex-col items-center gap-1.5">
+                  <span className="text-sm font-black truncate w-full px-1 leading-tight">
+                    {room.name}
+                  </span>
+
+                  <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-[10px] h-5 px-2.5 font-black uppercase tracking-wider">
+                    {room.price} ETB
+                  </Badge>
+                </div>
               </div>
 
-              <div className="flex-1 w-full flex flex-col items-center gap-1.5">
+              {/* <div className="flex-1 w-full flex flex-col items-center gap-1.5">
                 <span className="text-sm font-black truncate w-full px-1 leading-tight">
                   {room.name}
                 </span>
 
                 <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-[10px] h-5 px-2.5 font-black uppercase tracking-wider">
                   {room.price} ETB
-                </Badge>
+                </Badge> */}
 
-                <p className="text-[10px] text-muted-foreground line-clamp-2 mt-0.5 font-medium px-2">
+              {/* <p className="text-[10px] text-muted-foreground line-clamp-2 mt-0.5 font-medium px-2">
                   {room.description || t("fallbackDescription")}
-                </p>
+                </p> */}
 
-                <div className="flex items-center justify-center gap-2 mt-2 pt-3 border-t border-border/60 w-full">
+              {/* <div className="flex items-center justify-center gap-2 mt-2 pt-3 border-t border-border/60 w-full">
                   <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest">
                     {t("playersShort", {
                       min: room.minPlayers ?? 0,
@@ -185,9 +196,9 @@ export default function AgentRoomsPage() {
                   <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">
                     {t("status.active")}
                   </span>
-                </div>
+                </div> */}
 
-                <div className="flex items-center justify-between w-full mt-3 px-1">
+              {/* <div className="flex items-center justify-between w-full mt-3 px-1">
                   <span className="text-[10px] text-muted-foreground font-semibold">
                     {room.botAllowed ? "Bots Enabled" : "Bots Disabled"}
                   </span>
@@ -198,8 +209,8 @@ export default function AgentRoomsPage() {
                       handleBotToggle(room, checked)
                     }
                   />
-                </div>
-              </div>
+                </div> */}
+              {/* </div> */}
             </Card>
           ))
         )}
