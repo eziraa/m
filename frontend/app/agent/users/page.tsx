@@ -491,7 +491,7 @@ export default function AgentUsersPage() {
             <Button
               type="button"
               variant="outline"
-              size="sm"
+              size="xs"
               className="min-h-11"
               disabled={page <= 1}
               onClick={() => setPage((prev) => Math.max(1, prev - 1))}
@@ -501,7 +501,7 @@ export default function AgentUsersPage() {
             <Button
               type="button"
               variant="outline"
-              size="sm"
+              size="xs"
               className="min-h-11"
               disabled={page >= totalPages}
               onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
