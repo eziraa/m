@@ -136,17 +136,27 @@ export default function AgentUsersPage() {
           <p className="text-xs text-muted-foreground">{t("subtitle")}</p>
         </div>
         <div className="flex w-full flex-col gap-2 self-start lg:w-auto lg:min-w-[22rem] lg:self-auto">
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setPage(1);
-              }}
-              placeholder={t("searchPlaceholder")}
-              className="min-h-[44px] w-full pl-9"
-            />
+          <div className="w-full flex-row  flex-wrap items-center justify-between gap-2 lg:justify-end">
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setPage(1);
+                }}
+                placeholder={t("searchPlaceholder")}
+                className="min-h-[44px] w-full pl-9"
+              />
+            </div>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => refetch()}
+              className="h-11 w-11 rounded-lg"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </Button>
           </div>
           <div className="flex flex-wrap items-center gap-2 lg:justify-end">
             <FilterSortModal
@@ -188,7 +198,9 @@ export default function AgentUsersPage() {
                     </Button>
                     <Button
                       type="button"
-                      variant={draftSortOrder === "desc" ? "default" : "outline"}
+                      variant={
+                        draftSortOrder === "desc" ? "default" : "outline"
+                      }
                       className="min-h-[44px]"
                       onClick={() => setDraftSortOrder("desc")}
                     >
@@ -205,7 +217,11 @@ export default function AgentUsersPage() {
                     value={draftRoleFilter}
                     onChange={(event) =>
                       setDraftRoleFilter(
-                        event.target.value as "all" | "USER" | "Agent" | "AGENT",
+                        event.target.value as
+                          | "all"
+                          | "USER"
+                          | "Agent"
+                          | "AGENT",
                       )
                     }
                     className="min-h-[44px] w-full rounded-md border bg-background px-3 text-sm"
@@ -225,14 +241,6 @@ export default function AgentUsersPage() {
             >
               <Wallet className="h-4 w-4" />
               {t("actions.adjustBalance")}
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => refetch()}
-              className="h-11 w-11 rounded-lg"
-            >
-              <RefreshCw className="h-4 w-4" />
             </Button>
           </div>
         </div>
