@@ -18,10 +18,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import {
-  useDeleteRoomMutation,
-  useGetRoomsForAgentQuery,
-} from "@/lib/api";
+import { useDeleteRoomMutation, useGetRoomsForAgentQuery } from "@/lib/api";
 import { Room } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
@@ -59,7 +56,7 @@ export default function AgentRoomsPage() {
 
   return (
     <div className="space-y-5">
-      <header className="flex flex-col gap-4 rounded-3xl border bg-card/90 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-5">
+      <header className="flex justify-between gap-4 rounded-3xl border bg-card/90 p-4 shadow-sm flex-row items-center sm:justify-between sm:p-5">
         <div className="space-y-1">
           <h1 className="flex items-center gap-2 text-xl font-semibold">
             <Zap className="h-5 w-5 text-primary" />
@@ -120,7 +117,9 @@ export default function AgentRoomsPage() {
               <LayoutGrid className="h-10 w-10 text-muted-foreground" />
             </div>
             <div className="space-y-1">
-              <p className="font-semibold text-foreground">{t("empty.title")}</p>
+              <p className="font-semibold text-foreground">
+                {t("empty.title")}
+              </p>
               <p className="max-w-[260px] text-xs text-muted-foreground">
                 {t("empty.subtitle")}
               </p>
@@ -163,7 +162,7 @@ export default function AgentRoomsPage() {
                   </div>
                 </div>
 
-                <div className="space-y-3">
+                <div className="flex flex-row gap-3">
                   <h2 className="line-clamp-2 text-base font-semibold leading-tight text-foreground">
                     {room.name}
                   </h2>
@@ -195,8 +194,18 @@ export default function AgentRoomsPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t("actions.cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>
+            <AlertDialogCancel
+              variant="outline"
+              size="lg"
+              onClick={() => setRoomToDelete(null)}
+            >
+              {t("actions.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant={"destructive"}
+              size={"lg"}
+              onClick={handleDelete}
+            >
               {isDeleting ? t("actions.deleting") : t("actions.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
