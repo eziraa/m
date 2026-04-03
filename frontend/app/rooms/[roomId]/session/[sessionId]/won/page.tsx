@@ -41,7 +41,9 @@ function getWinningPositions(
   }
 
   if (pattern === "row") {
-    const winningRow = rowLines.find((line) => line.every((idx) => markedSet.has(idx)));
+    const winningRow = rowLines.find((line) =>
+      line.every((idx) => markedSet.has(idx)),
+    );
     return toPositions(winningRow ?? []);
   }
 
@@ -216,7 +218,7 @@ function WonContent() {
         <div className="w-full mt-4 space-y-2 px-12">
           <button
             onClick={() => router.replace(`/rooms/${roomId}`)}
-            className="w-full h-10 rounded-[12px]  font-bold bg-linear-to-r from-blue-500 to-indigo-600 shadow-lg active:scale-95 transition"
+            className="w-full h-10 rounded-[12px] flex items-center justify-center gap-2 font-bold bg-linear-to-r from-blue-500 to-indigo-600 shadow-lg active:scale-95 transition"
           >
             <Play className="mr-1" size={18} />
             Play Again
@@ -228,7 +230,7 @@ function WonContent() {
                 `https://t.me/share/url?text=I just won ETB ${displayPrizePool} in Mella Bingo! Join me and play for a chance to win big!&url=https://t.me/mella_bingo_bot?start=welcome`,
               )
             }
-            className="w-full h-10 rounded-[12px]  font-bold bg-linear-to-r from-yellow-400 to-orange-500 text-black shadow-lg active:scale-95 transition"
+            className="w-full h-10 rounded-[12px] flex items-center justify-center gap-2  font-bold bg-linear-to-r from-yellow-400 to-orange-500 text-black shadow-lg active:scale-95 transition"
           >
             <Share2 className="mr-2" size={18} />
             Share
