@@ -135,7 +135,7 @@ export default function AgentUsersPage() {
           </h1>
           <p className="text-xs text-muted-foreground">{t("subtitle")}</p>
         </div>
-        <div className="flex w-full flex-col gap-2 self-start lg:w-auto lg:min-w-[22rem] lg:self-auto">
+        <div className="flex w-full flex-col gap-2 self-start lg:w-auto lg:min-w-88 lg:self-auto">
           <div className="w-full flex-row flex  items-center justify-between gap-2 lg:justify-end">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -175,7 +175,7 @@ export default function AgentUsersPage() {
                   <select
                     value={draftSortBy}
                     onChange={(e) => setDraftSortBy(e.target.value)}
-                    className="min-h-[44px] w-full rounded-md border bg-background px-3 text-sm"
+                    className="min-h-11 w-full rounded-md border bg-background px-3 text-sm"
                   >
                     <option value="createdAt">Created At</option>
                     <option value="balance">Balance</option>
@@ -190,7 +190,7 @@ export default function AgentUsersPage() {
                     <Button
                       type="button"
                       variant={draftSortOrder === "asc" ? "default" : "outline"}
-                      className="min-h-[44px]"
+                      className="min-h-11"
                       onClick={() => setDraftSortOrder("asc")}
                     >
                       <ArrowUp className="h-4 w-4" />
@@ -201,7 +201,7 @@ export default function AgentUsersPage() {
                       variant={
                         draftSortOrder === "desc" ? "default" : "outline"
                       }
-                      className="min-h-[44px]"
+                      className="min-h-11"
                       onClick={() => setDraftSortOrder("desc")}
                     >
                       <ArrowDown className="h-4 w-4" />
@@ -224,7 +224,7 @@ export default function AgentUsersPage() {
                           | "AGENT",
                       )
                     }
-                    className="min-h-[44px] w-full rounded-md border bg-background px-3 text-sm"
+                    className="min-h-11 w-full rounded-md border bg-background px-3 text-sm"
                   >
                     <option value="all">All Roles</option>
                     <option value="USER">User</option>
@@ -237,7 +237,7 @@ export default function AgentUsersPage() {
             <Button
               variant="outline"
               onClick={() => setIsAdjustmentDialogOpen(true)}
-              className="min-h-[44px] rounded-lg"
+              className="min-h-11 flex-1 rounded-lg"
             >
               <Wallet className="h-4 w-4" />
               {t("actions.adjustBalance")}
@@ -301,7 +301,7 @@ export default function AgentUsersPage() {
           </div>
         ) : (
           <TableContainer className="max-h-[80vh]">
-            <table className="hidden w-full min-w-[720px] border-separate border-spacing-0 text-left md:table">
+            <table className="hidden w-full min-w-180 border-separate border-spacing-0 text-left md:table">
               <thead className="bg-muted/50">
                 <tr>
                   <th className="border-b px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
@@ -331,7 +331,7 @@ export default function AgentUsersPage() {
                             user.firstName?.[0] ||
                             t("fallback.initial")}
                         </div>
-                        <div className="min-w-0 max-w-[200px]">
+                        <div className="min-w-0 max-w-50">
                           <p className="truncate text-xs font-semibold leading-tight">
                             {user.firstName}
                           </p>
@@ -492,7 +492,7 @@ export default function AgentUsersPage() {
               type="button"
               variant="outline"
               size="sm"
-              className="min-h-[44px]"
+              className="min-h-11"
               disabled={page <= 1}
               onClick={() => setPage((prev) => Math.max(1, prev - 1))}
             >
@@ -502,7 +502,7 @@ export default function AgentUsersPage() {
               type="button"
               variant="outline"
               size="sm"
-              className="min-h-[44px]"
+              className="min-h-11"
               disabled={page >= totalPages}
               onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
             >
