@@ -43,6 +43,7 @@ export function FilterSortModal({
       <DialogTrigger asChild>
         <Button
           variant="outline"
+          size={"sm"}
           className="min-h-[44px] gap-2 rounded-lg px-4 text-sm"
         >
           <SlidersHorizontal className="h-4 w-4" />
