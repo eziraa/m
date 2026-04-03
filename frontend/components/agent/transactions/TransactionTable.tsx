@@ -405,7 +405,7 @@ export default function TransactionTable() {
           Page {page} of {Math.max(1, Math.ceil(total / pageSize))} •{" "}
           {total.toLocaleString()} records
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex  items-center gap-3">
           <label className="flex items-center gap-1 text-xs text-muted-foreground">
             <span>Per page:</span>
             <select
@@ -427,7 +427,7 @@ export default function TransactionTable() {
             <Button
               variant="outline"
               size="sm"
-              className="min-h-[44px]"
+              className=""
               disabled={page === 1}
               onClick={() => setPage((prev) => Math.max(1, prev - 1))}
             >
@@ -436,7 +436,7 @@ export default function TransactionTable() {
             <Button
               variant="outline"
               size="sm"
-              className="min-h-[44px]"
+              className=""
               disabled={page * pageSize >= total}
               onClick={() => setPage((prev) => prev + 1)}
             >
