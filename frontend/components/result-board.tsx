@@ -1,5 +1,6 @@
 "use client";
 
+import { Star } from "lucide-react";
 import { memo, useMemo } from "react";
 
 type WinningPosition = [number, number];
@@ -80,9 +81,7 @@ export const ResultBoard = memo(function ResultBoard({
                 )}
               >
                 {isFree ? (
-                  <span className="font-semibold lowercase tracking-wide">
-                    free
-                  </span>
+                  <Star size={14} className="fill-current" />
                 ) : (
                   cell
                 )}

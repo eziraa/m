@@ -493,6 +493,43 @@ export async function submitBingoClaim(
   };
 }
 
+export type SessionWinnerResult = {
+  sessionId: string;
+  roomId: string;
+  winnerUserId: string;
+  winnerName: string;
+  pattern: "row" | "column" | "diagonal" | "full_house" | "corners";
+  boardNo: number;
+  boardMatrix: number[][];
+  markedCells: number[];
+  calledNumbers: number[];
+  potCents: number;
+};
+
+export async function fetchSessionWinnerResult(
+  token: string,
+  sessionId: string,
+): Promise<SessionWinnerResult> {
+  const res = await fetch(`${API_BASE}/sessions/${sessionId}/result`, {
+    method: "GET",
+    headers: {
+      authorization: `Bearer ${token}`,
+    },
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error("session_result_fetch_failed");
+  }
+
+  const json = (await res.json()) as {
+    ok: boolean;
+    result: SessionWinnerResult;
+  };
+
+  return json.result;
+}
+
 export async function fetchTransactions(
   token: string,
   tab: string = "all",

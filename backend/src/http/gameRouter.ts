@@ -17,6 +17,7 @@ import {
   startSession,
   stopSession,
 } from "../game/sessionRunner.js";
+import { getWinnerBoardResultForIdentity } from "../game/sessionResultNotifier.js";
 
 const buyBoardSchema = z.object({
   sessionId: z.string().uuid(),
@@ -320,6 +321,36 @@ router.get(
     }
   },
 );
+
+router.get("/sessions/:sessionId/result", requireAuth, async (req, res) => {
+  if (!req.identity) {
+    res.status(401).json({ error: "unauthorized" });
+    return;
+  }
+
+  try {
+    const sessionId = String(req.params.sessionId);
+    const result = await getWinnerBoardResultForIdentity(req.identity, sessionId);
+
+    if (!result) {
+      res.status(404).json({ error: "session_result_not_found" });
+      return;
+    }
+
+    res.status(200).json({ ok: true, result });
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : "session_result_failed";
+    if (reason.includes("forbidden")) {
+      res.status(403).json({ error: reason });
+      return;
+    }
+    if (reason.includes("not_found")) {
+      res.status(404).json({ error: reason });
+      return;
+    }
+    res.status(500).json({ error: reason });
+  }
+});
 
 router.post("/sessions/bingo-claims", requireAuth, async (req, res) => {
   if (!req.identity) {
