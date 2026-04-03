@@ -44,7 +44,7 @@ export function FilterSortModal({
         <Button
           variant="outline"
           size={"sm"}
-          className="min-h-[44px] gap-2 rounded-lg px-4 text-sm"
+          className="min-h-[44px] gap-2 rounded-lg px-4 py-1.5 text-sm"
         >
           <SlidersHorizontal className="h-4 w-4" />
           {triggerLabel}
