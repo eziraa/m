@@ -64,7 +64,7 @@ export const ResultBoard = memo(function ResultBoard({
               bgClass = "bg-emerald-500 border border-emerald-400";
               textClass = "text-white";
             } else if (isCalled) {
-              bgClass = "bg-blue-600 border border-blue-500";
+              bgClass = " border border-blue-500";
               textClass = "text-white";
             } else if (isFree) {
               textClass = "text-zinc-400";
