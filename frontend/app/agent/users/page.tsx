@@ -1,10 +1,9 @@
 "use client";
 
-import { useDeferredValue, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Users,
-  Search,
   MoreVertical,
   ExternalLink,
   User as UserIcon,
@@ -29,6 +28,8 @@ import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslations } from "next-intl";
 import { AgentBalanceAdjustmentDialog } from "@/components/agent/AgentBalanceAdjustmentDialog";
+import { FilterSortModal } from "@/components/agent/FilterSortModal";
+import { TableContainer } from "@/components/agent/TableContainer";
 
 export default function AgentUsersPage() {
   const t = useTranslations("agent.users");
@@ -42,7 +43,13 @@ export default function AgentUsersPage() {
   const [roleFilter, setRoleFilter] = useState<
     "all" | "USER" | "Agent" | "AGENT"
   >("all");
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [draftSearchQuery, setDraftSearchQuery] = useState(searchQuery);
+  const [draftSortBy, setDraftSortBy] = useState(sortBy);
+  const [draftSortOrder, setDraftSortOrder] = useState(sortOrder);
+  const [draftRoleFilter, setDraftRoleFilter] = useState(roleFilter);
   const deferredSearch = useDeferredValue(searchQuery.trim());
+
   const queryArgs = useMemo(
     () => ({
       page,
@@ -54,6 +61,7 @@ export default function AgentUsersPage() {
     }),
     [page, pageSize, deferredSearch, roleFilter, sortBy, sortOrder],
   );
+
   const {
     data: usersData,
     isFetching,
@@ -64,12 +72,41 @@ export default function AgentUsersPage() {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const isLoading = isFetching && !usersData;
 
+  useEffect(() => {
+    if (!isFilterModalOpen) return;
+    setDraftSearchQuery(searchQuery);
+    setDraftSortBy(sortBy);
+    setDraftSortOrder(sortOrder);
+    setDraftRoleFilter(roleFilter);
+  }, [isFilterModalOpen, roleFilter, searchQuery, sortBy, sortOrder]);
+
   const handleViewDetails = (userId: string) => {
     router.push(`/agent/users/${userId}`);
   };
 
+  const applyFilters = () => {
+    setSearchQuery(draftSearchQuery);
+    setSortBy(draftSortBy);
+    setSortOrder(draftSortOrder);
+    setRoleFilter(draftRoleFilter);
+    setPage(1);
+    setIsFilterModalOpen(false);
+  };
+
+  const resetFilters = () => {
+    setDraftSearchQuery("");
+    setDraftSortBy("createdAt");
+    setDraftSortOrder("desc");
+    setDraftRoleFilter("all");
+    setSearchQuery("");
+    setSortBy("createdAt");
+    setSortOrder("desc");
+    setRoleFilter("all");
+    setPage(1);
+    setIsFilterModalOpen(false);
+  };
+
   const getRoleIcon = (role: string) => {
-    // ... existing getRoleIcon ...
     switch (role) {
       case "Agent":
         return <Crown className="h-3 w-3 text-amber-400" />;
@@ -81,7 +118,6 @@ export default function AgentUsersPage() {
   };
 
   const getRoleBadgeClass = (role: string) => {
-    // ... existing getRoleBadgeClass ...
     switch (role) {
       case "Agent":
         return "bg-amber-500/20 text-amber-400 border-amber-500/30";
@@ -96,117 +132,143 @@ export default function AgentUsersPage() {
     <div className="space-y-4">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold flex items-center gap-2">
-              <Users className="h-5 w-5 text-primary" />
-              {t("title")}
+          <h1 className="flex items-center gap-2 text-xl font-semibold">
+            <Users className="h-5 w-5 text-primary" />
+            {t("title")}
           </h1>
           <p className="text-xs text-muted-foreground">{t("subtitle")}</p>
         </div>
-        <Button
-          variant="outline"
-          onClick={() => setIsAdjustmentDialogOpen(true)}
-          className="h-9 rounded-lg"
-        >
-          <Wallet className="h-4 w-4" />
-          {t("actions.adjustBalance")}
-        </Button>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => refetch()}
-          className="h-9 w-9 rounded-lg"
-        >
-          <RefreshCw className="h-4 w-4" />
-        </Button>
-      </header>
-
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,1.6fr)_auto_auto_auto] xl:items-center">
-        <div className="relative min-w-0">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder={t("searchPlaceholder")}
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setPage(1);
-            }}
-            className="pl-9 h-9"
-          />
-        </div>
-        <div className="flex items-center gap-1 min-w-0">
-          <select
-            value={sortBy}
-            onChange={(e) => {
-              setSortBy(e.target.value);
-              setPage(1);
-            }}
-            className="h-9 min-w-0 flex-1 rounded-md border bg-background px-3 text-xs font-medium"
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+          <FilterSortModal
+            open={isFilterModalOpen}
+            onOpenChange={setIsFilterModalOpen}
+            title={t("title")}
+            description={t("subtitle")}
+            onApply={applyFilters}
+            onReset={resetFilters}
           >
-            <option value="createdAt">Created At</option>
-            <option value="balance">Balance</option>
-            <option value="username">Username</option>
-          </select>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">
+                {t("searchPlaceholder")}
+              </label>
+              <Input
+                value={draftSearchQuery}
+                onChange={(e) => setDraftSearchQuery(e.target.value)}
+                placeholder={t("searchPlaceholder")}
+                className="min-h-[44px]"
+              />
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">
+                  Sort field
+                </label>
+                <select
+                  value={draftSortBy}
+                  onChange={(e) => setDraftSortBy(e.target.value)}
+                  className="min-h-[44px] w-full rounded-md border bg-background px-3 text-sm"
+                >
+                  <option value="createdAt">Created At</option>
+                  <option value="balance">Balance</option>
+                  <option value="username">Username</option>
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">
+                  Sort order
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    type="button"
+                    variant={draftSortOrder === "asc" ? "default" : "outline"}
+                    className="min-h-[44px]"
+                    onClick={() => setDraftSortOrder("asc")}
+                  >
+                    <ArrowUp className="h-4 w-4" />
+                    Asc
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={draftSortOrder === "desc" ? "default" : "outline"}
+                    className="min-h-[44px]"
+                    onClick={() => setDraftSortOrder("desc")}
+                  >
+                    <ArrowDown className="h-4 w-4" />
+                    Desc
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-1.5 sm:col-span-2">
+                <label className="text-xs font-medium text-muted-foreground">
+                  Role
+                </label>
+                <select
+                  value={draftRoleFilter}
+                  onChange={(event) =>
+                    setDraftRoleFilter(
+                      event.target.value as "all" | "USER" | "Agent" | "AGENT",
+                    )
+                  }
+                  className="min-h-[44px] w-full rounded-md border bg-background px-3 text-sm"
+                >
+                  <option value="all">All Roles</option>
+                  <option value="USER">User</option>
+                  <option value="Agent">Agent</option>
+                  <option value="AGENT">Agent</option>
+                </select>
+              </div>
+            </div>
+          </FilterSortModal>
           <Button
-            size="icon"
             variant="outline"
-            className="h-9 w-9 rounded-md"
-            onClick={() => {
-              setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-              setPage(1);
-            }}
+            onClick={() => setIsAdjustmentDialogOpen(true)}
+            className="min-h-[44px] rounded-lg"
           >
-            {sortOrder === "asc" ? (
-              <ArrowUp className="h-4 w-4" />
-            ) : (
-              <ArrowDown className="h-4 w-4" />
-            )}
+            <Wallet className="h-4 w-4" />
+            {t("actions.adjustBalance")}
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => refetch()}
+            className="h-11 w-11 rounded-lg"
+          >
+            <RefreshCw className="h-4 w-4" />
           </Button>
         </div>
-        <select
-          value={roleFilter}
-          onChange={(event) => {
-            const nextRole = event.target.value as
-              | "all"
-              | "USER"
-              | "Agent"
-              | "AGENT";
-            setRoleFilter(nextRole);
-            setPage(1);
-          }}
-          className="h-9 rounded-md border bg-background px-3 text-xs font-medium"
-        >
-          <option value="all">All Roles</option>
-          <option value="USER">User</option>
-          <option value="Agent">Agent</option>
-          <option value="AGENT">Agent</option>
-        </select>
-        <p className="text-xs text-muted-foreground sm:justify-self-end">
+      </header>
+
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-xs text-muted-foreground">
           {total.toLocaleString()} total
         </p>
+        {isFetching ? (
+          <p className="text-xs text-muted-foreground">Updating list...</p>
+        ) : null}
       </div>
 
-      <div className="relative rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
+      <div className="relative overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm">
         {isLoading ? (
           <div className="p-4">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full border-collapse text-left">
               <thead>
                 <tr className="border-b">
-                  <th className="py-2 px-3 w-[45%]">
+                  <th className="w-[45%] px-3 py-2">
                     <Skeleton className="h-3 w-16" />
                   </th>
-                  <th className="py-2 px-2 w-[20%]">
+                  <th className="w-[20%] px-2 py-2">
                     <Skeleton className="h-3 w-12" />
                   </th>
-                  <th className="py-2 px-2 w-[25%]">
-                    <Skeleton className="h-3 w-16 ml-auto" />
+                  <th className="w-[25%] px-2 py-2">
+                    <Skeleton className="ml-auto h-3 w-16" />
                   </th>
-                  <th className="py-2 px-3 w-[10%]" />
+                  <th className="w-[10%] px-3 py-2" />
                 </tr>
               </thead>
               <tbody>
                 {Array.from({ length: 10 }).map((_, i) => (
                   <tr key={i} className="border-b">
-                    <td className="py-2 px-3">
+                    <td className="px-3 py-2">
                       <div className="flex items-center gap-2">
                         <Skeleton className="h-7 w-7 rounded-lg" />
                         <div className="space-y-1">
@@ -215,14 +277,14 @@ export default function AgentUsersPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="py-2 px-2">
+                    <td className="px-2 py-2">
                       <Skeleton className="h-4 w-12 rounded-md" />
                     </td>
-                    <td className="py-2 px-2">
-                      <Skeleton className="h-3 w-14 ml-auto" />
+                    <td className="px-2 py-2">
+                      <Skeleton className="ml-auto h-3 w-14" />
                     </td>
-                    <td className="py-2 px-3">
-                      <Skeleton className="h-7 w-7 rounded-lg mx-auto" />
+                    <td className="px-3 py-2">
+                      <Skeleton className="mx-auto h-7 w-7 rounded-lg" />
                     </td>
                   </tr>
                 ))}
@@ -230,8 +292,8 @@ export default function AgentUsersPage() {
             </table>
           </div>
         ) : users.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center space-y-3">
-            <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center border">
+          <div className="flex flex-col items-center justify-center space-y-3 py-16 text-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full border bg-muted">
               <Users className="h-7 w-7 text-muted-foreground" />
             </div>
             <p className="text-sm font-semibold text-muted-foreground">
@@ -239,20 +301,20 @@ export default function AgentUsersPage() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto max-h-[80vh] overflow-y-auto custom-scrollbar">
-            <table className="w-full text-left border-separate border-spacing-0 hidden md:table">
+          <TableContainer className="max-h-[80vh]">
+            <table className="hidden w-full min-w-[720px] border-separate border-spacing-0 text-left md:table">
               <thead className="bg-muted/50">
                 <tr>
-                  <th className="py-2.5 px-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground border-b">
+                  <th className="border-b px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                     {t("table.user")}
                   </th>
-                  <th className="py-2.5 px-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground border-b">
+                  <th className="border-b px-2 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                     {t("table.role")}
                   </th>
-                  <th className="py-2.5 px-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground text-right border-b">
+                  <th className="border-b px-2 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                     {t("table.balance")}
                   </th>
-                  <th className="py-2.5 px-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground text-center border-b">
+                  <th className="border-b px-3 py-2.5 text-center text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                     {t("table.actions")}
                   </th>
                 </tr>
@@ -261,29 +323,29 @@ export default function AgentUsersPage() {
                 {users.map((user: any) => (
                   <tr
                     key={user.id}
-                    className="hover:bg-muted/40 transition-colors"
+                    className="transition-colors hover:bg-muted/40"
                   >
-                    <td className="py-2.5 px-3">
+                    <td className="px-3 py-2.5">
                       <div className="flex items-center gap-2">
-                        <div className="h-7 w-7 shrink-0 rounded-lg bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary uppercase border border-primary/20">
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-[10px] font-bold uppercase text-primary">
                           {user.username?.[0] ||
                             user.firstName?.[0] ||
                             t("fallback.initial")}
                         </div>
                         <div className="min-w-0 max-w-[200px]">
-                          <p className="text-xs font-semibold truncate leading-tight">
+                          <p className="truncate text-xs font-semibold leading-tight">
                             {user.firstName}
                           </p>
-                          <p className="text-[11px] text-muted-foreground truncate">
+                          <p className="truncate text-[11px] text-muted-foreground">
                             @{user.username || t("table.noUsername")}
                           </p>
                         </div>
                       </div>
                     </td>
-                    <td className="py-2.5 px-2">
+                    <td className="px-2 py-2.5">
                       <Badge
                         className={cn(
-                          "text-[9px] h-5 px-2 font-semibold uppercase tracking-tight flex items-center gap-1 border",
+                          "flex h-5 items-center gap-1 border px-2 text-[9px] font-semibold uppercase tracking-tight",
                           getRoleBadgeClass(user.role),
                         )}
                       >
@@ -293,22 +355,22 @@ export default function AgentUsersPage() {
                         {user.role}
                       </Badge>
                     </td>
-                    <td className="py-2.5 px-2 text-right">
+                    <td className="px-2 py-2.5 text-right">
                       <p className="text-xs font-semibold text-emerald-500">
                         {user.balance}
                       </p>
-                      <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-tight">
+                      <p className="text-[10px] font-medium uppercase tracking-tight text-muted-foreground">
                         ETB
                       </p>
                     </td>
-                    <td className="py-2.5 px-3">
+                    <td className="px-3 py-2.5">
                       <div className="flex justify-center">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-7 w-7 rounded-md"
+                              className="h-8 w-8 rounded-md"
                             >
                               <MoreVertical className="h-3.5 w-3.5" />
                             </Button>
@@ -330,32 +392,31 @@ export default function AgentUsersPage() {
               </tbody>
             </table>
 
-            {/* Mobile View */}
-            <div className="md:hidden flex flex-col gap-3 p-4">
+            <div className="flex flex-col gap-3 p-4 md:hidden">
               {users.map((user: any) => (
                 <div
                   key={user.id}
-                  className="rounded-xl border bg-card text-card-foreground shadow-sm p-4 flex flex-col gap-3"
+                  className="flex flex-col gap-3 rounded-xl border bg-card p-4 text-card-foreground shadow-sm"
                 >
                   <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <div className="h-10 w-10 shrink-0 rounded-xl bg-primary/10 flex items-center justify-center text-sm font-bold text-primary uppercase border border-primary/20">
+                    <div className="flex min-w-0 flex-1 items-center gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-sm font-bold uppercase text-primary">
                         {user.username?.[0] ||
                           user.firstName?.[0] ||
                           t("fallback.initial")}
                       </div>
-                      <div className="flex flex-col min-w-0 flex-1">
-                        <span className="font-semibold text-sm truncate">
+                      <div className="flex min-w-0 flex-1 flex-col">
+                        <span className="truncate text-sm font-semibold">
                           {user.firstName || t("table.noUsername")}
                         </span>
-                        <span className="text-[10px] text-muted-foreground truncate">
+                        <span className="truncate text-[10px] text-muted-foreground">
                           @{user.username || t("table.noUsername")}
                         </span>
                       </div>
                     </div>
                     <Badge
                       className={cn(
-                        "shrink-0 ml-2 text-[10px] h-5 px-2 font-semibold uppercase tracking-tight flex items-center gap-1 border",
+                        "ml-2 flex h-5 shrink-0 items-center gap-1 border px-2 text-[10px] font-semibold uppercase tracking-tight",
                         getRoleBadgeClass(user.role),
                       )}
                     >
@@ -364,11 +425,11 @@ export default function AgentUsersPage() {
                     </Badge>
                   </div>
 
-                  <div className="flex items-center justify-between mt-1">
+                  <div className="mt-1 flex items-center justify-between">
                     <div className="flex flex-col">
-                      <span className="font-black tracking-tight text-emerald-500 text-lg">
+                      <span className="text-lg font-black tracking-tight text-emerald-500">
                         {user.balance}{" "}
-                        <span className="text-[10px] text-muted-foreground uppercase font-medium">
+                        <span className="text-[10px] font-medium uppercase text-muted-foreground">
                           ETB
                         </span>
                       </span>
@@ -379,7 +440,7 @@ export default function AgentUsersPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 rounded-md shrink-0 ml-2"
+                          className="ml-2 h-11 w-11 shrink-0 rounded-md"
                         >
                           <MoreVertical className="h-4 w-4" />
                         </Button>
@@ -398,7 +459,7 @@ export default function AgentUsersPage() {
                 </div>
               ))}
             </div>
-          </div>
+          </TableContainer>
         )}
       </div>
 
@@ -411,7 +472,7 @@ export default function AgentUsersPage() {
             • {total.toLocaleString()} records
           </span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <label className="flex items-center gap-1 text-xs text-muted-foreground">
             <span>Per page:</span>
             <select
@@ -434,6 +495,7 @@ export default function AgentUsersPage() {
               type="button"
               variant="outline"
               size="sm"
+              className="min-h-[44px]"
               disabled={page <= 1}
               onClick={() => setPage((prev) => Math.max(1, prev - 1))}
             >
@@ -443,6 +505,7 @@ export default function AgentUsersPage() {
               type="button"
               variant="outline"
               size="sm"
+              className="min-h-[44px]"
               disabled={page >= totalPages}
               onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
             >

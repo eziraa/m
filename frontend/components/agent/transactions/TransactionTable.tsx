@@ -1,5 +1,7 @@
 "use client";
-import React, { useDeferredValue, useMemo, useState } from "react";
+
+import React, { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useGetAgentTransactionsQuery } from "@/lib/api";
 import { Loader2, MoreHorizontal, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -13,8 +15,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { FilterSortModal } from "@/components/agent/FilterSortModal";
+import { TableContainer } from "@/components/agent/TableContainer";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function TransactionTable() {
   const [page, setPage] = useState(1);
@@ -24,8 +28,15 @@ export default function TransactionTable() {
   const [status, setStatus] = useState("all");
   const [orderBy, setOrderBy] = useState<"createdAt" | "amount">("createdAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-  const deferredSearch = useDeferredValue(search.trim());
   const [selected, setSelected] = useState<Transaction | null>(null);
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [draftSearch, setDraftSearch] = useState(search);
+  const [draftType, setDraftType] = useState(type);
+  const [draftStatus, setDraftStatus] = useState(status);
+  const [draftOrderBy, setDraftOrderBy] = useState(orderBy);
+  const [draftSortOrder, setDraftSortOrder] = useState(sortOrder);
+  const deferredSearch = useDeferredValue(search.trim());
+
   const queryArgs = useMemo(
     () => ({
       page,
@@ -38,6 +49,7 @@ export default function TransactionTable() {
     }),
     [page, pageSize, deferredSearch, type, status, sortOrder, orderBy],
   );
+
   const { data, isLoading, isFetching } = useGetAgentTransactionsQuery(
     queryArgs,
     { skip: false },
@@ -45,96 +57,171 @@ export default function TransactionTable() {
   const transactions = data?.transactions || [];
   const total = data?.total || 0;
 
+  useEffect(() => {
+    if (!isFilterModalOpen) return;
+    setDraftSearch(search);
+    setDraftType(type);
+    setDraftStatus(status);
+    setDraftOrderBy(orderBy);
+    setDraftSortOrder(sortOrder);
+  }, [isFilterModalOpen, orderBy, search, sortOrder, status, type]);
+
+  const handleApplyFilters = () => {
+    setSearch(draftSearch);
+    setType(draftType);
+    setStatus(draftStatus);
+    setOrderBy(draftOrderBy);
+    setSortOrder(draftSortOrder);
+    setPage(1);
+    setIsFilterModalOpen(false);
+  };
+
+  const handleResetFilters = () => {
+    setDraftSearch("");
+    setDraftType("all");
+    setDraftStatus("all");
+    setDraftOrderBy("createdAt");
+    setDraftSortOrder("desc");
+    setSearch("");
+    setType("all");
+    setStatus("all");
+    setOrderBy("createdAt");
+    setSortOrder("desc");
+    setPage(1);
+    setIsFilterModalOpen(false);
+  };
+
   if (isLoading) {
     return (
-      <div className="w-full h-64 flex flex-col items-center justify-center text-muted-foreground gap-2">
-        <Loader2 className="animate-spin text-primary" size={32} />
+      <div className="space-y-4 p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-36" />
+            <Skeleton className="h-3 w-48" />
+          </div>
+          <Skeleton className="h-11 w-36" />
+        </div>
+        <div className="space-y-3">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <Skeleton key={index} className="h-16 w-full rounded-xl" />
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full ">
-      {/* Table Header */}
-      <div className="border-b bg-muted/40 p-4 flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
-        <div>
-          <h3 className="text-sm font-medium text-muted-foreground">
-            Recent Transactions
-          </h3>
-          <p className="text-xs text-muted-foreground/70 mt-1">
-            Showing {transactions.length} of {total} records
-          </p>
-        </div>
-        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
-          <input
-            placeholder="Search..."
-            value={search}
-            onChange={(event) => {
-              setSearch(event.target.value);
-              setPage(1);
-            }}
-            className="col-span-2 h-8 w-full sm:w-auto lg:w-62.5 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-          />
-          {/* Sorting */}
-          <select
-            value={orderBy}
-            onChange={(event) => {
-              setOrderBy(event.target.value as "createdAt" | "amount");
-            }}
-            className="h-8 rounded-md border border-input bg-background px-2 text-xs"
-          >
-            <option value="createdAt">Date</option>
-            <option value="amount">Amount</option>
-          </select>
-          <select
-            value={sortOrder}
-            onChange={(event) => {
-              setSortOrder(event.target.value as "asc" | "desc");
-            }}
-            className="h-8 rounded-md border border-input bg-background px-2 text-xs"
-          >
-            <option value="desc">Descending</option>
-            <option value="asc">Ascending</option>
-          </select>
-          <select
-            value={type}
-            onChange={(event) => {
-              setType(event.target.value);
-              setPage(1);
-            }}
-            className="h-8 rounded-md border border-input bg-background px-2 text-xs"
-          >
-            <option value="all">All Types</option>
-            <option value="deposit">Deposit</option>
-            <option value="withdrawal">Withdrawal</option>
-            <option value="game_win">Game Win</option>
-            <option value="game_lost">Game Lost</option>
-            <option value="bonus">Bonus</option>
-            <option value="welcome_bonus">Welcome Bonus</option>
-            <option value="referral_reward">Referral Reward</option>
-            <option value="referral_commission">Referral Commission</option>
-          </select>
-          <select
-            value={status}
-            onChange={(event) => {
-              setStatus(event.target.value);
-              setPage(1);
-            }}
-            className="h-8 rounded-md border border-input bg-background px-2 text-xs"
-          >
-            <option value="all">All Statuses</option>
-            <option value="pending">Pending</option>
-            <option value="completed">Completed</option>
-            <option value="failed">Failed</option>
-          </select>
-          {isFetching ? (
-            <span className="text-xs text-muted-foreground">Updating...</span>
-          ) : null}
+    <div className="w-full">
+      <div className="border-b bg-muted/40 p-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h3 className="text-sm font-medium text-muted-foreground">
+              Recent Transactions
+            </h3>
+            <p className="mt-1 text-xs text-muted-foreground/70">
+              Showing {transactions.length} of {total} records
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 self-start">
+            {isFetching ? (
+              <span className="inline-flex min-h-[44px] items-center rounded-md border px-3 text-xs text-muted-foreground">
+                <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                Updating...
+              </span>
+            ) : null}
+            <FilterSortModal
+              open={isFilterModalOpen}
+              onOpenChange={setIsFilterModalOpen}
+              title="Filter & Sort Transactions"
+              description="Refine the current transaction list while keeping the existing query flow intact."
+              onApply={handleApplyFilters}
+              onReset={handleResetFilters}
+            >
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">
+                  Search
+                </label>
+                <Input
+                  placeholder="Search by user or transaction details"
+                  value={draftSearch}
+                  onChange={(event) => setDraftSearch(event.target.value)}
+                  className="min-h-[44px]"
+                />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">
+                    Sort field
+                  </label>
+                  <select
+                    value={draftOrderBy}
+                    onChange={(event) =>
+                      setDraftOrderBy(event.target.value as "createdAt" | "amount")
+                    }
+                    className="min-h-[44px] w-full rounded-md border border-input bg-background px-3 text-sm"
+                  >
+                    <option value="createdAt">Date</option>
+                    <option value="amount">Amount</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">
+                    Sort order
+                  </label>
+                  <select
+                    value={draftSortOrder}
+                    onChange={(event) =>
+                      setDraftSortOrder(event.target.value as "asc" | "desc")
+                    }
+                    className="min-h-[44px] w-full rounded-md border border-input bg-background px-3 text-sm"
+                  >
+                    <option value="desc">Descending</option>
+                    <option value="asc">Ascending</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">
+                    Type
+                  </label>
+                  <select
+                    value={draftType}
+                    onChange={(event) => setDraftType(event.target.value)}
+                    className="min-h-[44px] w-full rounded-md border border-input bg-background px-3 text-sm"
+                  >
+                    <option value="all">All Types</option>
+                    <option value="deposit">Deposit</option>
+                    <option value="withdrawal">Withdrawal</option>
+                    <option value="game_win">Game Win</option>
+                    <option value="game_lost">Game Lost</option>
+                    <option value="bonus">Bonus</option>
+                    <option value="welcome_bonus">Welcome Bonus</option>
+                    <option value="referral_reward">Referral Reward</option>
+                    <option value="referral_commission">Referral Commission</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">
+                    Status
+                  </label>
+                  <select
+                    value={draftStatus}
+                    onChange={(event) => setDraftStatus(event.target.value)}
+                    className="min-h-[44px] w-full rounded-md border border-input bg-background px-3 text-sm"
+                  >
+                    <option value="all">All Statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="completed">Completed</option>
+                    <option value="failed">Failed</option>
+                  </select>
+                </div>
+              </div>
+            </FilterSortModal>
+          </div>
         </div>
       </div>
 
-      <div className="relative w-full max-h-[30rem] overflow-y-auto custom-scrollbar">
-        <table className="w-full caption-bottom text-sm hidden md:table">
+      <TableContainer className="relative w-full max-h-[30rem]">
+        <table className="hidden w-full min-w-[760px] caption-bottom text-sm md:table">
           <thead className="[&_tr]:border-b">
             <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
               <th className="h-10 px-4 text-left align-middle font-medium text-muted-foreground">
@@ -146,10 +233,10 @@ export default function TransactionTable() {
               <th className="h-10 px-4 text-left align-middle font-medium text-muted-foreground">
                 Amount
               </th>
-              <th className="h-10 px-4 text-left align-middle font-medium text-muted-foreground">
+              <th className="hidden h-10 px-4 text-left align-middle font-medium text-muted-foreground lg:table-cell">
                 Date
               </th>
-              <th className="h-10 px-4 text-left align-middle font-medium text-muted-foreground">
+              <th className="hidden h-10 px-4 text-left align-middle font-medium text-muted-foreground xl:table-cell">
                 Details
               </th>
               <th className="h-10 px-4 text-right align-middle font-medium text-muted-foreground">
@@ -158,51 +245,139 @@ export default function TransactionTable() {
             </tr>
           </thead>
           <tbody className="[&_tr:last-child]:border-0">
-            {transactions.map((tx: Transaction) => (
-              <tr
+            {transactions.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={6}
+                  className="px-4 py-10 text-center text-sm text-muted-foreground"
+                >
+                  No transactions match the current filters.
+                </td>
+              </tr>
+            ) : (
+              transactions.map((tx: Transaction) => (
+                <tr
+                  key={tx.id}
+                  className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
+                >
+                  <td className="p-4 align-middle font-medium">
+                    <div className="flex flex-col">
+                      <span className="text-foreground">
+                        {tx.user?.firstName || tx.user?.username || "Unknown"}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        @{tx.user?.username || tx.user?.id?.slice(0, 8)}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="p-4 align-middle">
+                    <Badge variant="outline" className="capitalize">
+                      {tx.type}
+                    </Badge>
+                  </td>
+                  <td className="p-4 align-middle">
+                    <span
+                      className={
+                        Number(tx.amount) > 0
+                          ? "text-success font-medium"
+                          : "text-foreground"
+                      }
+                    >
+                      {Number(tx.amount).toLocaleString()}
+                    </span>
+                  </td>
+                  <td className="hidden p-4 align-middle text-muted-foreground lg:table-cell">
+                    {new Date(tx.createdAt).toLocaleDateString()}{" "}
+                    <span className="text-[10px] opacity-70">
+                      {new Date(tx.createdAt).toLocaleTimeString()}
+                    </span>
+                  </td>
+                  <td className="hidden max-w-50 truncate p-4 align-middle text-muted-foreground xl:table-cell">
+                    {tx.description || "-"}
+                  </td>
+                  <td className="p-4 align-middle text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <span className="sr-only">Open menu</span>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuItem onClick={() => setSelected(tx)}>
+                          View Details
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => navigator.clipboard.writeText(tx.id)}
+                        >
+                          Copy ID
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+
+        <div className="flex flex-col gap-3 p-4 md:hidden">
+          {transactions.length === 0 ? (
+            <div className="rounded-xl border border-dashed px-4 py-10 text-center text-sm text-muted-foreground">
+              No transactions match the current filters.
+            </div>
+          ) : (
+            transactions.map((tx: Transaction) => (
+              <div
                 key={tx.id}
-                className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
+                className="rounded-xl border bg-card p-4 text-card-foreground shadow-sm"
               >
-                <td className="p-4 align-middle font-medium">
-                  <div className="flex flex-col">
-                    <span className="text-foreground">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-semibold">
                       {tx.user?.firstName || tx.user?.username || "Unknown"}
                     </span>
-                    <span className="text-xs text-muted-foreground">
-                      @{tx.user?.username || tx.user?.id?.slice(0, 8)}
+                    <span className="block truncate text-[10px] text-muted-foreground">
+                      @{tx.user?.username || tx.user?.id?.slice(0, 8)} •{" "}
+                      {new Date(tx.createdAt).toLocaleDateString()}{" "}
+                      {new Date(tx.createdAt).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </span>
                   </div>
-                </td>
-                <td className="p-4 align-middle">
-                  <Badge variant="outline" className="capitalize">
-                    {tx.type}
-                  </Badge>
-                </td>
-                <td className="p-4 align-middle">
-                  <span
-                    className={
-                      Number(tx.amount) > 0
-                        ? "text-success font-medium"
-                        : "text-foreground"
-                    }
+                  <Badge
+                    variant="outline"
+                    className="ml-2 shrink-0 text-[10px] capitalize"
                   >
-                    {Number(tx.amount).toLocaleString()}
-                  </span>
-                </td>
-                <td className="p-4 align-middle text-muted-foreground">
-                  {new Date(tx.createdAt).toLocaleDateString()}{" "}
-                  <span className="text-[10px] opacity-70">
-                    {new Date(tx.createdAt).toLocaleTimeString()}
-                  </span>
-                </td>
-                <td className="p-4 align-middle max-w-50 truncate text-muted-foreground">
-                  {tx.description || "-"}
-                </td>
-                <td className="p-4 align-middle text-right">
+                    {tx.type.replace("_", " ")}
+                  </Badge>
+                </div>
+
+                <div className="mt-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <span
+                      className={`text-lg font-black tracking-tight ${
+                        Number(tx.amount) > 0 ? "text-success" : "text-foreground"
+                      }`}
+                    >
+                      {Number(tx.amount) > 0 ? "+" : ""}
+                      {Number(tx.amount).toLocaleString()}
+                    </span>
+                    {tx.description ? (
+                      <p className="mt-1 truncate text-[10px] text-muted-foreground">
+                        {tx.description}
+                      </p>
+                    ) : null}
+                  </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
+                      <Button
+                        variant="ghost"
+                        className="ml-2 h-11 w-11 shrink-0 p-0"
+                      >
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -219,86 +394,13 @@ export default function TransactionTable() {
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {/* Mobile View */}
-        <div className="md:hidden flex flex-col gap-3 p-4">
-          {transactions.map((tx: Transaction) => (
-            <div
-              key={tx.id}
-              className="rounded-xl border bg-card text-card-foreground shadow-sm p-4 flex flex-col gap-3"
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex flex-col min-w-0 flex-1">
-                  <span className="font-semibold text-sm truncate">
-                    {tx.user?.firstName || tx.user?.username || "Unknown"}
-                  </span>
-                  <span className="text-[10px] text-muted-foreground truncate">
-                    @{tx.user?.username || tx.user?.id?.slice(0, 8)} •{" "}
-                    {new Date(tx.createdAt).toLocaleDateString()}{" "}
-                    {new Date(tx.createdAt).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </span>
                 </div>
-                <Badge
-                  variant="outline"
-                  className="capitalize shrink-0 ml-2 text-[10px]"
-                >
-                  {tx.type.replace("_", " ")}
-                </Badge>
               </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <span
-                    className={`font-black tracking-tight text-lg ${
-                      Number(tx.amount) > 0 ? "text-success" : "text-foreground"
-                    }`}
-                  >
-                    {Number(tx.amount) > 0 ? "+" : ""}
-                    {Number(tx.amount).toLocaleString()}
-                  </span>
-                  {tx.description && (
-                    <span className="text-[10px] text-muted-foreground truncate ml-2 border-l pl-2">
-                      {tx.description}
-                    </span>
-                  )}
-                </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="h-8 w-8 p-0 shrink-0 ml-2"
-                    >
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={() => setSelected(tx)}>
-                      View Details
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={() => navigator.clipboard.writeText(tx.id)}
-                    >
-                      Copy ID
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
-      </div>
+      </TableContainer>
 
-      {/* Pagination */}
       <div className="flex flex-col gap-3 border-t px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="text-sm text-muted-foreground">
           Page {page} of {Math.max(1, Math.ceil(total / pageSize))} •{" "}
@@ -326,6 +428,7 @@ export default function TransactionTable() {
             <Button
               variant="outline"
               size="sm"
+              className="min-h-[44px]"
               disabled={page === 1}
               onClick={() => setPage((prev) => Math.max(1, prev - 1))}
             >
@@ -334,6 +437,7 @@ export default function TransactionTable() {
             <Button
               variant="outline"
               size="sm"
+              className="min-h-[44px]"
               disabled={page * pageSize >= total}
               onClick={() => setPage((prev) => prev + 1)}
             >
@@ -358,17 +462,17 @@ function TransactionDetail({
   onClose: () => void;
 }) {
   const router = useRouter();
+
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-      <div className="bg-card text-card-foreground rounded-xl border shadow-2xl w-full max-w-lg relative overflow-hidden animate-in zoom-in-95 duration-200">
-        {/* Header */}
-        <div className="p-6 border-b bg-muted/20">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="relative w-full max-w-lg overflow-hidden rounded-xl border bg-card text-card-foreground shadow-2xl animate-in zoom-in-95 duration-200">
+        <div className="border-b bg-muted/20 p-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold tracking-tight">
               Transaction Details
             </h2>
             <button
-              className="rounded-full p-1 hover:bg-muted transition-colors"
+              className="rounded-full p-1 transition-colors hover:bg-muted"
               onClick={onClose}
             >
               <XCircle className="h-6 w-6 text-muted-foreground" />
@@ -377,14 +481,13 @@ function TransactionDetail({
           <div className="mt-1 text-sm text-muted-foreground">ID: {tx.id}</div>
         </div>
 
-        {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="space-y-6 p-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 User
               </span>
-              <div className="font-semibold text-lg">
+              <div className="text-lg font-semibold">
                 {tx.user?.firstName || tx.user?.username || tx.user?.id}
               </div>
               <div className="text-sm text-muted-foreground">
@@ -392,10 +495,10 @@ function TransactionDetail({
               </div>
             </div>
             <div className="space-y-1 text-right">
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 Amount
               </span>
-              <div className="font-bold text-2xl text-primary">
+              <div className="text-2xl font-bold text-primary">
                 {Number(tx.amount).toLocaleString()}
               </div>
             </div>
@@ -403,17 +506,17 @@ function TransactionDetail({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 Type
               </span>
               <div>
-                <Badge className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 capitalize">
+                <Badge className="border-primary/20 bg-primary/10 capitalize text-primary hover:bg-primary/20">
                   {tx.type.replace("_", " ")}
                 </Badge>
               </div>
             </div>
             <div className="space-y-1 text-right">
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 Date
               </span>
               <div className="font-medium">
@@ -426,8 +529,8 @@ function TransactionDetail({
           </div>
 
           <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 Status
               </span>
               <Badge
@@ -446,22 +549,20 @@ function TransactionDetail({
           </div>
 
           <div className="space-y-2">
-            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
               Details
             </span>
-            <div className="rounded-md bg-muted/50 p-3 text-sm font-mono break-all border overflow-auto max-h-25">
+            <div className="max-h-25 overflow-auto rounded-md border bg-muted/50 p-3 text-sm font-mono break-all">
               {tx.description || "No additional details provided."}
             </div>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="p-6 border-t bg-muted/20 flex justify-end gap-2">
-          {/* Action buttons based on status/type could go here */}
+        <div className="flex justify-end gap-2 border-t bg-muted/20 p-6">
           <Button variant="ghost" onClick={onClose}>
             Close
           </Button>
-          <Button onClick={() => router.push(`/Agent/users/` + tx.userId)}>
+          <Button onClick={() => router.push(`/agent/users/${tx.userId}`)}>
             View User Profile
           </Button>
         </div>

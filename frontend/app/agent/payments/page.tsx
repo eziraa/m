@@ -1,9 +1,13 @@
 "use client";
 
+import { ComponentType, useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { FilterSortModal } from "@/components/agent/FilterSortModal";
+import { TableContainer } from "@/components/agent/TableContainer";
 import {
   useGetAgentPaymentsQuery,
   useGetAgentPaymentStatsQuery,
@@ -15,10 +19,8 @@ import {
   Calendar,
   CreditCard,
   Loader2,
-  Search,
   Wallet,
 } from "lucide-react";
-import { ComponentType, useMemo, useState } from "react";
 import { SubmitPaymentDialog } from "@/components/agent/SubmitPaymentDialog";
 import { useTranslations } from "next-intl";
 
@@ -37,6 +39,16 @@ export default function AgentPaymentsPage() {
   const [endDate, setEndDate] = useState("");
   const [sortBy, setSortBy] = useState<"amount" | "date">("date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [draftStatus, setDraftStatus] = useState(status);
+  const [draftSource, setDraftSource] = useState(source);
+  const [draftSearch, setDraftSearch] = useState(search);
+  const [draftMinAmount, setDraftMinAmount] = useState(minAmount);
+  const [draftMaxAmount, setDraftMaxAmount] = useState(maxAmount);
+  const [draftStartDate, setDraftStartDate] = useState(startDate);
+  const [draftEndDate, setDraftEndDate] = useState(endDate);
+  const [draftSortBy, setDraftSortBy] = useState(sortBy);
+  const [draftSortOrder, setDraftSortOrder] = useState(sortOrder);
 
   const filters = useMemo(
     () => ({
@@ -67,7 +79,40 @@ export default function AgentPaymentsPage() {
   const stats = statsData?.stats;
   const totalPages = pagination?.totalPages ?? 1;
 
+  useEffect(() => {
+    if (!isFilterModalOpen) return;
+    setDraftStatus(status);
+    setDraftSource(source);
+    setDraftSearch(search);
+    setDraftMinAmount(minAmount);
+    setDraftMaxAmount(maxAmount);
+    setDraftStartDate(startDate);
+    setDraftEndDate(endDate);
+    setDraftSortBy(sortBy);
+    setDraftSortOrder(sortOrder);
+  }, [
+    endDate,
+    isFilterModalOpen,
+    maxAmount,
+    minAmount,
+    search,
+    sortBy,
+    sortOrder,
+    source,
+    startDate,
+    status,
+  ]);
+
   const resetFilters = () => {
+    setDraftStatus("all");
+    setDraftSource("all");
+    setDraftSearch("");
+    setDraftMinAmount("");
+    setDraftMaxAmount("");
+    setDraftStartDate("");
+    setDraftEndDate("");
+    setDraftSortBy("date");
+    setDraftSortOrder("desc");
     setStatus("all");
     setSource("all");
     setSearch("");
@@ -78,6 +123,21 @@ export default function AgentPaymentsPage() {
     setSortBy("date");
     setSortOrder("desc");
     setPage(1);
+    setIsFilterModalOpen(false);
+  };
+
+  const applyFilters = () => {
+    setStatus(draftStatus);
+    setSource(draftSource.trim() || "all");
+    setSearch(draftSearch);
+    setMinAmount(draftMinAmount);
+    setMaxAmount(draftMaxAmount);
+    setStartDate(draftStartDate);
+    setEndDate(draftEndDate);
+    setSortBy(draftSortBy);
+    setSortOrder(draftSortOrder);
+    setPage(1);
+    setIsFilterModalOpen(false);
   };
 
   return (
@@ -87,17 +147,144 @@ export default function AgentPaymentsPage() {
           <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
             {t("title")}
           </h1>
-          <p className="text-sm text-muted-foreground">
-            {t("subtitle")}
-          </p>
+          <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
-        <div className="flex items-center gap-3 self-start sm:self-auto">
+        <div className="flex flex-col gap-2 self-start sm:flex-row sm:items-center sm:self-auto">
           {(isFetching || statsFetching) && (
-            <div className="inline-flex items-center gap-2 rounded-md border px-3 py-2 text-xs text-muted-foreground">
+            <div className="inline-flex min-h-[44px] items-center gap-2 rounded-md border px-3 py-2 text-xs text-muted-foreground">
               <Loader2 className="h-3.5 w-3.5 animate-spin" /> Updating
             </div>
           )}
-          <SubmitPaymentDialog />
+          <div className="flex flex-wrap items-center gap-2">
+            <FilterSortModal
+              open={isFilterModalOpen}
+              onOpenChange={setIsFilterModalOpen}
+              title={t("filters.title")}
+              description={t("subtitle")}
+              onApply={applyFilters}
+              onReset={resetFilters}
+              resetLabel={t("filters.reset")}
+            >
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5 sm:col-span-2">
+                  <label className="text-xs font-medium text-muted-foreground">
+                    {t("filters.searchPlaceholder")}
+                  </label>
+                  <Input
+                    value={draftSearch}
+                    onChange={(e) => setDraftSearch(e.target.value)}
+                    placeholder={t("filters.searchPlaceholder")}
+                    className="min-h-[44px]"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">
+                    {t("filters.minAmount")}
+                  </label>
+                  <Input
+                    type="number"
+                    value={draftMinAmount}
+                    onChange={(e) => setDraftMinAmount(e.target.value)}
+                    placeholder={t("filters.minAmount")}
+                    className="min-h-[44px]"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">
+                    {t("filters.maxAmount")}
+                  </label>
+                  <Input
+                    type="number"
+                    value={draftMaxAmount}
+                    onChange={(e) => setDraftMaxAmount(e.target.value)}
+                    placeholder={t("filters.maxAmount")}
+                    className="min-h-[44px]"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">
+                    {t("filters.statusPrefix")}
+                  </label>
+                  <select
+                    value={draftStatus}
+                    onChange={(e) => setDraftStatus(e.target.value)}
+                    className="min-h-[44px] w-full rounded-md border border-input bg-background px-3 text-sm"
+                  >
+                    {STATUS_OPTIONS.map((item) => (
+                      <option key={item} value={item}>
+                        {t("filters.statusPrefix")}
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">
+                    {t("filters.sourcePlaceholder")}
+                  </label>
+                  <Input
+                    value={draftSource === "all" ? "" : draftSource}
+                    onChange={(e) => setDraftSource(e.target.value)}
+                    placeholder={t("filters.sourcePlaceholder")}
+                    className="min-h-[44px]"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">
+                    {t("records.columns.date")}
+                  </label>
+                  <Input
+                    type="date"
+                    value={draftStartDate}
+                    onChange={(e) => setDraftStartDate(e.target.value)}
+                    className="min-h-[44px]"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">
+                    {t("records.columns.date")}
+                  </label>
+                  <Input
+                    type="date"
+                    value={draftEndDate}
+                    onChange={(e) => setDraftEndDate(e.target.value)}
+                    className="min-h-[44px]"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">
+                    {t("filters.sortDate")}
+                  </label>
+                  <select
+                    value={draftSortBy}
+                    onChange={(e) =>
+                      setDraftSortBy(e.target.value as "amount" | "date")
+                    }
+                    className="min-h-[44px] w-full rounded-md border border-input bg-background px-3 text-sm"
+                  >
+                    <option value="date">{t("filters.sortDate")}</option>
+                    <option value="amount">{t("filters.sortAmount")}</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">
+                    {t("filters.sortDesc")}
+                  </label>
+                  <select
+                    value={draftSortOrder}
+                    onChange={(e) =>
+                      setDraftSortOrder(e.target.value as "asc" | "desc")
+                    }
+                    className="min-h-[44px] w-full rounded-md border border-input bg-background px-3 text-sm"
+                  >
+                    <option value="desc">{t("filters.sortDesc")}</option>
+                    <option value="asc">{t("filters.sortAsc")}</option>
+                  </select>
+                </div>
+              </div>
+            </FilterSortModal>
+            <SubmitPaymentDialog />
+          </div>
         </div>
       </div>
 
@@ -125,129 +312,38 @@ export default function AgentPaymentsPage() {
       </div>
 
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">{t("filters.title")}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <div className="relative xl:col-span-2">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder={t("filters.searchPlaceholder")}
-                className="pl-9"
-                value={search}
-                onChange={(e) => {
-                  setPage(1);
-                  setSearch(e.target.value);
-                }}
-              />
-            </div>
-            <Input
-              type="number"
-              placeholder={t("filters.minAmount")}
-              value={minAmount}
-              onChange={(e) => {
-                setPage(1);
-                setMinAmount(e.target.value);
-              }}
-            />
-            <Input
-              type="number"
-              placeholder={t("filters.maxAmount")}
-              value={maxAmount}
-              onChange={(e) => {
-                setPage(1);
-                setMaxAmount(e.target.value);
-              }}
-            />
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-            <select
-              value={status}
-              onChange={(e) => {
-                setPage(1);
-                setStatus(e.target.value);
-              }}
-              className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-            >
-              {STATUS_OPTIONS.map((item) => (
-                <option key={item} value={item}>
-                  {t("filters.statusPrefix")}{item}
-                </option>
-              ))}
-            </select>
-            <Input
-              placeholder={t("filters.sourcePlaceholder")}
-              value={source === "all" ? "" : source}
-              onChange={(e) => {
-                setPage(1);
-                setSource(e.target.value.trim() || "all");
-              }}
-            />
-            <Input
-              type="date"
-              value={startDate}
-              onChange={(e) => {
-                setPage(1);
-                setStartDate(e.target.value);
-              }}
-            />
-            <Input
-              type="date"
-              value={endDate}
-              onChange={(e) => {
-                setPage(1);
-                setEndDate(e.target.value);
-              }}
-            />
-            <div className="flex gap-2">
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as "amount" | "date")}
-                className="h-10 flex-1 rounded-md border border-input bg-background px-3 text-sm"
-              >
-                <option value="date">{t("filters.sortDate")}</option>
-                <option value="amount">{t("filters.sortAmount")}</option>
-              </select>
-              <select
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
-                className="h-10 flex-1 rounded-md border border-input bg-background px-3 text-sm"
-              >
-                <option value="desc">{t("filters.sortDesc")}</option>
-                <option value="asc">{t("filters.sortAsc")}</option>
-              </select>
-            </div>
-          </div>
-          <div className="flex justify-stretch sm:justify-end">
-            <Button variant="outline" onClick={resetFilters}>
-              {t("filters.reset")}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="pb-2">
+        <CardHeader className="flex flex-col gap-2 pb-2 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle className="text-base">{t("records.title")}</CardTitle>
+          <p className="text-xs text-muted-foreground">
+            {t("records.pagination", {
+              page: pagination?.page ?? 1,
+              totalPages,
+              total: pagination?.total ?? 0,
+            })}
+          </p>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="flex h-48 items-center justify-center text-muted-foreground">
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" /> {t("records.loading")}
+            <div className="space-y-3">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <Skeleton key={index} className="h-16 w-full rounded-xl" />
+              ))}
             </div>
           ) : (
-            <div className="overflow-x-auto max-h-[700px] overflow-y-auto custom-scrollbar">
-              <table className="w-full text-sm hidden md:table">
+            <TableContainer className="max-h-[700px]">
+              <table className="hidden w-full min-w-[700px] text-sm md:table">
                 <thead>
                   <tr className="border-b text-left text-muted-foreground">
                     <th className="px-2 py-3">{t("records.columns.id")}</th>
                     <th className="px-2 py-3">{t("records.columns.user")}</th>
-                    <th className="px-2 py-3">{t("records.columns.name")}</th>
+                    <th className="hidden px-2 py-3 lg:table-cell">
+                      {t("records.columns.name")}
+                    </th>
                     <th className="px-2 py-3">{t("records.columns.amount")}</th>
                     <th className="px-2 py-3">{t("records.columns.status")}</th>
-                    <th className="px-2 py-3">{t("records.columns.date")}</th>
+                    <th className="hidden px-2 py-3 lg:table-cell">
+                      {t("records.columns.date")}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -268,34 +364,36 @@ export default function AgentPaymentsPage() {
                 </tbody>
               </table>
 
-              {/* Mobile View */}
-              <div className="md:hidden flex flex-col gap-3 py-2">
+              <div className="flex flex-col gap-3 py-2 md:hidden">
                 {payments.length === 0 ? (
-                  <div className="py-10 text-center text-muted-foreground text-sm">
+                  <div className="rounded-xl border border-dashed py-10 text-center text-sm text-muted-foreground">
                     {t("records.empty")}
                   </div>
                 ) : (
                   payments.map((payment: Payment) => (
                     <div
                       key={payment.id}
-                      className="rounded-xl border bg-card text-card-foreground shadow-sm p-4 flex flex-col gap-3"
+                      className="flex flex-col gap-3 rounded-xl border bg-card p-4 text-card-foreground shadow-sm"
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex flex-col min-w-0 flex-1">
-                          <span className="font-semibold text-sm truncate">
-                            {payment.firstName || payment.username || t("records.unknown")}
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <span className="block truncate text-sm font-semibold">
+                            {payment.firstName ||
+                              payment.username ||
+                              t("records.unknown")}
                           </span>
-                          <span className="text-[10px] text-muted-foreground truncate">
-                            @{payment.username || payment.id.slice(0, 8)} • ID: {payment.id.slice(0, 8)}
+                          <span className="block truncate text-[10px] text-muted-foreground">
+                            @{payment.username || payment.id.slice(0, 8)} • ID:{" "}
+                            {payment.id.slice(0, 8)}
                           </span>
                         </div>
                         <Badge
-                          className={`shrink-0 ml-2 text-[10px] capitalize ${
+                          className={`ml-2 shrink-0 text-[10px] capitalize ${
                             payment.status === "approved"
-                              ? "bg-green-500/10 text-green-500 border-green-500/20"
+                              ? "border-green-500/20 bg-green-500/10 text-green-500"
                               : payment.status === "rejected"
-                                ? "bg-red-500/10 text-red-500 border-red-500/20"
-                                : "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                                ? "border-red-500/20 bg-red-500/10 text-red-500"
+                                : "border-amber-500/20 bg-amber-500/10 text-amber-500"
                           }`}
                           variant="outline"
                         >
@@ -303,17 +401,23 @@ export default function AgentPaymentsPage() {
                         </Badge>
                       </div>
 
-                      <div className="flex items-center justify-between mt-1">
-                        <span className="font-black tracking-tight text-lg">
-                          {payment.amount} <span className="text-xs text-muted-foreground font-normal">ETB</span>
+                      <div className="mt-1 flex items-center justify-between gap-3">
+                        <span className="text-lg font-black tracking-tight">
+                          {payment.amount}{" "}
+                          <span className="text-xs font-normal text-muted-foreground">
+                            ETB
+                          </span>
                         </span>
-                        
-                        <div className="flex flex-col items-end min-w-0 flex-1 ml-4 justify-center">
-                          <span className="text-xs text-muted-foreground font-medium">
+
+                        <div className="ml-4 flex min-w-0 flex-1 flex-col items-end justify-center">
+                          <span className="text-xs font-medium text-muted-foreground">
                             {new Date(payment.createdAt).toLocaleDateString()}
                           </span>
                           <span className="text-[10px] text-muted-foreground/70">
-                            {new Date(payment.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {new Date(payment.createdAt).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
                           </span>
                         </div>
                       </div>
@@ -321,14 +425,18 @@ export default function AgentPaymentsPage() {
                   ))
                 )}
               </div>
-            </div>
+            </TableContainer>
           )}
 
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t pt-4">
             <p className="text-xs text-muted-foreground">
-              {t("records.pagination", { page: pagination?.page ?? 1, totalPages, total: pagination?.total ?? 0 })}
+              {t("records.pagination", {
+                page: pagination?.page ?? 1,
+                totalPages,
+                total: pagination?.total ?? 0,
+              })}
             </p>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <select
                 value={pageSize}
                 onChange={(e) => {
@@ -346,6 +454,7 @@ export default function AgentPaymentsPage() {
               <Button
                 variant="outline"
                 size="sm"
+                className="min-h-[44px]"
                 onClick={() => setPage((prev) => Math.max(1, prev - 1))}
                 disabled={page <= 1}
               >
@@ -354,9 +463,8 @@ export default function AgentPaymentsPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() =>
-                  setPage((prev) => Math.min(totalPages, prev + 1))
-                }
+                className="min-h-[44px]"
+                onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
                 disabled={page >= totalPages}
               >
                 {t("records.next")}
@@ -395,28 +503,31 @@ function StatsCard({
 
 function PaymentRow({ payment }: { payment: Payment }) {
   const t = useTranslations("agent.payments");
+
   return (
-    <tr className="border-b last:border-0 hover:bg-muted/30 text-xs">
+    <tr className="border-b text-xs hover:bg-muted/30 last:border-0">
       <td className="px-2 py-3 font-medium opacity-50">
         {payment.id.slice(0, 8)}...
       </td>
       <td className="px-2 py-3">@{payment.username || t("records.unknown")}</td>
-      <td className="px-2 py-3">{payment.firstName || t("records.unknown")}</td>
+      <td className="hidden px-2 py-3 lg:table-cell">
+        {payment.firstName || t("records.unknown")}
+      </td>
       <td className="px-2 py-3 font-bold">{payment.amount}</td>
       <td className="px-2 py-3">
         <Badge
           className={
             payment.status === "approved"
-              ? "bg-green-500/10 text-green-500 border-green-500/20"
+              ? "border-green-500/20 bg-green-500/10 text-green-500"
               : payment.status === "rejected"
-                ? "bg-red-500/10 text-red-500 border-red-500/20"
-                : "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                ? "border-red-500/20 bg-red-500/10 text-red-500"
+                : "border-amber-500/20 bg-amber-500/10 text-amber-500"
           }
         >
           {payment.status}
         </Badge>
       </td>
-      <td className="px-2 py-3 text-muted-foreground">
+      <td className="hidden px-2 py-3 text-muted-foreground lg:table-cell">
         {new Date(payment.createdAt).toLocaleString()}
       </td>
     </tr>
