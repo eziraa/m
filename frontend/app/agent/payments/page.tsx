@@ -336,7 +336,7 @@ export default function AgentPaymentsPage() {
             })}
           </p>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-2">
           {isLoading ? (
             <div className="space-y-3">
               {Array.from({ length: 5 }).map((_, index) => (
