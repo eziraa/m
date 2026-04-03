@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { AgentPagination } from "@/components/agent/AgentPagination";
 import { FilterSortModal } from "@/components/agent/FilterSortModal";
 import { TableContainer } from "@/components/agent/TableContainer";
 import { Input } from "@/components/ui/input";
@@ -400,51 +401,14 @@ export default function TransactionTable() {
         </div>
       </TableContainer>
 
-      <div className="flex flex-col gap-3 border-t px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="text-sm text-muted-foreground">
-          Page {page} of {Math.max(1, Math.ceil(total / pageSize))} •{" "}
-          {total.toLocaleString()} records
-        </div>
-        <div className="flex  items-center gap-3">
-          <label className="flex items-center gap-1 text-xs text-muted-foreground">
-            <span>Per page:</span>
-            <select
-              value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value));
-                setPage(1);
-              }}
-              className="h-8 rounded-md border border-input bg-background px-2 text-xs"
-            >
-              {[10, 20, 50, 100].map((size) => (
-                <option key={size} value={size}>
-                  {size}
-                </option>
-              ))}
-            </select>
-          </label>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className=""
-              disabled={page === 1}
-              onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-            >
-              Prev
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className=""
-              disabled={page * pageSize >= total}
-              onClick={() => setPage((prev) => prev + 1)}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      </div>
+      <AgentPagination
+        page={page}
+        pageSize={pageSize}
+        total={total}
+        summaryText={`Page ${page} of ${Math.max(1, Math.ceil(total / pageSize))} ? ${total.toLocaleString()} records`}
+        onPageChange={setPage}
+        onPageSizeChange={setPageSize}
+      />
 
       {selected && (
         <TransactionDetail tx={selected} onClose={() => setSelected(null)} />

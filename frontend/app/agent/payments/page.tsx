@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AgentPagination } from "@/components/agent/AgentPagination";
 import { FilterSortModal } from "@/components/agent/FilterSortModal";
 import { TableContainer } from "@/components/agent/TableContainer";
 import {
@@ -425,49 +426,23 @@ export default function AgentPaymentsPage() {
             </TableContainer>
           )}
 
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t pt-4">
-            <p className="text-xs text-muted-foreground">
-              {t("records.pagination", {
-                page: pagination?.page ?? 1,
-                totalPages,
-                total: pagination?.total ?? 0,
-              })}
-            </p>
-            <div className="flex flex-wrap items-center gap-2">
-              <select
-                value={pageSize}
-                onChange={(e) => {
-                  setPage(1);
-                  setPageSize(Number(e.target.value));
-                }}
-                className="h-9 rounded-md border border-input bg-background px-2 text-xs"
-              >
-                {[10, 20, 50, 100].map((size) => (
-                  <option key={size} value={size}>
-                    {t("records.perPage", { size })}
-                  </option>
-                ))}
-              </select>
-              <Button
-                variant="outline"
-                size="sm"
-                className="min-h-[44px]"
-                onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                disabled={page <= 1}
-              >
-                {t("records.previous")}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="min-h-[44px]"
-                onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
-                disabled={page >= totalPages}
-              >
-                {t("records.next")}
-              </Button>
-            </div>
-          </div>
+          <AgentPagination
+            page={page}
+            pageSize={pageSize}
+            total={pagination?.total ?? 0}
+            totalPages={totalPages}
+            summaryText={t("records.pagination", {
+              page: pagination?.page ?? 1,
+              totalPages,
+              total: pagination?.total ?? 0,
+            })}
+            previousLabel={t("records.previous")}
+            nextLabel={t("records.next")}
+            renderPageSizeOption={(size) => t("records.perPage", { size })}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+            className="mt-4"
+          />
         </CardContent>
       </Card>
     </div>

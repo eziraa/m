@@ -28,6 +28,7 @@ import { useGetAgentUsersQuery } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslations } from "next-intl";
+import { AgentPagination } from "@/components/agent/AgentPagination";
 import { AgentBalanceAdjustmentDialog } from "@/components/agent/AgentBalanceAdjustmentDialog";
 import { FilterSortModal } from "@/components/agent/FilterSortModal";
 import { TableContainer } from "@/components/agent/TableContainer";
@@ -463,55 +464,16 @@ export default function AgentUsersPage() {
         )}
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span>
-            Page {page} / {totalPages}
-          </span>
-          <span className="k">• {total.toLocaleString()} records</span>
-        </div>
-        <div className="flex justify-stretch items-center gap-3">
-          <label className="flex items-center gap-1 text-xs text-muted-foreground">
-            <span>Per page:</span>
-            <select
-              value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value));
-                setPage(1);
-              }}
-              className="h-8 rounded-md border bg-background px-2 text-xs"
-            >
-              {[10, 20, 50, 100].map((size) => (
-                <option key={size} value={size}>
-                  {size}
-                </option>
-              ))}
-            </select>
-          </label>
-          <div className="flex items-center flex-1 justify-stretch gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="xs"
-              className="min-h-11"
-              disabled={page <= 1}
-              onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-            >
-              Prev
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="xs"
-              className="min-h-11"
-              disabled={page >= totalPages}
-              onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      </div>
+      <AgentPagination
+        page={page}
+        pageSize={pageSize}
+        total={total}
+        totalPages={totalPages}
+        summaryText={`Page ${page} of ${totalPages} ? ${total.toLocaleString()} records`}
+        onPageChange={setPage}
+        onPageSizeChange={setPageSize}
+        className="mt-3"
+      />
 
       <AgentBalanceAdjustmentDialog
         open={isAdjustmentDialogOpen}

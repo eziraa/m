@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AgentPagination } from "@/components/agent/AgentPagination";
 import { FilterSortModal } from "@/components/agent/FilterSortModal";
 import {
   useGetAgentWithdrawalsQuery,
@@ -455,54 +456,24 @@ export default function AgentWithdrawalsPage() {
             })}
           </div>
 
-          <div className="mt-6 flex flex-wrap items-center justify-between gap-3 px-2">
-            <div className="text-sm text-muted-foreground">
-              {t("pagination.info", {
-                page,
-                totalPages: Math.max(1, Math.ceil((data?.total ?? 0) / limit)),
-                total: data?.total ?? 0,
-              })}
-            </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <label className="flex items-center gap-1 text-xs text-muted-foreground">
-                <span>{t("pagination.rowsPerPage")}</span>
-                <select
-                  value={limit}
-                  onChange={(e) => {
-                    setLimit(Number(e.target.value));
-                    setPage(1);
-                  }}
-                  className="h-8 rounded-md border border-input bg-background px-2 text-xs"
-                >
-                  {[5, 10, 20, 50, 100].map((size) => (
-                    <option key={size} value={size}>
-                      {size}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="min-h-[44px]"
-                  disabled={page === 1}
-                  onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                >
-                  {t("pagination.previous")}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="min-h-[44px]"
-                  disabled={page * limit >= (data?.total ?? 0)}
-                  onClick={() => setPage((prev) => prev + 1)}
-                >
-                  {t("pagination.next")}
-                </Button>
-              </div>
-            </div>
-          </div>
+          <AgentPagination
+            page={page}
+            pageSize={limit}
+            total={data?.total ?? 0}
+            totalPages={Math.max(1, Math.ceil((data?.total ?? 0) / limit))}
+            pageSizeOptions={[5, 10, 20, 50, 100]}
+            summaryText={t("pagination.info", {
+              page,
+              totalPages: Math.max(1, Math.ceil((data?.total ?? 0) / limit)),
+              total: data?.total ?? 0,
+            })}
+            perPageLabel={t("pagination.rowsPerPage")}
+            previousLabel={t("pagination.previous")}
+            nextLabel={t("pagination.next")}
+            onPageChange={setPage}
+            onPageSizeChange={setLimit}
+            className="mt-6"
+          />
         </>
       )}
     </div>
