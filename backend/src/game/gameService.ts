@@ -604,10 +604,6 @@ export async function leaveSessionBeforeStart(
   identity: RequestIdentity,
   sessionId: string,
 ) {
-  if (identity.role !== "USER") {
-    throw new Error("only_user_can_leave_session");
-  }
-
   const [session] = await db
     .select({
       id: gameSessions.id,
@@ -626,13 +622,6 @@ export async function leaveSessionBeforeStart(
   if (session.roomStatus !== "active") throw new Error("room_not_active");
   if (!(session.status === "waiting" || session.status === "countdown")) {
     throw new Error("session_not_open_for_leave");
-  }
-  if (
-    identity.role === "USER" &&
-    session.ownerRole !== "ADMIN" &&
-    identity.agentId !== session.sessionAgentId
-  ) {
-    throw new Error("forbidden_agent_scope");
   }
 
   const removed = await db
