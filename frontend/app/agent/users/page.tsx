@@ -136,7 +136,7 @@ export default function AgentUsersPage() {
           <p className="text-xs text-muted-foreground">{t("subtitle")}</p>
         </div>
         <div className="flex w-full flex-col gap-2 self-start lg:w-auto lg:min-w-[22rem] lg:self-auto">
-          <div className="w-full flex-row  flex-wrap items-center justify-between gap-2 lg:justify-end">
+          <div className="w-full flex-row   items-center justify-between gap-2 lg:justify-end">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
