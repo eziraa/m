@@ -126,8 +126,7 @@ export function DepositForm() {
 
   const handleCopy = () => {
     const valueToCopy =
-      selectedMethod?.accountNumber ??
-      (isCbe ? "1000485490478" : "0935878383");
+      selectedMethod?.accountNumber ?? (isCbe ? "1000485490478" : "0935878383");
     navigator.clipboard.writeText(valueToCopy);
     setCopySuccess(true);
     setTimeout(() => setCopySuccess(false), 1200);
@@ -271,7 +270,7 @@ export function DepositForm() {
         </div> */}
 
         {/* SMS */}
-        <div className="flex flex-col gap-1 mt-1">
+        {/* <div className="flex flex-col gap-1 mt-1">
           <label className="text-[11px] font-medium text-foreground/60">
             {t("promo.label")}
           </label>
@@ -288,7 +287,7 @@ export function DepositForm() {
               {errors.promoCode.message}
             </span>
           )}
-        </div>
+        </div> */}
 
         {/* SMS */}
         <div className="flex flex-col gap-1 mt-1">
