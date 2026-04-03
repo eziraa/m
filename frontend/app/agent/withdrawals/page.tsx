@@ -156,7 +156,7 @@ export default function AgentWithdrawalsPage() {
           </p>
         </div>
         <div className="flex w-full flex-col gap-2 self-start lg:w-auto lg:min-w-[22rem]">
-          <div className="flex flex-wrap items-center justify-between gap-2 lg:justify-end">
+          <div className="flex  flex-row  flex-wrap items-center justify-between gap-2 lg:justify-end">
             <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
