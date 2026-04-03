@@ -35,7 +35,7 @@ export function FilterSortModal({
   onReset,
   applyLabel = "Apply",
   resetLabel = "Reset",
-  triggerLabel = "Filter & Sort",
+  triggerLabel = "Filter ",
   children,
 }: FilterSortModalProps) {
   return (
