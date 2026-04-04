@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 
-import { env } from "../config/env.js";
+import { getWelcomeBonusCents } from "../config/runtimeConfig.js";
 import { db } from "../db/client.js";
 import { users, walletLedger } from "../db/schema.js";
 import { signAuthToken } from "./jwt.js";
@@ -37,6 +37,7 @@ export async function loginWithTelegram(
   verified: VerifiedInitData,
   options?: { startParam?: string },
 ): Promise<LoginResult> {
+  const welcomeBonusCents = await getWelcomeBonusCents();
   const telegramId = String(verified.user.id);
   const referralCode = verified.raw.start_param || options?.startParam;
   const referredByAgentId = await resolveAgentIdFromStartParam(referralCode);
@@ -73,12 +74,12 @@ export async function loginWithTelegram(
           referredByAgentId: users.referredByAgentId,
         });
 
-      if (env.WELCOME_BONUS_CENTS > 0) {
+      if (welcomeBonusCents > 0) {
         await tx.insert(walletLedger).values({
           userId: newUser.id,
           agentId: newUser.referredByAgentId,
           entryType: "referral_reward",
-          amountCents: env.WELCOME_BONUS_CENTS,
+          amountCents: welcomeBonusCents,
           currency: "ETB",
           status: "posted",
           idempotencyKey: `welcome_bonus:${newUser.id}`,

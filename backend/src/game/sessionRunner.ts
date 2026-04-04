@@ -1,4 +1,5 @@
 import { and, desc, eq, gt, inArray, or, sql } from "drizzle-orm";
+import { getAgentCommissionBps, getSessionConfigNumbers } from "../config/runtimeConfig.js";
 import { db } from "../db/client.js";
 import {
   boards,
@@ -15,7 +16,6 @@ import {
 import { getIo } from "../realtime/ioHub.js";
 import { logger } from "../utils/logger.js";
 import { incCounter } from "../utils/metrics.js";
-import { env } from "../config/env.js";
 
 const ownerId = `node-${process.pid}`;
 const leasePrefix = "session:owner:";
@@ -564,6 +564,7 @@ export async function getBoardSelectionState(
   identity: RequestIdentity,
   sessionId: string,
 ) {
+  const agentCommissionBps = await getAgentCommissionBps();
   const [session] = await db
     .select({
       id: gameSessions.id,
@@ -598,7 +599,7 @@ export async function getBoardSelectionState(
     .where(eq(boards.sessionId, session.id));
   const grossPotCents = totals?.potCents ?? 0;
   const commissionCents = Math.floor(
-    (grossPotCents * env.AGENT_COMMISSION_BPS) / 10000,
+    (grossPotCents * agentCommissionBps) / 10000,
   );
   const netPayoutPreviewCents = Math.max(
     grossPotCents - commissionCents - session.stakeCents,
@@ -772,12 +773,16 @@ async function resolveOrCreateActiveSessionForRoom(
   if (waitingSession) {
     sessionId = waitingSession.id;
   } else {
+    const sessionConfig = await getSessionConfigNumbers();
     const [created] = await db
       .insert(gameSessions)
       .values({
         roomId: room.id,
         agentId: room.agentId,
         status: "waiting",
+        countdownSeconds: sessionConfig.countdownSeconds,
+        callIntervalMs: sessionConfig.callIntervalMs,
+        totalNumbers: sessionConfig.totalNumbers,
       })
       .returning({ id: gameSessions.id });
 

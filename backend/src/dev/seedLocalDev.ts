@@ -1,6 +1,7 @@
 import { and, eq, inArray } from "drizzle-orm";
 
 import { env } from "../config/env.js";
+import { getSessionConfigNumbers } from "../config/runtimeConfig.js";
 import { closeDbPool, db } from "../db/client.js";
 import { gameSessions, rooms, users } from "../db/schema.js";
 
@@ -89,6 +90,7 @@ async function ensureRoom(agentId: string) {
 }
 
 async function ensureSession(roomId: string, agentId: string) {
+  const sessionConfig = await getSessionConfigNumbers();
   const [live] = await db
     .select({
       id: gameSessions.id,
@@ -117,10 +119,10 @@ async function ensureSession(roomId: string, agentId: string) {
       roomId,
       agentId,
       status: "waiting",
-      countdownSeconds: 45,
+      countdownSeconds: sessionConfig.countdownSeconds,
       countdownResets: 0,
-      callIntervalMs: 3000,
-      totalNumbers: 75,
+      callIntervalMs: sessionConfig.callIntervalMs,
+      totalNumbers: sessionConfig.totalNumbers,
       currentSeq: 0,
       currentNumber: null,
       version: 0,

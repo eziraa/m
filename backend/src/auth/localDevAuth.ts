@@ -1,7 +1,7 @@
 import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { and, eq } from "drizzle-orm";
 
-import { env } from "../config/env.js";
+import { getWelcomeBonusCents } from "../config/runtimeConfig.js";
 import { db } from "../db/client.js";
 import { localAuthCredentials, users, walletLedger } from "../db/schema.js";
 import { signAuthToken } from "./jwt.js";
@@ -48,6 +48,7 @@ export async function signupLocalDev(input: {
   username?: string;
   referralCode?: string;
 }): Promise<LocalAuthResult> {
+  const welcomeBonusCents = await getWelcomeBonusCents();
   const email = normalizeEmail(input.email);
 
   const [existingCred] = await db
@@ -103,12 +104,12 @@ export async function signupLocalDev(input: {
       passwordHash: hashPassword(input.password),
     });
 
-    if (env.WELCOME_BONUS_CENTS > 0) {
+    if (welcomeBonusCents > 0) {
       await tx.insert(walletLedger).values({
         userId: newUser.id,
         agentId: newUser.referredByAgentId,
         entryType: "referral_reward",
-        amountCents: env.WELCOME_BONUS_CENTS,
+        amountCents: welcomeBonusCents,
         currency: "ETB",
         status: "posted",
         idempotencyKey: `welcome_bonus:${newUser.id}`,

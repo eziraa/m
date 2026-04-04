@@ -1,6 +1,6 @@
 import { and, desc, eq, inArray, or, sql } from "drizzle-orm";
 
-import { env } from "../config/env.js";
+import { getAgentCommissionBps } from "../config/runtimeConfig.js";
 import { db } from "../db/client.js";
 import {
   boardPurchaseRequests,
@@ -114,6 +114,7 @@ export async function listAvailableRooms(identity: RequestIdentity) {
     botAllowed: rooms.botAllowed,
   } as const;
 
+  // ✅ ADMIN → all active rooms
   if (identity.role === "ADMIN") {
     return db
       .select(roomFields)
@@ -122,21 +123,20 @@ export async function listAvailableRooms(identity: RequestIdentity) {
       .orderBy(desc(rooms.createdAt));
   }
 
+  // ✅ AGENT → ONLY their own rooms
   if (identity.role === "AGENT") {
-    let all_rooms = db
+    const agentId = identity.userId;
+
+    const agentRoomsQuery = db
       .select(roomFields)
       .from(rooms)
-      .innerJoin(users, eq(users.id, rooms.agentId))
-      .where(
-        and(
-          eq(rooms.status, "active"),
-          or(eq(rooms.agentId, identity.userId), eq(users.role, "ADMIN")),
-        ),
-      )
+      .where(and(eq(rooms.status, "active"), eq(rooms.agentId, agentId)))
       .orderBy(desc(rooms.createdAt));
 
-    if (!(await all_rooms).length) {
-      const agentId = identity.userId;
+    const roomsList = await agentRoomsQuery;
+
+    // Auto-create default rooms if none exist
+    if (!roomsList.length) {
       await db.insert(rooms).values([
         {
           agentId,
@@ -166,21 +166,19 @@ export async function listAvailableRooms(identity: RequestIdentity) {
           color: "from-green-700 to-green-900",
         },
       ]);
+
+      // Fetch again after insert
+      return db
+        .select(roomFields)
+        .from(rooms)
+        .where(and(eq(rooms.status, "active"), eq(rooms.agentId, agentId)))
+        .orderBy(desc(rooms.createdAt));
     }
 
-    return db
-      .select(roomFields)
-      .from(rooms)
-      .innerJoin(users, eq(users.id, rooms.agentId))
-      .where(
-        and(
-          eq(rooms.status, "active"),
-          or(eq(rooms.agentId, identity.userId), eq(users.role, "ADMIN")),
-        ),
-      )
-      .orderBy(desc(rooms.createdAt));
+    return roomsList;
   }
 
+  // ✅ USER logic (unchanged)
   if (identity.role === "USER") {
     if (identity.agentId) {
       return db
@@ -204,10 +202,9 @@ export async function listAvailableRooms(identity: RequestIdentity) {
     }
   }
 
-  // Fallback: no rooms
+  // Fallback
   return [];
 }
-
 type HomeRoomTheme = {
   codeName: string;
   gradientFrom: string;
@@ -569,6 +566,7 @@ export async function buyBoards(
 }
 
 export async function getSessionParticipationStats(sessionId: string) {
+  const agentCommissionBps = await getAgentCommissionBps();
   const [stats] = await db
     .select({
       sessionId: gameSessions.id,
@@ -590,7 +588,7 @@ export async function getSessionParticipationStats(sessionId: string) {
   }
 
   const commissionCents = Math.floor(
-    ((stats.potCents ?? 0) * env.AGENT_COMMISSION_BPS) / 10000,
+    ((stats.potCents ?? 0) * agentCommissionBps) / 10000,
   );
   const netPayoutPreviewCents = Math.max(
     (stats.potCents ?? 0) - commissionCents - (stats.stakeCents ?? 0),
@@ -682,6 +680,7 @@ type BingoClaimTxResult = {
 };
 
 export async function callBingo(identity: RequestIdentity, input: ClaimInput) {
+  const agentCommissionBps = await getAgentCommissionBps();
   incCounter("bingo_claim_requests_total");
   logger.info("bingo_claim_started", {
     sessionId: input.sessionId,
@@ -932,9 +931,7 @@ export async function callBingo(identity: RequestIdentity, input: ClaimInput) {
         .where(eq(boards.sessionId, input.sessionId));
 
       const gross = totalPotCents ?? 0;
-      const commissionCents = Math.floor(
-        (gross * env.AGENT_COMMISSION_BPS) / 10000,
-      );
+      const commissionCents = Math.floor((gross * agentCommissionBps) / 10000);
       const payoutCents = Math.max(gross - commissionCents, 0);
 
       // Calculate game fee based on number of boards and room price

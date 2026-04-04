@@ -12,6 +12,11 @@ import {
 } from "drizzle-orm";
 import { z } from "zod";
 
+import {
+  getEditableConfig,
+  listEditableConfigs,
+  upsertEditableConfig,
+} from "../config/runtimeConfig.js";
 import { db } from "../db/client.js";
 import {
   adminSettings,
@@ -87,6 +92,8 @@ const adminBonusSchema = z
 const gameConfigSchema = z
   .object({
     value: z.union([z.string(), z.number()]),
+    label: z.string().trim().min(1).max(120).optional(),
+    description: z.string().max(500).optional(),
   })
   .strict();
 
@@ -96,13 +103,6 @@ type AdminBonusSetting = {
   description: string;
   message: string;
   isActive: boolean;
-};
-
-type GameConfigSetting = {
-  key: string;
-  label: string;
-  value: string;
-  description: string;
 };
 
 const postButtonSchema = z.object({
@@ -200,10 +200,13 @@ async function getBonusSetting(slug: AdminBonusSetting["slug"]) {
     .where(eq(adminSettings.key, `bonus:${slug}`))
     .limit(1);
 
+  const welcomeBonusConfig = await getEditableConfig("welcome_bonus");
   const fallback: AdminBonusSetting = {
     slug,
-    amount: 10,
-    description: "Starter credit granted to a newly created account.",
+    amount: Number(welcomeBonusConfig?.value ?? "10.00"),
+    description:
+      welcomeBonusConfig?.description ??
+      "Starter credit granted to a newly created account.",
     message: "Welcome {{name}}! You received {{amount}} ETB to get started.",
     isActive: true,
   };
@@ -215,50 +218,6 @@ async function getBonusSetting(slug: AdminBonusSetting["slug"]) {
 
 async function listBonusSettings() {
   return [await getBonusSetting("welcome_bonus")];
-}
-
-async function getGameConfigSetting(key: string) {
-  const [row] = await db
-    .select()
-    .from(adminSettings)
-    .where(eq(adminSettings.key, `game_config:${key}`))
-    .limit(1);
-
-  const fallbackMap: Record<string, GameConfigSetting> = {
-    countdownSeconds: {
-      key: "countdownSeconds",
-      label: "Countdown Seconds",
-      value: "45",
-      description: "How long a room waits before drawing starts.",
-    },
-    callIntervalMs: {
-      key: "callIntervalMs",
-      label: "Call Interval (ms)",
-      value: "3000",
-      description: "Delay between called numbers during an active session.",
-    },
-    totalNumbers: {
-      key: "totalNumbers",
-      label: "Total Numbers",
-      value: "75",
-      description: "How many draw numbers are available in a session.",
-    },
-  };
-
-  const fallback = fallbackMap[key];
-  if (!fallback) return null;
-  return row
-    ? mapSettingValue<GameConfigSetting>(row.value, fallback)
-    : fallback;
-}
-
-async function listGameConfigSettings() {
-  const settings = await Promise.all([
-    getGameConfigSetting("countdownSeconds"),
-    getGameConfigSetting("callIntervalMs"),
-    getGameConfigSetting("totalNumbers"),
-  ]);
-  return settings.filter(Boolean) as GameConfigSetting[];
 }
 
 function normalizePostStatus(
@@ -853,6 +812,10 @@ router.patch(
     }
 
     const next = { ...current, ...parsed.data, slug };
+    await upsertEditableConfig("welcome_bonus", {
+      value: next.amount.toFixed(2),
+      description: next.description,
+    });
     await db
       .insert(adminSettings)
       .values({
@@ -873,8 +836,9 @@ router.get(
   "/admin/game-config",
   asyncHandler(async (_req, res) => {
     res.status(200).json({
+      success: true,
       ok: true,
-      configs: await listGameConfigSettings(),
+      configs: await listEditableConfigs(),
     });
   }),
 );
@@ -883,7 +847,7 @@ router.patch(
   "/admin/game-config/:key",
   asyncHandler(async (req, res) => {
     const key = String(req.params.key);
-    const current = await getGameConfigSetting(key);
+    const current = await getEditableConfig(key);
     if (!current) {
       res.status(404).json({ error: "config_not_found" });
       return;
@@ -903,20 +867,13 @@ router.patch(
       return;
     }
 
-    const next = { ...current, value };
-    await db
-      .insert(adminSettings)
-      .values({
-        key: `game_config:${key}`,
-        value: next,
-        updatedAt: new Date(),
-      })
-      .onConflictDoUpdate({
-        target: adminSettings.key,
-        set: { value: next, updatedAt: new Date() },
-      });
+    const next = await upsertEditableConfig(key, {
+      value,
+      label: parsed.data.label,
+      description: parsed.data.description,
+    });
 
-    res.status(200).json({ ok: true, config: next });
+    res.status(200).json({ success: true, ok: true, config: next });
   }),
 );
 
