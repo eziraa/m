@@ -16,6 +16,7 @@ import {
   getEditableConfig,
   listEditableConfigs,
   upsertEditableConfig,
+  validateEditableConfigValue,
 } from "../config/runtimeConfig.js";
 import { db } from "../db/client.js";
 import {
@@ -861,14 +862,17 @@ router.patch(
       return;
     }
 
-    const value = String(parsed.data.value).trim();
-    if (!value) {
-      res.status(400).json({ error: "config_value_required" });
+    const validation = validateEditableConfigValue(
+      key,
+      String(parsed.data.value),
+    );
+    if (!validation.ok) {
+      res.status(400).json({ error: validation.error });
       return;
     }
 
     const next = await upsertEditableConfig(key, {
-      value,
+      value: validation.value,
       label: parsed.data.label,
       description: parsed.data.description,
     });

@@ -76,6 +76,7 @@ export type EditableConfig = {
   value: string;
   label: string;
   description: string;
+  kind: EditableConfigDefinition["kind"];
   createdAt: Date | null;
   updatedAt: Date | null;
 };
@@ -118,6 +119,7 @@ function normalizeEditableConfig(
       typeof value.description === "string"
         ? value.description
         : definition.description,
+    kind: definition.kind,
     createdAt: createdAt ?? null,
     updatedAt: updatedAt ?? null,
   };
@@ -217,6 +219,46 @@ function parseNumber(value: string, fallback: number): number {
 
 function getKindDefault(key: EditableConfigKey) {
   return editableConfigDefinitions[key];
+}
+
+export function validateEditableConfigValue(
+  key: string,
+  rawValue: string,
+): { ok: true; value: string } | { ok: false; error: string } {
+  const definition = getDefinition(key);
+  if (!definition) {
+    return { ok: false, error: "config_not_found" };
+  }
+
+  const value = rawValue.trim();
+  if (!value) {
+    return { ok: false, error: "config_value_required" };
+  }
+
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) {
+    return { ok: false, error: "config_value_must_be_numeric" };
+  }
+
+  switch (definition.kind) {
+    case "integer":
+      if (!Number.isInteger(numericValue) || numericValue < 0) {
+        return { ok: false, error: "config_value_must_be_non_negative_integer" };
+      }
+      break;
+    case "fraction":
+      if (numericValue < 0 || numericValue > 1) {
+        return { ok: false, error: "config_value_must_be_fraction" };
+      }
+      break;
+    case "amount":
+      if (numericValue < 0) {
+        return { ok: false, error: "config_value_must_be_non_negative" };
+      }
+      break;
+  }
+
+  return { ok: true, value };
 }
 
 export async function getWelcomeBonusCents(): Promise<number> {

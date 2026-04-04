@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
+  House,
   FileText,
   ArrowRightLeft,
   Users,
@@ -25,6 +26,11 @@ export function AdminSidebar({ className, onNavigate }: SidebarProps) {
   const pathname = usePathname();
 
   const navItems = [
+    {
+      label: "Dashboard",
+      href: "/admin",
+      icon: House,
+    },
     {
       label: "Posts",
       href: "/admin/posts",
@@ -92,7 +98,10 @@ export function AdminSidebar({ className, onNavigate }: SidebarProps) {
       <div className="flex-1 overflow-y-auto py-4">
         <nav className="grid gap-1 px-2">
           {navItems.map((item, index) => {
-            const isActive = pathname?.startsWith(item.href);
+            const isActive =
+              item.href === "/admin"
+                ? pathname === "/admin"
+                : pathname?.startsWith(item.href);
 
             return (
               <Link

@@ -1617,6 +1617,9 @@ export type GameConfig = {
   label: string;
   value: string;
   description?: string;
+  kind: "amount" | "fraction" | "integer";
+  createdAt?: string | null;
+  updatedAt?: string | null;
 };
 
 type AdminBonusSetting = {
