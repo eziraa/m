@@ -52,7 +52,7 @@ function HomeRoomCard({
       type="button"
       onClick={() => router.push(`/rooms/${room.id}`)}
       className={cn(
-        "relative w-full overflow-hidden rounded-[28px] border border-white/10 bg-[#11141d] p-4 text-left shadow-[0_18px_40px_rgba(0,0,0,0.28)] transition active:scale-[0.985]",
+        "relative w-full overflow-hidden rounded-[16px] border border-white/10 bg-[#11141d] p-4 text-left shadow-[0_18px_40px_rgba(0,0,0,0.28)] transition active:scale-[0.985]",
         !canAfford && "opacity-85",
       )}
     >
@@ -64,7 +64,7 @@ function HomeRoomCard({
       <div className="relative z-10">
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[18px] border border-white/15 bg-black/15 text-3xl shadow-inner">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[10px] border border-white/15 bg-black/15 text-3xl shadow-inner">
               {room.icon || "🎉"}
             </div>
             <div className="min-w-0">
@@ -79,17 +79,21 @@ function HomeRoomCard({
 
           <Badge
             className={cn(
-              "shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-white",
+              "shrink-0 rounded-full border px-3 py-1 text-[9px]  uppercase tracking-[0.18em] text-white",
               room.isLive
                 ? "border-red-300/40 bg-red-500/85"
                 : "border-white/15 bg-black/20 backdrop-blur-sm",
             )}
           >
-            {room.isLive ? "Live" : room.sessionStatus === "countdown" ? "Soon" : "Open"}
+            {room.isLive
+              ? "Live"
+              : room.sessionStatus === "countdown"
+                ? "Soon"
+                : "Open"}
           </Badge>
         </div>
 
-        <div className="mt-5 flex items-end justify-between gap-3">
+        <div className="mt-5 flex items-end justify-between gap-2">
           <div className="space-y-2">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70">
@@ -101,7 +105,7 @@ function HomeRoomCard({
             </div>
             <div className="flex items-center gap-2 text-[11px] font-semibold text-white/80">
               <Users className="h-3.5 w-3.5" />
-              <span>{room.playersCount} players ready</span>
+              <span>{room.playersCount} players </span>
             </div>
           </div>
 
@@ -392,7 +396,7 @@ export function HomeScreen() {
     <main className="min-h-svh bg-[#07110b] text-white">
       <div className="mx-auto flex min-h-svh max-w-[430px] flex-col bg-[radial-gradient(circle_at_top,rgba(34,197,94,0.18),transparent_34%),linear-gradient(180deg,#0a120d_0%,#09110c_24%,#07110b_100%)] pb-[calc(7rem+env(safe-area-inset-bottom))]">
         <div className="px-4 pt-5">
-          <div className="rounded-[30px] border border-white/10 bg-white/[0.05] p-4 shadow-[0_18px_60px_rgba(0,0,0,0.32)] backdrop-blur-xl">
+          <div className="rounded-[16px] border border-white/10 bg-white/[0.05] p-4 shadow-[0_18px_60px_rgba(0,0,0,0.32)] backdrop-blur-xl">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-[11px] font-black uppercase tracking-[0.28em] text-emerald-200/70">
@@ -401,10 +405,6 @@ export function HomeScreen() {
                 <h1 className="mt-2 text-[26px] font-black leading-none tracking-tight text-white">
                   {user?.username ? `Hey ${user.username}` : "Ready to play?"}
                 </h1>
-                <p className="mt-2 max-w-[240px] text-sm leading-5 text-white/68">
-                  Quick join flow for Telegram players. Top up fast, pick a room,
-                  and jump into the next round.
-                </p>
               </div>
 
               <button
@@ -420,7 +420,7 @@ export function HomeScreen() {
               </button>
             </div>
 
-            <div className="relative mt-5 overflow-hidden rounded-[28px] border border-white/10 bg-linear-to-br from-green-500 to-emerald-700 p-4 shadow-[0_22px_45px_rgba(22,163,74,0.28)]">
+            <div className="relative mt-5 overflow-hidden rounded-[16px] border border-white/10 bg-linear-to-br from-green-500 to-emerald-700 p-4 shadow-[0_22px_45px_rgba(22,163,74,0.28)]">
               <div className="absolute -right-10 -top-8 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
               <div className="absolute bottom-0 right-0 h-24 w-24 rounded-full bg-black/10 blur-2xl" />
 
@@ -434,12 +434,12 @@ export function HomeScreen() {
                       {currency} {balanceLabel}
                     </p>
                   </div>
-                  <div className="rounded-2xl border border-white/15 bg-black/10 p-3 backdrop-blur-sm">
+                  <div className="rounded-lg border border-white/15 bg-black/10 p-3 backdrop-blur-sm">
                     <Wallet className="h-5 w-5 text-white" />
                   </div>
                 </div>
 
-                <div className="mt-4 flex items-center justify-between rounded-2xl border border-white/12 bg-black/10 px-3 py-2.5 text-sm backdrop-blur-sm">
+                <div className="mt-4 flex items-center justify-between rounded-lg border border-white/12 bg-black/10 px-3 py-2.5 text-sm backdrop-blur-sm">
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/65">
                       Bonus
@@ -449,7 +449,7 @@ export function HomeScreen() {
                     </p>
                   </div>
                   <Badge className="rounded-full border-none bg-white/15 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-white">
-                    {affordableRoomsCount} rooms you can join
+                    {affordableRoomsCount} rooms live
                   </Badge>
                 </div>
               </div>
@@ -459,7 +459,7 @@ export function HomeScreen() {
               <button
                 type="button"
                 onClick={() => router.push("/deposit")}
-                className="flex min-h-[76px] flex-col justify-between rounded-[24px] border border-white/10 bg-white/8 p-4 text-left transition active:scale-[0.98]"
+                className="flex min-h-[76px] flex-col justify-between rounded-[16px] border border-white/10 bg-white/8 p-4 text-left transition active:scale-[0.98]"
               >
                 <div className="flex items-center justify-between">
                   <span className="rounded-2xl bg-emerald-500/18 p-2 text-emerald-200">
@@ -478,7 +478,7 @@ export function HomeScreen() {
               <button
                 type="button"
                 onClick={() => setIsInviteModalOpen(true)}
-                className="flex min-h-[76px] flex-col justify-between rounded-[24px] border border-white/10 bg-white/8 p-4 text-left transition active:scale-[0.98]"
+                className="flex min-h-[76px] flex-col justify-between rounded-[16px] border border-white/10 bg-white/8 p-4 text-left transition active:scale-[0.98]"
               >
                 <div className="flex items-center justify-between">
                   <span className="rounded-2xl bg-white/10 p-2 text-white">
@@ -487,7 +487,9 @@ export function HomeScreen() {
                   <ArrowRight className="h-4 w-4 text-white/55" />
                 </div>
                 <div>
-                  <p className="text-sm font-black text-white">Invite friends</p>
+                  <p className="text-sm font-black text-white">
+                    Invite friends
+                  </p>
                   <p className="mt-1 text-[11px] text-white/62">
                     Share your mini app link
                   </p>
@@ -498,7 +500,7 @@ export function HomeScreen() {
         </div>
 
         <div className="mt-5 px-4">
-          <div className="rounded-[28px] border border-white/10 bg-white/[0.045] p-4 shadow-[0_18px_40px_rgba(0,0,0,0.24)] backdrop-blur-xl">
+          <div className="rounded-[16px] border border-white/10 bg-white/[0.045] p-4 shadow-[0_18px_40px_rgba(0,0,0,0.24)] backdrop-blur-xl">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.24em] text-white/60">
@@ -510,7 +512,7 @@ export function HomeScreen() {
                 </h2>
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-black/15 px-3 py-2 text-right">
+              <div className="rounded-lg border border-white/10 bg-black/15 px-3 py-2 text-right">
                 <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/55">
                   Available
                 </p>
@@ -522,11 +524,11 @@ export function HomeScreen() {
 
             <div className="mt-4 flex gap-2 overflow-x-auto pb-1 scrollbar-none">
               {[
-                { key: "all", label: `All (${displayRooms.length})` },
-                { key: "live", label: `Live (${liveRoomsCount})` },
+                { key: "all", label: `All(${displayRooms.length})` },
+                { key: "live", label: `Live(${liveRoomsCount})` },
                 {
                   key: "affordable",
-                  label: `Affordable (${affordableRoomsCount})`,
+                  label: `Affordable(${affordableRoomsCount})`,
                 },
               ].map((filter) => (
                 <button
@@ -536,7 +538,7 @@ export function HomeScreen() {
                     setRoomFilter(filter.key as "all" | "live" | "affordable")
                   }
                   className={cn(
-                    "shrink-0 rounded-full border px-4 py-2.5 text-[11px] font-black uppercase tracking-[0.18em] transition active:scale-95",
+                    "shrink-0 rounded-full border px-3 py-2 text-[11px] font-black uppercase tracking-[0.18em] transition active:scale-95",
                     roomFilter === filter.key
                       ? "border-emerald-300/30 bg-emerald-500 text-white"
                       : "border-white/10 bg-white/6 text-white/70",
@@ -549,7 +551,7 @@ export function HomeScreen() {
 
             <div className="mt-4 space-y-3">
               {filteredRooms.length === 0 ? (
-                <div className="flex flex-col items-center justify-center rounded-[26px] border border-dashed border-white/12 bg-black/10 px-6 py-12 text-center">
+                <div className="flex flex-col items-center justify-center rounded-[16px] border border-dashed border-white/12 bg-black/10 px-6 py-12 text-center">
                   <div className="rounded-full bg-white/6 p-4">
                     <LayoutGrid className="h-6 w-6 text-white/45" />
                   </div>
@@ -567,7 +569,9 @@ export function HomeScreen() {
                     key={room.id}
                     room={room}
                     canAfford={
-                      wallet ? wallet.balanceCents >= room.boardPriceCents : false
+                      wallet
+                        ? wallet.balanceCents >= room.boardPriceCents
+                        : false
                     }
                   />
                 ))
