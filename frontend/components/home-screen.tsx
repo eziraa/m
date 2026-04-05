@@ -15,6 +15,7 @@ import { useGetRoomsQuery, useGetWalletQuery, type RoomItem } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { closeSocket, connectSocket } from "@/lib/socket";
 import { useTranslations } from "next-intl";
+import Logo from "./logo";
 
 const FALLBACK_TOKEN_KEY = "mella_token";
 const EMPTY_ROOMS: RoomItem[] = [];
@@ -234,15 +235,7 @@ export function HomeScreen() {
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="relative"
           >
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-              className="size-24 rounded-full border-2 border-dashed border-primary/30 p-2"
-            >
-              <div className="size-full rounded-full bg-linear-to-tr from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20 shadow-2xl shadow-primary/20">
-                <Sparkles size={32} className="text-primary animate-pulse" />
-              </div>
-            </motion.div>
+            <Logo />
 
             {/* Spinning Rings */}
             <motion.div
@@ -327,7 +320,7 @@ export function HomeScreen() {
         <div className="text-foreground text-[10vw] font-black break-all whitespace-pre-wrap leading-tight p-4 mix-blend-overlay">
           {Array.from({ length: 120 }).map((_, idx) => (
             <span key={idx} className="opacity-10 mr-4">
-              M-Bingo
+              Beshi Bingo
             </span>
           ))}
         </div>
