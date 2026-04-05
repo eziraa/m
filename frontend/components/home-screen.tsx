@@ -237,12 +237,7 @@ export function HomeScreen() {
           >
             <Logo />
 
-            {/* Spinning Rings */}
-            <motion.div
-              animate={{ rotate: -360 }}
-              transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-              className="absolute -inset-4 border border-t-primary/40 border-r-transparent border-b-primary/40 border-l-transparent rounded-full opacity-50"
-            />
+            
           </motion.div>
 
           <motion.div
