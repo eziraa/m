@@ -124,6 +124,7 @@ export type AdminWithdrawal = AgentWithdrawal & {
 
 export type Room = {
   id: string;
+  agentId?: string;
   name: string;
   description: string | null;
   boardPriceCents: number;

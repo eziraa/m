@@ -579,33 +579,6 @@ export function HomeScreen() {
             </div>
           </div>
         </div>
-
-        <div className="mt-5 px-4">
-          <div className="rounded-[24px] border border-white/10 bg-white/[0.045] px-4 py-3 backdrop-blur-xl">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="rounded-2xl bg-emerald-500/15 p-2 text-emerald-200">
-                  <Zap className="h-4 w-4" />
-                </div>
-                <div>
-                  <p className="text-sm font-black text-white">
-                    Smooth Telegram flow
-                  </p>
-                  <p className="text-[11px] text-white/58">
-                    One-hand layout, faster room scanning, bigger tap targets.
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => router.push("/rooms")}
-                className="shrink-0 rounded-full border border-white/10 bg-white/8 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-white transition active:scale-95"
-              >
-                All rooms
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
 
       <InviteModal

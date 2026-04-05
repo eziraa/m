@@ -1,11 +1,10 @@
 import { Router } from "express";
-import { desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 
 import { db } from "../db/client.js";
-import { boards, gameSessions, rooms } from "../db/schema.js";
+import { boards, gameSessions, rooms, users } from "../db/schema.js";
 import { requireAuth } from "./authMiddleware.js";
 import { requireAdmin } from "./adminGuard.js";
-import { requireAgent } from "./agentGuard.js";
 import { listAvailableRooms } from "../game/gameService.js";
 import { logger } from "../utils/logger.js";
 
@@ -44,6 +43,18 @@ function centsToPrice(cents: number): string {
 
 function priceToCents(price: number): number {
   return Math.round(price * 100);
+}
+
+async function resolveRoomAgentId(inputAgentId?: string | null) {
+  if (!inputAgentId) return null;
+
+  const [agent] = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(and(eq(users.id, inputAgentId), eq(users.role, "AGENT")))
+    .limit(1);
+
+  return agent?.id ?? null;
 }
 
 // ── GET /rooms ──────────────────────────────────────────────────────
@@ -167,6 +178,7 @@ router.post("/rooms", requireAuth, requireAdmin, async (req, res) => {
     maxPlayers,
     color,
     icon,
+    agentId: requestedAgentId,
     botAllowed = false,
   } = req.body;
 
@@ -175,7 +187,15 @@ router.post("/rooms", requireAuth, requireAdmin, async (req, res) => {
   }
 
   try {
-    const agentId = req.identity!.userId;
+    const fallbackAgentId = req.identity!.userId;
+    if (requestedAgentId !== undefined && requestedAgentId !== null) {
+      const assignedAgentId = await resolveRoomAgentId(requestedAgentId);
+      if (!assignedAgentId) {
+        return res.status(400).json({ error: "invalid_agent_id" });
+      }
+    }
+    const agentId =
+      (await resolveRoomAgentId(requestedAgentId)) ?? fallbackAgentId;
 
     const [room] = await db
       .insert(rooms)
@@ -203,8 +223,7 @@ router.post("/rooms", requireAuth, requireAdmin, async (req, res) => {
 });
 
 // ── PUT /rooms/:id ──────────────────────────────────────────────────
-router.put("/rooms/:id", requireAuth, requireAgent, async (req, res) => {
-  console.log("@@ req body", req.body);
+router.put("/rooms/:id", requireAuth, async (req, res) => {
   const {
     name,
     price,
@@ -213,6 +232,7 @@ router.put("/rooms/:id", requireAuth, requireAgent, async (req, res) => {
     maxPlayers,
     color,
     icon,
+    agentId: requestedAgentId,
     botAllowed,
   } = req.body;
 
@@ -227,16 +247,31 @@ router.put("/rooms/:id", requireAuth, requireAgent, async (req, res) => {
     if (color !== undefined) patch.color = color;
     if (icon !== undefined) patch.icon = icon;
     if (botAllowed !== undefined) patch.botAllowed = botAllowed;
+    if (req.identity!.role === "ADMIN" && requestedAgentId !== undefined) {
+      const agentId = await resolveRoomAgentId(requestedAgentId);
+      if (!agentId) {
+        return res.status(400).json({ error: "invalid_agent_id" });
+      }
+      patch.agentId = agentId;
+    }
 
-    const agentId = req.identity!.userId;
-
-    console.log("@@ patch", patch);
-
-    const [room] = await db
+    let query = db
       .update(rooms)
       .set(patch)
-      .where(eq(rooms.id, req.params.id as string))
-      .returning();
+      .$dynamic();
+
+    if (req.identity!.role === "ADMIN") {
+      query = query.where(eq(rooms.id, req.params.id as string));
+    } else {
+      query = query.where(
+        and(
+          eq(rooms.id, req.params.id as string),
+          eq(rooms.agentId, req.identity!.userId),
+        ),
+      );
+    }
+
+    const [room] = await query.returning();
 
     if (!room) {
       return res.status(404).json({ error: "room_not_found" });

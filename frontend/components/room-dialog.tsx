@@ -25,7 +25,11 @@ import { toast } from "sonner";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Room } from "@/lib/types";
-import { useCreateRoomMutation, useUpdateRoomMutation } from "@/lib/api";
+import {
+  useCreateRoomMutation,
+  useGetAdminUsersQuery,
+  useUpdateRoomMutation,
+} from "@/lib/api";
 
 const roomSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -33,8 +37,9 @@ const roomSchema = z.object({
   price: z.string().min(1, "Price is required"),
   minPlayers: z.coerce.number().min(2),
   maxPlayers: z.coerce.number().min(2),
-  color: z.string().default("from-green-400 to-green-600"),
+  color: z.string().default("from-blue-400 to-blue-600"),
   icon: z.string().default("🎉"),
+  agentId: z.string().optional(),
 });
 
 type RoomFormValues = z.infer<typeof roomSchema>;
@@ -43,6 +48,7 @@ interface RoomDialogProps {
   room: Room | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  isAdmin?: boolean;
 }
 
 const icons = [
@@ -60,7 +66,7 @@ const icons = [
   "🚀",
 ];
 const colors = [
-  { label: "Blue", value: "from-green-400 to-green-600" },
+  { label: "Blue", value: "from-blue-400 to-blue-600" },
   { label: "Purple", value: "from-purple-400 to-purple-600" },
   { label: "Emerald", value: "from-emerald-400 to-emerald-600" },
   { label: "Amber", value: "from-amber-400 to-amber-600" },
@@ -71,13 +77,29 @@ const colors = [
   { label: "Yellow", value: "from-yellow-400 to-yellow-600" },
   { label: "Lime", value: "from-lime-400 to-lime-600" },
   { label: "Teal", value: "from-teal-400 to-teal-600" },
-  { label: "Indigo", value: "from-emerald-400 to-emerald-600" },
+  { label: "Indigo", value: "from-indigo-400 to-indigo-600" },
   { label: "Violet", value: "from-violet-400 to-violet-600" },
 ];
 
-export function RoomDialog({ room, open, onOpenChange }: RoomDialogProps) {
+export function RoomDialog({
+  room,
+  open,
+  onOpenChange,
+  isAdmin = false,
+}: RoomDialogProps) {
   const [createRoom, { isLoading: isCreating }] = useCreateRoomMutation();
   const [updateRoom, { isLoading: isUpdating }] = useUpdateRoomMutation();
+  const { data: agentsData } = useGetAdminUsersQuery(
+    {
+      page: 1,
+      pageSize: 200,
+      role: "AGENT",
+      sortBy: "firstName",
+      sortOrder: "asc",
+    },
+    { skip: !isAdmin || !open },
+  );
+  const agents = agentsData?.users ?? [];
 
   const form = useForm({
     resolver: zodResolver(roomSchema as any),
@@ -87,7 +109,8 @@ export function RoomDialog({ room, open, onOpenChange }: RoomDialogProps) {
       price: "",
       minPlayers: 2,
       maxPlayers: 10,
-      color: "from-green-400 to-green-600",
+      color: "from-blue-400 to-blue-600",
+      agentId: "",
       icon: "🎉",
     },
   });
@@ -100,7 +123,8 @@ export function RoomDialog({ room, open, onOpenChange }: RoomDialogProps) {
         price: room.price.toString(),
         minPlayers: room.minPlayers,
         maxPlayers: room.maxPlayers,
-        color: room.color || "from-green-400 to-green-600",
+        color: room.color || "from-blue-400 to-blue-600",
+        agentId: room.agentId || "",
         icon: room.icon || "🎉",
       });
     } else {
@@ -110,7 +134,8 @@ export function RoomDialog({ room, open, onOpenChange }: RoomDialogProps) {
         price: "",
         minPlayers: 2,
         maxPlayers: 10,
-        color: "from-green-400 to-green-600",
+        color: "from-blue-400 to-blue-600",
+        agentId: "",
         icon: "🎉",
       });
     }
@@ -118,6 +143,11 @@ export function RoomDialog({ room, open, onOpenChange }: RoomDialogProps) {
 
   async function onSubmit(values: RoomFormValues) {
     try {
+      if (isAdmin && !values.agentId) {
+        toast.error("Please select an agent");
+        return;
+      }
+
       if (room) {
         await updateRoom({ id: room.id, ...values }).unwrap();
         toast.success("Room updated successfully");
@@ -144,6 +174,48 @@ export function RoomDialog({ room, open, onOpenChange }: RoomDialogProps) {
             onSubmit={form.handleSubmit(onSubmit)}
             className="space-y-5 py-4"
           >
+            {isAdmin ? (
+              <FormField
+                control={form.control}
+                name="agentId"
+                render={({ field }) => (
+                  <FormItem className="space-y-1.5">
+                    <FormLabel className="text-[10px] uppercase tracking-wider font-black text-white/40 ml-1">
+                      Assigned Agent
+                    </FormLabel>
+                    <FormControl>
+                      <select
+                        value={field.value || ""}
+                        onChange={(event) => field.onChange(event.target.value)}
+                        className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white"
+                      >
+                        <option value="" className="bg-[#1a1c26]">
+                          Select an agent
+                        </option>
+                        {agents.map(
+                          (agent: {
+                            id: string;
+                            firstName?: string | null;
+                            username?: string | null;
+                          }) => (
+                            <option
+                              key={agent.id}
+                              value={agent.id}
+                              className="bg-[#1a1c26]"
+                            >
+                              {agent.firstName || agent.username || "Unnamed agent"}
+                              {agent.username ? ` (@${agent.username})` : ""}
+                            </option>
+                          ),
+                        )}
+                      </select>
+                    </FormControl>
+                    <FormMessage className="text-[10px]" />
+                  </FormItem>
+                )}
+              />
+            ) : null}
+
             <FormField
               control={form.control}
               name="name"

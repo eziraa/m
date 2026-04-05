@@ -140,6 +140,7 @@ export function getApiBase() {
 
 export type RoomItem = {
   id: string;
+  agentId?: string;
   name: string;
   description: string | null;
   boardPriceCents: number;
@@ -1182,6 +1183,7 @@ export function useCreateRoomMutation() {
       maxPlayers: number;
       color: string;
       icon: string;
+      agentId?: string;
     }) => {
       const res = await fetch(
         `${API_BASE}${getScopedEndpoint("/rooms", "/agent/rooms")}`,
@@ -1200,6 +1202,7 @@ export function useCreateRoomMutation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["rooms"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-rooms"] });
     },
   });
   const mutate = (input: any) => {
@@ -1224,6 +1227,7 @@ export function useUpdateRoomMutation() {
       maxPlayers?: number;
       color?: string;
       icon?: string;
+      agentId?: string;
     }) => {
       const res = await fetch(
         `${API_BASE}${getScopedEndpoint(`/rooms/${id}`, `/agent/rooms/${id}`)}`,
@@ -1242,6 +1246,7 @@ export function useUpdateRoomMutation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["rooms"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-rooms"] });
     },
   });
   const mutate = (input: any) => {

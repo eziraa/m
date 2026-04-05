@@ -19,8 +19,6 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
   // Mocking the toast usage
   const toast: any = () => {};
 
-  const { t } = { t: (key: string) => key }; // mock translations since we don't know the keys
-
   const { data: referralData, isLoading } = useGetReferralCodeQuery();
   const codeData = referralData || { referralCode: "" };
 
@@ -40,8 +38,8 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
     navigator.clipboard.writeText(link);
     onCopied(true);
     toast({
-      title: t("copied.title"),
-      description: t("copied.desc"),
+      title: "Link copied",
+      description: "Your invite link is ready to share.",
     });
     setTimeout(() => onCopied(false), 2000);
   };
@@ -52,7 +50,8 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
   const shareOnTelegram = () => {
     if (!referralCode) return;
     const WebApp = (window as any).Telegram?.WebApp;
-    const shareText = t("shareText");
+    const shareText =
+      "Join me on Beshi Bingo. Open the link and start playing.";
     if (WebApp) {
       WebApp.openTelegramLink(
         `https://t.me/share/url?url=${encodeURIComponent(miniAppLink)}&text=${encodeURIComponent(shareText)}`,
@@ -106,13 +105,16 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
             <div className="mx-auto p-3 bg-green-500/20 rounded-full text-green-400 mb-2 w-fit">
               <Users size={32} />
             </div>
-            <h2 className="text-center text-2xl font-bold">{t("title")}</h2>
-            <p className="text-center text-zinc-400">{t("subtitle")}</p>
+            <h2 className="text-center text-2xl font-bold">Invite Friends</h2>
+            <p className="text-center text-zinc-400">
+              Share your personal invite link so friends can open the mini app
+              and join Beshi Bingo quickly.
+            </p>
 
             <div className="flex flex-col space-y-4 mt-4">
               <div className="flex items-center space-x-2 bg-black/40 p-1.5 rounded-xl border border-white/5">
                 <Input
-                  value={isLoading ? t("generating") : miniAppLink}
+                  value={isLoading ? "Generating your invite link..." : miniAppLink}
                   readOnly
                   className="bg-transparent border-none focus-visible:ring-0 text-zinc-300 text-sm h-9"
                 />
@@ -132,16 +134,17 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
                 disabled={isLoading || !referralCode}
               >
                 <Share2 size={20} />
-                <span>{t("shareButton")}</span>
+                <span>Share on Telegram</span>
               </Button>
 
               <div className="bg-black/30 border hidden border-white/5 rounded-xl p-3 space-y-2 text-left">
                 <p className="text-xs text-zinc-400 leading-relaxed">
-                  {t("miniAppHint")}
+                  Use this if you want to copy the invite link and send it
+                  yourself.
                 </p>
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <span className="text-xs text-zinc-500">
-                    {t("fallbackHelper")}
+                    Backup bot link
                   </span>
                   <Button
                     variant="secondary"
@@ -151,7 +154,7 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
                     disabled={isLoading || !referralCode}
                   >
                     {copiedBotLink ? <Check size={14} /> : <Copy size={14} />}
-                    <span className="ml-2">{t("fallbackButton")}</span>
+                    <span className="ml-2">Copy backup link</span>
                   </Button>
                 </div>
               </div>

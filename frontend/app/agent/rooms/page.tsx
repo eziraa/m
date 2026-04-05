@@ -136,7 +136,7 @@ export default function AgentRoomsPage() {
                   <div
                     className={cn(
                       "flex h-16 w-16 shrink-0 items-center justify-center rounded-[22px] bg-linear-to-br text-3xl shadow-lg ring-1 ring-black/5",
-                      room.color || "from-green-400 to-green-600",
+                      room.color || "from-blue-400 to-blue-600",
                     )}
                   >
                     {room.icon || "🎉"}

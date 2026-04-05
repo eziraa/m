@@ -199,7 +199,7 @@ export default function AdminRoomsPage() {
                 <div
                   className={cn(
                     "h-16 w-16 shrink-0 rounded-2xl bg-linear-to-br shadow-xl flex items-center justify-center text-3xl mt-1 ring-1 ring-white/10",
-                    room.color || "from-green-400 to-green-600",
+                    room.color || "from-blue-400 to-blue-600",
                   )}
                 >
                   {room.icon || "🎉"}
@@ -274,6 +274,7 @@ export default function AdminRoomsPage() {
           room={selectedRoom}
           open={isDialogOpen}
           onOpenChange={setIsDialogOpen}
+          isAdmin
         />
 
         <AlertDialog
