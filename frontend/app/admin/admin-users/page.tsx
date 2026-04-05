@@ -22,6 +22,7 @@ import {
   Crown,
   Zap,
   RefreshCw,
+  Copy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -94,6 +95,16 @@ export default function AdminUsersPage() {
 
   const handleViewDetails = (userId: string) => {
     router.push(`/admin/admin-users/${userId}`);
+  };
+
+  const handleCopyTelegramId = async (telegramId?: string | null) => {
+    if (!telegramId) return;
+    try {
+      await navigator.clipboard.writeText(telegramId);
+      toast.success(t("toast.telegramCopied"));
+    } catch {
+      toast.error(t("toast.telegramCopyFailed"));
+    }
   };
 
   const getRoleIcon = (role: string) => {
@@ -275,7 +286,7 @@ export default function AdminUsersPage() {
                         id: string;
                         username: string;
                         firstName: string;
-
+                        telegramId?: string | null;
                         role: string;
                         balance: string;
                       }) => (
@@ -297,6 +308,24 @@ export default function AdminUsersPage() {
                                 <p className="text-[9px] text-white/30 truncate">
                                   @{user.username || t("table.noUsername")}
                                 </p>
+                                <div className="mt-1 flex items-center gap-1">
+                                  <p className="min-w-0 truncate text-[9px] text-white/45">
+                                    {user.telegramId || t("table.noTelegram")}
+                                  </p>
+                                  {user.telegramId ? (
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        handleCopyTelegramId(user.telegramId)
+                                      }
+                                      className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded bg-white/5 text-white/50 transition hover:bg-white/10 hover:text-white"
+                                      aria-label={t("actions.copyTelegram")}
+                                      title={t("actions.copyTelegram")}
+                                    >
+                                      <Copy className="h-2.5 w-2.5" />
+                                    </button>
+                                  ) : null}
+                                </div>
                               </div>
                             </div>
                           </td>

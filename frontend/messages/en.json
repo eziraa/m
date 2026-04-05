@@ -1273,14 +1273,16 @@
         "role": "Role",
         "balance": "Balance",
         "actions": "Actions",
-        "noUsername": "no-username"
+        "noUsername": "no-username",
+        "noTelegram": "No Telegram ID"
       },
       "actions": {
         "details": "Details",
         "adjustBalance": "Adjust Balance",
         "delete": "Delete",
         "cancel": "Cancel",
-        "deleting": "..."
+        "deleting": "...",
+        "copyTelegram": "Copy Telegram ID"
       },
       "adjustment": {
         "title": "Adjust user balance",
@@ -1321,7 +1323,9 @@
       },
       "toast": {
         "deleted": "User deleted successfully",
-        "deleteFailed": "Failed to delete user"
+        "deleteFailed": "Failed to delete user",
+        "telegramCopied": "Telegram ID copied",
+        "telegramCopyFailed": "Failed to copy Telegram ID"
       },
       "fallback": {
         "initial": "?"

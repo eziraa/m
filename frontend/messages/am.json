@@ -1274,14 +1274,16 @@
         "role": "ሚና",
         "balance": "ቀሪ ሂሳብ",
         "actions": "እርምጃዎች",
-        "noUsername": "ያልተሰየመ"
+        "noUsername": "ያልተሰየመ",
+        "noTelegram": "Telegram ID የለም"
       },
       "actions": {
         "details": "ዝርዝር",
         "delete": "ሰርዝ",
         "cancel": "ተው",
         "deleting": "...",
-        "adjustBalance": "Adjust Balance"
+        "adjustBalance": "Adjust Balance",
+        "copyTelegram": "Telegram ID ቅዳ"
       },
       "adjustment": {
         "title": "Adjust user balance",
@@ -1322,7 +1324,9 @@
       },
       "toast": {
         "deleted": "ተጠቃሚ ተሰርዟል",
-        "deleteFailed": "ተጠቃሚ ማጥፋት አልተሳካም"
+        "deleteFailed": "ተጠቃሚ ማጥፋት አልተሳካም",
+        "telegramCopied": "Telegram ID ተቀዳ",
+        "telegramCopyFailed": "Telegram ID መቅዳ አልተሳካም"
       },
       "fallback": {
         "initial": "?"

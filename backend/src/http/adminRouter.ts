@@ -155,6 +155,19 @@ function centsToDisplayAmount(cents: number) {
   return (cents / 100).toFixed(2);
 }
 
+function buildPostedBalanceCents(userIdColumn: typeof users.id) {
+  return sql<number>`coalesce((
+    select sum(
+      case
+        when ${walletLedger.status} = 'posted' then ${walletLedger.amountCents}
+        else 0
+      end
+    )
+    from ${walletLedger}
+    where ${walletLedger.userId} = ${userIdColumn}
+  ), 0)`;
+}
+
 function mapLedgerEntryType(
   entryType: string,
   metadata: Record<string, unknown>,
@@ -184,6 +197,7 @@ function buildUserSearch(search: string) {
     ilike(users.firstName, value),
     ilike(users.lastName, value),
     ilike(users.email, value),
+    ilike(users.telegramId, value),
   );
 }
 
@@ -281,10 +295,11 @@ router.get(
         firstName: users.firstName,
         lastName: users.lastName,
         email: users.email,
+        telegramId: users.telegramId,
         role: users.role,
         isActive: users.isActive,
         createdAt: users.createdAt,
-        balanceCents: sql<number>`coalesce((select sum(case when status = 'posted' then amount_cents else 0 end) from ${walletLedger} where user_id = ${users.id}), 0)`,
+        balanceCents: buildPostedBalanceCents(users.id),
       })
       .from(users)
       .where(whereClause)
@@ -317,10 +332,11 @@ router.get(
         firstName: users.firstName,
         lastName: users.lastName,
         email: users.email,
+        telegramId: users.telegramId,
         role: users.role,
         isActive: users.isActive,
         createdAt: users.createdAt,
-        balanceCents: sql<number>`coalesce((select sum(case when status = 'posted' then amount_cents else 0 end) from ${walletLedger} where user_id = ${users.id}), 0)`,
+        balanceCents: buildPostedBalanceCents(users.id),
       })
       .from(users)
       .where(eq(users.id, userId))
@@ -492,7 +508,7 @@ router.get(
         rejectionReason: withdrawals.rejectionReason,
         createdAt: withdrawals.createdAt,
         amountCents: withdrawals.amountCents,
-        userBalanceCents: sql<number>`coalesce((select sum(case when status = 'posted' then amount_cents else 0 end) from ${walletLedger} where user_id = ${users.id}), 0)`,
+        userBalanceCents: buildPostedBalanceCents(users.id),
       })
       .from(withdrawals)
       .innerJoin(users, eq(withdrawals.userId, users.id))
