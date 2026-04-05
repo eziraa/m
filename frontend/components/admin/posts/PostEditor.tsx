@@ -188,7 +188,7 @@ export function PostEditor({ value, onSave }: PostEditorProps) {
               onClick={() => setTarget("users")}
               className={`h-9 rounded-xl text-xs font-semibold border transition-colors ${
                 target === "users"
-                  ? "bg-blue-500/20 border-blue-500/40 text-blue-200"
+                  ? "bg-green-500/20 border-green-500/40 text-green-200"
                   : "bg-foreground/5 border-foreground/15 text-foreground/60"
               }`}
             >

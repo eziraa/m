@@ -25,7 +25,7 @@ function DrawContent() {
 
   return (
     <div className="relative min-h-screen bg-[#0f0f12] text-white flex flex-col items-center overflow-hidden">
-      <div className="absolute top-32 w-80 h-80 bg-blue-500/20 blur-[120px] rounded-full animate-pulse" />
+      <div className="absolute top-32 w-80 h-80 bg-green-500/20 blur-[120px] rounded-full animate-pulse" />
 
       <div className="relative z-10 max-w-[430px] w-full pt-8 pb-20 flex flex-col items-center">
         <div className="text-center">
@@ -49,7 +49,7 @@ function DrawContent() {
         <div className="w-full mt-8 space-y-2 px-12">
           <button
             onClick={() => router.replace(`/rooms/${roomId}`)}
-            className="w-full h-10 rounded-[12px] font-medium flex items-center justify-center text-lg bg-gradient-to-r from-blue-500 to-indigo-600 shadow-lg"
+            className="w-full h-10 rounded-[12px] font-medium flex items-center justify-center text-lg bg-gradient-to-r from-green-500 to-emerald-600 shadow-lg"
           >
             <RotateCcw size={18} className="mr-2" /> {tLive("playAgainBtn")}
           </button>

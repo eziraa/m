@@ -117,7 +117,7 @@ export default function UserDetailPage() {
               user.role === "ADMIN"
                 ? "bg-amber-500 text-black"
                 : user.role === "AGENT"
-                  ? "bg-blue-500 text-foreground"
+                  ? "bg-green-500 text-foreground"
                   : "bg-primary text-foreground",
             )}
           >
@@ -129,7 +129,7 @@ export default function UserDetailPage() {
           <div className="flex w-full items-center gap-5">
             {/* Reduced Icon Size & Cool Border */}
             <div className="relative group">
-              {/* <div className="absolute -inset-1 bg-linear-to-tr from-primary to-indigo-500 rounded-[2rem] blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200" /> */}
+              {/* <div className="absolute -inset-1 bg-linear-to-tr from-primary to-emerald-500 rounded-[2rem] blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200" /> */}
               <div className="relative h-20 w-20 rounded-full bg-[#1a1c26] flex items-center justify-center text-3xl font-black text-primary uppercase border border-accent/50 ">
                 {user.username?.[0] ||
                   user.firstName?.[0] ||
@@ -180,14 +180,14 @@ export default function UserDetailPage() {
                 <Users className="h-4 w-4" />
               </div>
               <p className="text-[10px] text-foreground/30 font-black uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
-                <span className="w-1 h-1 rounded-full bg-indigo-500" />
+                <span className="w-1 h-1 rounded-full bg-emerald-500" />
                 {t("stats.referrals")}
               </p>
               <div className="flex items-baseline gap-1">
-                <span className="text-xl font-black text-indigo-400 tracking-tight">
+                <span className="text-xl font-black text-emerald-400 tracking-tight">
                   {user.invitees?.length || 0}
                 </span>
-                <span className="text-[9px] font-black text-indigo-400/40 uppercase text-xs">
+                <span className="text-[9px] font-black text-emerald-400/40 uppercase text-xs">
                   {t("stats.users")}
                 </span>
               </div>
@@ -220,7 +220,7 @@ export default function UserDetailPage() {
                       user.role === "ADMIN"
                         ? "bg-amber-500"
                         : user.role === "AGENT"
-                          ? "bg-blue-500"
+                          ? "bg-green-500"
                           : "bg-primary",
                     )}
                   />
@@ -386,7 +386,7 @@ export default function UserDetailPage() {
                   className="flex items-center justify-between p-4 rounded-2xl bg-foreground/5 border border-foreground/5"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-sm font-black uppercase">
+                    <div className="h-10 w-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-sm font-black uppercase">
                       {invitee.username?.[0] || "?"}
                     </div>
                     <div>

@@ -2,7 +2,7 @@ import React from "react";
 
 const Logo = () => {
   return (
-    <pre className="text-[8px] font-mono text-indigo-600 dark:text-indigo-400 select-none leading-2">
+    <pre className="text-[8px] font-mono text-emerald-600 dark:text-emerald-400 select-none leading-2">
       {`
   ____            _     _     ____  _                   
  | __ )  ___  ___| |__ (_)   | __ )(_)_ __   __ _  ___  

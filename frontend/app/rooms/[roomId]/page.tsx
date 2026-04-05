@@ -299,18 +299,18 @@ export default function RoomPage() {
               onClick={() => {
                 void loadActiveSession();
               }}
-              className="bg-blue-500 p-2 rounded-full hover:bg-blue-500 transition-colors"
+              className="bg-green-500 p-2 rounded-full hover:bg-green-500 transition-colors"
             >
               <RotateCcw size={18} strokeWidth={1.5} />
             </button>
-            <button className="rounded-full bg-blue-600 h-9 w-9 border border-blue-600 flex items-center justify-center">
+            <button className="rounded-full bg-green-600 h-9 w-9 border border-green-600 flex items-center justify-center">
               <Volume2 size={18} />
             </button>
           </div>
         </header>
 
         <div className="flex w-full items-stretch justify-between gap-2 mb-4">
-          <div className="bg-blue-500 rounded-[8px] min-w-20 p-2.5 pb-2 flex flex-col shadow-lg">
+          <div className="bg-green-500 rounded-[8px] min-w-20 p-2.5 pb-2 flex flex-col shadow-lg">
             <span className="text-[11px] font-bold text-foreground/70 uppercase">
               {t("stats.earn")}
             </span>
@@ -319,7 +319,7 @@ export default function RoomPage() {
               <span className="text-[10px] ml-2 opacity-60">ETB</span>
             </span>
           </div>
-          <div className="bg-indigo-500 rounded-[8px] min-w-20 flex-1 p-2.5 pb-2 flex flex-col shadow-lg">
+          <div className="bg-emerald-500 rounded-[8px] min-w-20 flex-1 p-2.5 pb-2 flex flex-col shadow-lg">
             <span className="text-[11px] font-bold text-foreground/70 uppercase">
               {t("stats.stake")}
             </span>
@@ -369,7 +369,7 @@ export default function RoomPage() {
         <Button
           onClick={onJoin}
           disabled={!picked || busy || !canJoin || sessionLoading}
-          className="w-full bg-blue-500 h-10 rounded-[12px] text-foreground font-black shadow-[0_4px_20px_rgba(234,179,8,0.3)] active:scale-95 transition-all"
+          className="w-full bg-green-500 h-10 rounded-[12px] text-foreground font-black shadow-[0_4px_20px_rgba(234,179,8,0.3)] active:scale-95 transition-all"
         >
           {busy ? t("joining") : t("join")}
         </Button>

@@ -222,7 +222,7 @@ function WonContent() {
         <div className="w-full mt-4 space-y-2 px-12">
           <button
             onClick={() => router.replace(`/rooms/${roomId}`)}
-            className="w-full h-10 rounded-[12px] flex items-center justify-center gap-2 font-bold bg-linear-to-r from-blue-500 to-indigo-600 shadow-lg active:scale-95 transition"
+            className="w-full h-10 rounded-[12px] flex items-center justify-center gap-2 font-bold bg-linear-to-r from-green-500 to-emerald-600 shadow-lg active:scale-95 transition"
           >
             <Play className="mr-1" size={18} />
             Play Again

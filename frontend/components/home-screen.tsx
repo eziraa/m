@@ -345,7 +345,7 @@ export function HomeScreen() {
         </div>
 
         <button
-          className="flex justify-center border border-blue-600 px-4 mx-4 py-2 rounded-[8px] items-center gap-3 mt-6 text-muted-foreground hover:text-primary transition-colors text-xs font-black uppercase tracking-widest active:scale-95"
+          className="flex justify-center border border-green-600 px-4 mx-4 py-2 rounded-[8px] items-center gap-3 mt-6 text-muted-foreground hover:text-primary transition-colors text-xs font-black uppercase tracking-widest active:scale-95"
           onClick={() => setIsInviteModalOpen(true)}
         >
           <Users size={16} className="text-primary" />

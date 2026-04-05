@@ -71,7 +71,7 @@ export default function TransactionsPage() {
       case "withdrawal":
         return <ArrowUpRight className="text-rose-400" size={18} />;
       case "game_win":
-        return <Gamepad2 className="text-blue-400" size={18} />;
+        return <Gamepad2 className="text-green-400" size={18} />;
       case "game_lost":
         return <Gamepad2 className="text-zinc-500" size={18} />;
       case "referral_reward":
@@ -125,7 +125,7 @@ export default function TransactionsPage() {
           <TabsList className="grid w-full grid-cols-3 bg-zinc-900/50 p-1 rounded-xl">
             <TabsTrigger
               value="all"
-              className="rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all text-xs font-bold uppercase tracking-wider"
+              className="rounded-lg data-[state=active]:bg-green-600 data-[state=active]:text-white transition-all text-xs font-bold uppercase tracking-wider"
             >
               {t("tabs.all")}
             </TabsTrigger>
@@ -179,7 +179,7 @@ export default function TransactionsPage() {
                             : tx.type === "deposit"
                               ? "bg-emerald-500/10 border-emerald-500/10"
                               : tx.type.includes("win")
-                                ? "bg-blue-500/10 border-blue-500/10"
+                                ? "bg-green-500/10 border-green-500/10"
                                 : "bg-zinc-500/10 border-white/5",
                         )}
                       >
@@ -227,7 +227,7 @@ export default function TransactionsPage() {
           {/* Infinite Scroll Trigger */}
           {allTransactions && displayedItems < allTransactions.length && (
             <div ref={loaderRef} className="py-8 flex justify-center">
-              <div className="size-6 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+              <div className="size-6 border-2 border-green-500/30 border-t-green-500 rounded-full animate-spin" />
             </div>
           )}
 

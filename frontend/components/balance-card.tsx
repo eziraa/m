@@ -12,7 +12,7 @@ export function BalanceCard({
 }) {
   const isLoading = false; // Replace with actual loading state
   return (
-    <div className="relative mx-4 mt-2 overflow-hidden rounded-2xl bg-linear-to-br from-blue-500 to-indigo-600 p-5 shadow-lg shadow-blue-500/20">
+    <div className="relative mx-4 mt-2 overflow-hidden rounded-2xl bg-linear-to-br from-green-500 to-emerald-600 p-5 shadow-lg shadow-green-500/20">
       {/* Pattern Overlay */}
       <div className="absolute inset-0 opacity-10 pointer-events-none">
         <svg width="100%" height="100%">
@@ -82,11 +82,11 @@ export function BalanceCard({
       {/* ETB Coin */}
       <div className="absolute top-1/2 right-6 -translate-y-1/2 w-40 h-40">
         <div className="relative w-full h-full flex items-center justify-center">
-          {/* <div className="absolute w-32 h-32 rounded-full bg-linear-to-b from-blue-500 via-blue-500 to-blue-600 shadow-xl border-4 border-blue-200/50 flex items-center justify-center">
+          {/* <div className="absolute w-32 h-32 rounded-full bg-linear-to-b from-green-500 via-green-500 to-green-600 shadow-xl border-4 border-green-200/50 flex items-center justify-center">
             <span className="text-white/70 text-4xl font-black tracking-tighter select-none">
               ETB
             </span>
-            <div className="absolute inset-2 rounded-full border border-blue-400/30" />
+            <div className="absolute inset-2 rounded-full border border-green-400/30" />
           </div> */}
           <Logo />
         </div>

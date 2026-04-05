@@ -103,7 +103,7 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
             >
               <X size={24} className="text-foreground/70" />
             </motion.button>
-            <div className="mx-auto p-3 bg-blue-500/20 rounded-full text-blue-400 mb-2 w-fit">
+            <div className="mx-auto p-3 bg-green-500/20 rounded-full text-green-400 mb-2 w-fit">
               <Users size={32} />
             </div>
             <h2 className="text-center text-2xl font-bold">{t("title")}</h2>
@@ -119,7 +119,7 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
                 <Button
                   size="sm"
                   onClick={copyMiniAppLink}
-                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg h-9"
+                  className="bg-green-600 hover:bg-green-700 text-white rounded-lg h-9"
                   disabled={isLoading || !referralCode}
                 >
                   {copiedMiniApp ? <Check size={18} /> : <Copy size={18} />}
@@ -128,7 +128,7 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
 
               <Button
                 onClick={shareOnTelegram}
-                className="w-full bg-blue-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600 text-white py-6 rounded-2xl flex items-center justify-center space-x-2 font-bold text-lg shadow-lg shadow-blue-500/20"
+                className="w-full bg-green-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:bg-green-600 text-white py-6 rounded-2xl flex items-center justify-center space-x-2 font-bold text-lg shadow-lg shadow-green-500/20"
                 disabled={isLoading || !referralCode}
               >
                 <Share2 size={20} />

@@ -95,9 +95,9 @@ export default function ProfilePage() {
       name: t("achievements.highRoller.name"),
       desc: t("achievements.highRoller.desc"),
       icon: <Gamepad2 size={18} />,
-      color: "text-blue-400",
-      bgColor: "bg-blue-500/10",
-      borderColor: "border-blue-500/20",
+      color: "text-green-400",
+      bgColor: "bg-green-500/10",
+      borderColor: "border-green-500/20",
       unlocked: totalGames >= 50,
     },
     {
@@ -155,13 +155,13 @@ export default function ProfilePage() {
         >
           <div className="relative group">
             {/* Glow effect */}
-            <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-3xl -z-10 group-hover:bg-blue-500/30 transition-all duration-500" />
+            <div className="absolute inset-0 bg-green-500/20 rounded-full blur-3xl -z-10 group-hover:bg-green-500/30 transition-all duration-500" />
 
-            <Avatar className="w-28 h-28 ring-4 ring-blue-500/20 shadow-2xl transition-transform group-hover:scale-105 duration-500">
+            <Avatar className="w-28 h-28 ring-4 ring-green-500/20 shadow-2xl transition-transform group-hover:scale-105 duration-500">
               <AvatarImage
                 src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`}
               />
-              <AvatarFallback className="text-3xl font-black bg-blue-600 text-foreground">
+              <AvatarFallback className="text-3xl font-black bg-green-600 text-foreground">
                 @{user.username?.substring(0, 2)}
               </AvatarFallback>
             </Avatar>
@@ -169,7 +169,7 @@ export default function ProfilePage() {
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              className="absolute -bottom-1 -right-1 bg-blue-500 text-foreground size-10 rounded-full flex items-center justify-center font-black text-xs border-4 border-background shadow-lg"
+              className="absolute -bottom-1 -right-1 bg-green-500 text-foreground size-10 rounded-full flex items-center justify-center font-black text-xs border-4 border-background shadow-lg"
             >
               {stats.level}
             </motion.div>
@@ -188,7 +188,7 @@ export default function ProfilePage() {
           </div>
 
           <div className="grid grid-cols-2 gap-3 mt-6 w-full">
-            <Button className="h-12 rounded-[12px] bg-blue-500 hover:bg-blue-600 text-foreground font-black active:scale-95 transition-all shadow-lg shadow-blue-500/20">
+            <Button className="h-12 rounded-[12px] bg-green-500 hover:bg-green-600 text-foreground font-black active:scale-95 transition-all shadow-lg shadow-green-500/20">
               <Edit size={16} className="mr-2" /> {t("actions.editInfo")}
             </Button>
             <Button
@@ -213,7 +213,7 @@ export default function ProfilePage() {
                   {t("progress.level")}
                 </span>
               </div>
-              <span className="text-xs font-black font-mono text-blue-500">
+              <span className="text-xs font-black font-mono text-green-500">
                 {stats.xp} / {stats.nextLevelXp} {t("currency.birr")}
               </span>
             </div>
@@ -223,7 +223,7 @@ export default function ProfilePage() {
                 initial={{ width: 0 }}
                 animate={{ width: `${(stats.xp / stats.nextLevelXp) * 100}%` }}
                 transition={{ duration: 1.5, ease: "circOut" }}
-                className="h-full bg-linear-to-r from-blue-600 to-blue-400 rounded-full shadow-[0_0_15px_rgba(37,99,235,0.4)] relative"
+                className="h-full bg-linear-to-r from-green-600 to-green-400 rounded-full shadow-[0_0_15px_rgba(37,99,235,0.4)] relative"
               >
                 <div className="absolute inset-0 bg-linear-to-r from-transparent via-foreground/20 to-transparent" />
               </motion.div>
@@ -245,9 +245,9 @@ export default function ProfilePage() {
               label: t("stats.wins"),
               value: stats.gamesWon,
               icon: <Trophy size={16} />,
-              color: "text-blue-500",
-              bgColor: "bg-blue-500/10",
-              borderColor: "border-blue-500/20",
+              color: "text-green-500",
+              bgColor: "bg-green-500/10",
+              borderColor: "border-green-500/20",
             },
             {
               label: t("stats.rate"),
@@ -298,7 +298,7 @@ export default function ProfilePage() {
             <h3 className="text-sm font-black uppercase tracking-[0.2em] text-foreground/40">
               {t("recent.title")}
             </h3>
-            <span className="text-[10px] font-black text-blue-500 uppercase cursor-pointer">
+            <span className="text-[10px] font-black text-green-500 uppercase cursor-pointer">
               {t("recent.viewAll")}
             </span>
           </div>

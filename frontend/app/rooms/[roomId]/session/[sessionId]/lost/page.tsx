@@ -164,7 +164,7 @@ function LostContent() {
         <div className="w-full mt-8 space-y-2 px-12">
           <button
             onClick={() => router.replace(`/rooms/${roomId}`)}
-            className="w-full h-10 rounded-[12px] font-medium flex items-center justify-center text-lg bg-gradient-to-r from-blue-500 to-indigo-600 shadow-lg"
+            className="w-full h-10 rounded-[12px] font-medium flex items-center justify-center text-lg bg-gradient-to-r from-green-500 to-emerald-600 shadow-lg"
           >
             <Play size={18} className="mr-2" /> {tLive("playAgainBtn")}
           </button>

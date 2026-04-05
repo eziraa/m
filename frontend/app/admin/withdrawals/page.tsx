@@ -105,7 +105,7 @@ export default function AdminWithdrawalsPage() {
         );
       case "approved":
         return (
-          <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20 text-[10px] gap-1">
+          <Badge className="bg-green-500/10 text-green-400 border-green-500/20 text-[10px] gap-1">
             <CheckCircle2 size={10} /> {t("status.approved")}
           </Badge>
         );
@@ -154,7 +154,7 @@ export default function AdminWithdrawalsPage() {
           placeholder={t("searchPlaceholder")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="pl-8 h-9 text-sm bg-[#050816] border-[#111827] rounded-xl focus-visible:ring-1 focus-visible:ring-blue-500"
+          className="pl-8 h-9 text-sm bg-[#050816] border-[#111827] rounded-xl focus-visible:ring-1 focus-visible:ring-green-500"
         />
       </div>
 
@@ -169,10 +169,10 @@ export default function AdminWithdrawalsPage() {
                 ? f.value === "pending"
                   ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
                   : f.value === "approved"
-                    ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                    ? "bg-green-500/20 text-green-400 border border-green-500/30"
                     : f.value === "rejected"
                       ? "bg-red-500/20 text-red-400 border border-red-500/30"
-                      : "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                      : "bg-green-500/20 text-green-400 border border-green-500/30"
                 : "bg-foreground/5 text-foreground/40 border border-transparent hover:bg-foreground/10"
             }`}
           >
@@ -227,7 +227,7 @@ export default function AdminWithdrawalsPage() {
                       <div
                         className={`w-10 h-10 shrink-0 rounded-xl flex items-center justify-center border ${
                           w.status === "approved"
-                            ? "bg-blue-500/10 border-blue-500/20"
+                            ? "bg-green-500/10 border-green-500/20"
                             : w.status === "rejected"
                               ? "bg-red-500/10 border-red-500/20"
                               : "bg-amber-500/10 border-amber-500/20"
@@ -237,7 +237,7 @@ export default function AdminWithdrawalsPage() {
                           size={18}
                           className={
                             w.status === "approved"
-                              ? "text-blue-400"
+                              ? "text-green-400"
                               : w.status === "rejected"
                                 ? "text-red-400"
                                 : "text-amber-400"
@@ -318,7 +318,7 @@ export default function AdminWithdrawalsPage() {
                                 <div className="grid grid-cols-2 gap-2">
                                   <Button
                                     size="sm"
-                                    className="bg-blue-600/80 hover:bg-blue-600 text-white rounded-lg h-9 text-xs font-bold"
+                                    className="bg-green-600/80 hover:bg-green-600 text-white rounded-lg h-9 text-xs font-bold"
                                     onClick={() =>
                                       setConfirmAction({
                                         id: w.id,
@@ -372,7 +372,7 @@ export default function AdminWithdrawalsPage() {
                                       size="sm"
                                       className={`flex-1 h-8 text-xs font-bold rounded-lg ${
                                         confirmAction.action === "approve"
-                                          ? "bg-blue-600 hover:bg-blue-700 text-white"
+                                          ? "bg-green-600 hover:bg-green-700 text-white"
                                           : "bg-red-600 hover:bg-red-700 text-white"
                                       }`}
                                       onClick={() =>

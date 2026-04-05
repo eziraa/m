@@ -89,7 +89,7 @@ export function BottomNav() {
               {isActive && (
                 <motion.div
                   layoutId="activeCircle"
-                  className="absolute -top-8 size-14 bg-blue-600 rounded-full flex flex-col  p-2 items-center justify-center shadow-[0_8px_20px_rgba(37,99,235,0.4)] z-20"
+                  className="absolute -top-8 size-14 bg-green-600 rounded-full flex flex-col  p-2 items-center justify-center shadow-[0_8px_20px_rgba(37,99,235,0.4)] z-20"
                   transition={{ type: "spring", bounce: 0.25, duration: 0.5 }}
                 >
                   <div className="absolute inset-0 rounded-full bg-linear-to-b from-white/20 to-transparent pointer-events-none" />
@@ -105,7 +105,7 @@ export function BottomNav() {
                     {item.label}
                   </span>
                   {/* Outer Glow */}
-                  <div className="absolute -inset-2 rounded-full bg-blue-500/20 blur-md -z-10 animate-pulse" />
+                  <div className="absolute -inset-2 rounded-full bg-green-500/20 blur-md -z-10 animate-pulse" />
                 </motion.div>
               )}
 

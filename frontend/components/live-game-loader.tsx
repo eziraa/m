@@ -5,9 +5,9 @@ import { Loader2 } from "lucide-react";
 
 const bingoLetters = ["B", "I", "N", "G", "O"] as const;
 const letterGradients = [
-  "from-sky-500 to-blue-500",
+  "from-sky-500 to-green-500",
   "from-pink-500 to-rose-500",
-  "from-purple-500 to-indigo-500",
+  "from-purple-500 to-emerald-500",
   "from-emerald-500 to-green-500",
   "from-amber-500 to-orange-500",
 ];
@@ -44,7 +44,7 @@ export default function LiveGameLoader() {
               transition={{ repeat: Infinity, duration: 12, ease: "linear" }}
               className="absolute inset-3 rounded-full border border-white/20 border-dashed"
             />
-            <div className="relative z-10 flex h-33 w-33 flex-col items-center justify-center rounded-full bg-gradient-to-br from-primary via-primary to-indigo-900 text-white shadow-[0_15px_45px_rgba(59,130,246,0.6)]">
+            <div className="relative z-10 flex h-33 w-33 flex-col items-center justify-center rounded-full bg-gradient-to-br from-primary via-primary to-emerald-900 text-white shadow-[0_15px_45px_rgba(59,130,246,0.6)]">
               <span className="text-6xl font-black tracking-tighter drop-shadow-xl">
                 --
               </span>
@@ -107,7 +107,7 @@ export default function LiveGameLoader() {
               />
             ))}
           </div>
-          <button className="mt-2 h-12 rounded-2xl bg-gradient-to-r from-blue-500 to-cyan-500 text-sm font-black animate-out   tracking-[0.3em] text-white shadow-[0_10px_40px_rgba(14,165,233,0.35)] active:scale-95">
+          <button className="mt-2 h-12 rounded-2xl bg-gradient-to-r from-green-500 to-cyan-500 text-sm font-black animate-out   tracking-[0.3em] text-white shadow-[0_10px_40px_rgba(14,165,233,0.35)] active:scale-95">
             በማዘጋጀት ላይ ...
           </button>
         </section>

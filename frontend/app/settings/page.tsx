@@ -88,7 +88,7 @@ export default function SettingsPage() {
           desc: t("sections.audio.soundEffects.desc"),
           type: "switch",
           default: true,
-          color: "text-blue-400",
+          color: "text-green-400",
         },
         {
           icon: <Music size={18} />,
@@ -221,7 +221,7 @@ export default function SettingsPage() {
           <Card className="bg-white/5 border-white/10 backdrop-blur-md overflow-hidden">
             <div className="p-4 flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="p-2 rounded-lg bg-white/5 text-blue-400">
+                <div className="p-2 rounded-lg bg-white/5 text-green-400">
                   <Shield size={18} />
                 </div>
                 <div>

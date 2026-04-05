@@ -113,7 +113,7 @@ export default function AdminUsersPage() {
       case "ADMIN":
         return <Crown className="h-3 w-3 text-amber-400" />;
       case "AGENT":
-        return <Zap className="h-3 w-3 text-blue-400" />;
+        return <Zap className="h-3 w-3 text-green-400" />;
       default:
         return <UserIcon className="h-3 w-3 text-white/40" />;
     }
@@ -125,7 +125,7 @@ export default function AdminUsersPage() {
       case "ADMIN":
         return "bg-amber-500/20 text-amber-400 border-amber-500/30";
       case "AGENT":
-        return "bg-blue-500/20 text-blue-400 border-blue-500/30";
+        return "bg-green-500/20 text-green-400 border-green-500/30";
       default:
         return "bg-white/5 text-white/40 border-white/10";
     }

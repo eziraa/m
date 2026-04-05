@@ -176,7 +176,7 @@ export function DepositForm() {
         </div>
 
         {/* Account Card */}
-        <div className="relative rounded-2xl bg-linear-to-r from-blue-500 to-blue-600 p-4 overflow-hidden">
+        <div className="relative rounded-2xl bg-linear-to-r from-green-500 to-green-600 p-4 overflow-hidden">
           <div className="absolute -right-10 -bottom-8 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
           <div className="relative z-10 flex flex-col gap-2">
             {paymentMethodsLoading ? (
@@ -185,7 +185,7 @@ export function DepositForm() {
               <>
                 {methodsForChannel.length > 1 && (
                   <div className="flex flex-col gap-1 mb-1">
-                    <span className="text-[10px] text-indigo-100/90 font-medium">
+                    <span className="text-[10px] text-emerald-100/90 font-medium">
                       {t("account.pickAccount")}
                     </span>
                     <div className="flex flex-wrap gap-1.5">
@@ -196,7 +196,7 @@ export function DepositForm() {
                           onClick={() => setSelectedMethodId(m.id)}
                           className={`text-[10px] px-2 py-1 rounded-full border transition-colors ${
                             selectedMethod.id === m.id
-                              ? "bg-white text-blue-700 border-white"
+                              ? "bg-white text-green-700 border-white"
                               : "bg-white/10 text-white border-white/30 hover:bg-white/20"
                           }`}
                         >
@@ -206,7 +206,7 @@ export function DepositForm() {
                     </div>
                   </div>
                 )}
-                <div className="text-[10px] font-semibold tracking-wide text-indigo-100/80">
+                <div className="text-[10px] font-semibold tracking-wide text-emerald-100/80">
                   {t("account.ownerLabel")}
                 </div>
                 <div className="text-sm font-semibold text-white">
@@ -215,7 +215,7 @@ export function DepositForm() {
 
                 <div className=" flex items-center justify-between gap-3">
                   <div className="flex flex-col min-w-0">
-                    <span className="text-[10px] text-indigo-100/80 font-medium">
+                    <span className="text-[10px] text-emerald-100/80 font-medium">
                       {t("account.numberLabel")}
                     </span>
                     <span className="text-base font-semibold tracking-[0.12em] text-white break-all">
@@ -238,7 +238,7 @@ export function DepositForm() {
                 </div>
               </>
             ) : (
-              <p className="text-xs text-indigo-50/95 leading-relaxed">
+              <p className="text-xs text-emerald-50/95 leading-relaxed">
                 {t("account.noMethods")}
               </p>
             )}
@@ -256,7 +256,7 @@ export function DepositForm() {
               type="number"
               autoComplete="off"
               {...register("amount")}
-              className="  bg-transparent p-3 rounded-[12px] leading-[150%] border border-blue-600/50  font-semibold  focus-visible:ring-1 focus-visible:ring-blue-500 focus-visible:ring-offset-0"
+              className="  bg-transparent p-3 rounded-[12px] leading-[150%] border border-green-600/50  font-semibold  focus-visible:ring-1 focus-visible:ring-green-500 focus-visible:ring-offset-0"
             />
             <span className="ml-auto text-[11px] font-semibold text-foreground/50">
               {t("amount.currency")}
@@ -279,7 +279,7 @@ export function DepositForm() {
             autoComplete="off"
             maxLength={64}
             {...register("promoCode")}
-            className="bg-[#020617] p-3 rounded-[12px] leading-[150%] border border-blue-600/50 font-semibold uppercase focus-visible:ring-1 focus-visible:ring-blue-500 focus-visible:ring-offset-0"
+            className="bg-[#020617] p-3 rounded-[12px] leading-[150%] border border-green-600/50 font-semibold uppercase focus-visible:ring-1 focus-visible:ring-green-500 focus-visible:ring-offset-0"
           />
           <p className="text-[10px] text-foreground/45">{t("promo.hint")}</p>
           {errors.promoCode && (
@@ -298,7 +298,7 @@ export function DepositForm() {
             placeholder={t("sms.placeholder")}
             autoComplete="off"
             {...register("sms")}
-            className="min-h-[96px] text-sm font-medium bg-[#020617] border border-blue-600/50 rounded-md resize-none focus-visible:ring-0 focus-visible:ring-offset-0"
+            className="min-h-[96px] text-sm font-medium bg-[#020617] border border-green-600/50 rounded-md resize-none focus-visible:ring-0 focus-visible:ring-offset-0"
           />
           {errors.sms && (
             <span className="text-[11px] text-destructive mt-0.5">
@@ -308,7 +308,7 @@ export function DepositForm() {
         </div>
 
         <Button
-          className="mt-1 w-full rounded-xl text-sm font-semibold h-11 bg-blue-600/90 hover:bg-blue-600 text-white shadow-lg shadow-indigo-500/30"
+          className="mt-1 w-full rounded-xl text-sm font-semibold h-11 bg-green-600/90 hover:bg-green-600 text-white shadow-lg shadow-emerald-500/30"
           variant="default"
           type="submit"
           disabled={isSubmitting || loading}
