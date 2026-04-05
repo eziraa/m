@@ -250,7 +250,7 @@ function centsToEtbString(cents: number): string {
 
 function homeSubtitleByName(name: string | null): string {
   if (!name) {
-    return "Welcome Back To Mella";
+    return "Welcome Back To Beshi Bingo";
   }
   return `Welcome Back ${name}`;
 }
@@ -343,7 +343,7 @@ export async function getMiniHomePayload(identity: RequestIdentity) {
 
   return {
     ui: {
-      appName: "Mella Bingo",
+      appName: "Beshi Bingo",
       theme: "midnight-neon",
       topActions: [
         {
@@ -362,7 +362,7 @@ export async function getMiniHomePayload(identity: RequestIdentity) {
       balanceCard: {
         title: "BALANCE",
         bonusTitle: "BONUS",
-        brandWatermark: "Mella Bingo",
+        brandWatermark: "Beshi Bingo",
       },
       inviteCta: {
         icon: "users",

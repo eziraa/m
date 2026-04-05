@@ -28,7 +28,7 @@ const _greatVibes = Great_Vibes({
 });
 
 export const metadata: Metadata = {
-  title: "Mella Bingo ",
+  title: "Beshi Bingo ",
   description: "Created with bingo lovers in mind.",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#ffffff" },

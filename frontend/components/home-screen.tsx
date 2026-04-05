@@ -262,7 +262,7 @@ export function HomeScreen() {
               {authT("booting")}
             </p>
             <h2 className="text-xl font-bold tracking-tight bg-linear-to-b from-foreground to-foreground/60 bg-clip-text text-transparent italic">
-              Mella Bingo
+              Beshi Bingo
             </h2>
 
             <div className="flex flex-col items-center gap-4 mt-6">

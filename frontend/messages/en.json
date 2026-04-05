@@ -232,7 +232,7 @@
   "mobileHeader": {
     "greeting": "Hello, {name}!",
     "guest": "Guest",
-    "subtitle": "Welcome back to Mella",
+    "subtitle": "Welcome back to Beshi Bingo",
     "deposit": "Deposit",
     "promoAvailable": "Deposit Bonus Promo ",
     "promoHint": "Tap a promo to see details",
@@ -274,7 +274,7 @@
     "subtitle": "Share your link and earn 50 coins for every friend who joins!",
     "generating": "Generating...",
     "shareButton": "Share in Telegram",
-    "shareText": "Join me at Mella Bingo and win real rewards!",
+    "shareText": "Join me at Beshi Bingo and win real rewards!",
     "miniAppHint": "This link opens the Mini App directly with your invite code attached.",
     "fallbackHelper": "If that fails, share the classic bot link instead.",
     "fallbackButton": "Copy bot link",
@@ -604,7 +604,7 @@
       "home": "Go Home",
       "deposit": "Make Deposit"
     },
-    "footer": "Secure payments powered by Mella"
+    "footer": "Secure payments powered by Beshi Bingo"
   },
   "lobbyView": {
     "badge": "Choose Your Destiny",

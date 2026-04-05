@@ -231,7 +231,7 @@ function WonContent() {
           <button
             onClick={() =>
               window.open(
-                `https://t.me/share/url?text=I just won ETB ${displayPrizePool} in Mella Bingo! Join me and play for a chance to win big!&url=https://t.me/mella_bingo_bot?start=welcome`,
+                `https://t.me/share/url?text=I just won ETB ${displayPrizePool} in Beshi Bingo! Join me and play for a chance to win big!&url=https://t.me/beshi_bingo_bot?start=welcome`,
               )
             }
             className="w-full h-10 rounded-[12px] flex items-center justify-center gap-2  font-bold bg-linear-to-r from-yellow-400 to-orange-500 text-black shadow-lg active:scale-95 transition"
