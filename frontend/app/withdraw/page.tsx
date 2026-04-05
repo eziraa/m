@@ -200,7 +200,7 @@ export default function WithdrawPage() {
         );
       case "approved":
         return (
-          <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20 text-[10px] gap-1">
+          <Badge className="bg-green-500/10 text-green-400 border-green-500/20 text-[10px] gap-1">
             <CheckCircle2 size={10} /> {t("status.approved")}
           </Badge>
         );
@@ -224,13 +224,13 @@ export default function WithdrawPage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative rounded-2xl bg-linear-to-br from-indigo-600 to-blue-700 p-4 px-5 text-foreground shadow-2xl shadow-blue-900/40"
+        className="relative rounded-2xl bg-linear-to-br from-emerald-600 to-green-700 p-4 px-5 text-foreground shadow-2xl shadow-green-900/40"
       >
         <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-cyan-400/15 rounded-full blur-3xl -ml-16 -mb-16 pointer-events-none" />
 
         <div className="relative z-10">
-          <p className="font-medium text-blue-100/80 uppercase tracking-widest text-xs mb-1">
+          <p className="font-medium text-green-100/80 uppercase tracking-widest text-xs mb-1">
             {t("balanceLabel")}
           </p>
           <h2 className="text-4xl font-black tracking-tighter mb-3 drop-shadow-lg">
@@ -245,7 +245,7 @@ export default function WithdrawPage() {
             )}
           </h2>
 
-          <div className="flex items-center gap-2 text-xs text-blue-100/80">
+          <div className="flex items-center gap-2 text-xs text-green-100/80">
             <Gamepad2 size={14} />
             <span>
               {t("gamesPlayed", {
@@ -320,12 +320,12 @@ export default function WithdrawPage() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="flex items-start gap-3 bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 text-blue-400"
+            className="flex items-start gap-3 bg-green-500/10 border border-green-500/20 rounded-xl p-3 text-green-400"
           >
             <Clock size={18} className="mt-0.5 shrink-0" />
             <div className="text-xs">
               <p className="font-bold">{t("hasPendingTitle")}</p>
-              <p className="text-blue-400/70">{t("hasPendingDesc")}</p>
+              <p className="text-green-400/70">{t("hasPendingDesc")}</p>
             </div>
           </motion.div>
         )}
@@ -398,7 +398,7 @@ export default function WithdrawPage() {
                 autoComplete="off"
                 step="0.01"
                 {...register("amount")}
-                className="border-none bg-transparent p-3 font-semibold focus-visible:ring-1 focus-visible:ring-blue-500 focus-visible:ring-offset-0"
+                className="border-none bg-transparent p-3 font-semibold focus-visible:ring-1 focus-visible:ring-green-500 focus-visible:ring-offset-0"
               />
               <span className="ml-auto text-[11px] font-semibold text-foreground/50">
                 ETB
@@ -420,7 +420,7 @@ export default function WithdrawPage() {
                   onClick={() => setValue("amount", val.toString())}
                   className={`text-[11px] font-semibold py-1.5 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all ${
                     amount === val.toString()
-                      ? "bg-blue-600/30 text-blue-400 border border-blue-500/30"
+                      ? "bg-green-600/30 text-green-400 border border-green-500/30"
                       : "bg-foreground/5 border border-foreground/10 text-foreground/50 hover:bg-foreground/10"
                   }`}
                 >
@@ -446,7 +446,7 @@ export default function WithdrawPage() {
                 type="tel"
                 autoComplete="off"
                 {...register("phone")}
-                className="border-none bg-transparent p-3 font-semibold focus-visible:ring-1 focus-visible:ring-blue-500 focus-visible:ring-offset-0"
+                className="border-none bg-transparent p-3 font-semibold focus-visible:ring-1 focus-visible:ring-green-500 focus-visible:ring-offset-0"
               />
             </div>
             {errors.phone && (
@@ -457,7 +457,7 @@ export default function WithdrawPage() {
           </div>
 
           <Button
-            className="mt-1 w-full rounded-xl text-sm font-semibold h-11 bg-blue-600/90 hover:bg-blue-600 text-white shadow-lg shadow-blue-500/30 disabled:opacity-40"
+            className="mt-1 w-full rounded-xl text-sm font-semibold h-11 bg-green-600/90 hover:bg-green-600 text-white shadow-lg shadow-green-500/30 disabled:opacity-40"
             variant="default"
             type="submit"
             disabled={
@@ -520,7 +520,7 @@ export default function WithdrawPage() {
                     <div
                       className={`w-10 h-10 rounded-xl flex items-center justify-center border ${
                         w.status === "approved"
-                          ? "bg-blue-500/10 border-blue-500/20"
+                          ? "bg-green-500/10 border-green-500/20"
                           : w.status === "rejected"
                             ? "bg-red-500/10 border-red-500/20"
                             : "bg-amber-500/10 border-amber-500/20"
@@ -530,7 +530,7 @@ export default function WithdrawPage() {
                         size={18}
                         className={
                           w.status === "approved"
-                            ? "text-blue-400"
+                            ? "text-green-400"
                             : w.status === "rejected"
                               ? "text-red-400"
                               : "text-amber-400"

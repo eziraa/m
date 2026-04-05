@@ -9,7 +9,7 @@ export default function ReferralStats() {
     <div className="grid grid-cols-2 gap-4 mb-6">
       <Card className="bg-white/5 border-white/10 backdrop-blur-md rounded-2xl overflow-hidden hover:bg-white/10 transition-colors">
         <CardContent className="p-4 flex flex-col items-center justify-center space-y-2">
-          <div className="p-2 bg-blue-500/20 rounded-full text-blue-400">
+          <div className="p-2 bg-green-500/20 rounded-full text-green-400">
             <Users size={20} />
           </div>
           <div className="text-center">

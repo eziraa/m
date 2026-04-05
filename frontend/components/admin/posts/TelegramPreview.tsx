@@ -18,7 +18,7 @@ export function TelegramPreview({ post }: TelegramPreviewProps) {
   return (
     <Card className="bg-[#0b1020] border-[#111827] rounded-2xl p-3 text-xs text-foreground/80 w-full max-w-sm mx-auto">
       <div className="flex items-center gap-2 mb-2">
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sky-500 to-indigo-500" />
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sky-500 to-emerald-500" />
         <div className="flex flex-col">
           <span className="text-[11px] font-semibold">{t("botName")}</span>
           <span className="text-[10px] text-emerald-400">{t("botLabel")}</span>

@@ -39,7 +39,7 @@ export function MobileHeader({
         </div>
         {refetch && (
           <button
-            className="p-2 bg-blue-500 rounded-xl text-white border border-primary/10 transition-all active:scale-90"
+            className="p-2 bg-green-500 rounded-xl text-white border border-primary/10 transition-all active:scale-90"
             onClick={() => refetch()}
           >
             <RotateCcw size={18} />
@@ -62,7 +62,7 @@ export function MobileHeader({
         </div>
         <div className="flex items-center gap-2">
           <button
-            className="p-2 bg-blue-500 rounded-xl text-white border border-primary/10  transition-all active:scale-90"
+            className="p-2 bg-green-500 rounded-xl text-white border border-primary/10  transition-all active:scale-90"
             onClick={() => refetch?.()}
           >
             <RotateCcw size={18} />
@@ -71,7 +71,7 @@ export function MobileHeader({
             onClick={() => {
               router.push("/deposit");
             }}
-            className="flex items-center gap-1.5 px-4 py-2.5 bg-blue-500 text-white rounded-xl font-black text-[10px] uppercase tracking-wider shadow-lg shadow-primary/20 hover:opacity-90 transition-all active:scale-95 leading-none"
+            className="flex items-center gap-1.5 px-4 py-2.5 bg-green-500 text-white rounded-xl font-black text-[10px] uppercase tracking-wider shadow-lg shadow-primary/20 hover:opacity-90 transition-all active:scale-95 leading-none"
           >
             <Plus size={14} strokeWidth={3} />
             Deposit

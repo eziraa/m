@@ -33,7 +33,7 @@ const roomSchema = z.object({
   price: z.string().min(1, "Price is required"),
   minPlayers: z.coerce.number().min(2),
   maxPlayers: z.coerce.number().min(2),
-  color: z.string().default("from-blue-400 to-blue-600"),
+  color: z.string().default("from-green-400 to-green-600"),
   icon: z.string().default("🎉"),
 });
 
@@ -60,7 +60,7 @@ const icons = [
   "🚀",
 ];
 const colors = [
-  { label: "Blue", value: "from-blue-400 to-blue-600" },
+  { label: "Blue", value: "from-green-400 to-green-600" },
   { label: "Purple", value: "from-purple-400 to-purple-600" },
   { label: "Emerald", value: "from-emerald-400 to-emerald-600" },
   { label: "Amber", value: "from-amber-400 to-amber-600" },
@@ -71,7 +71,7 @@ const colors = [
   { label: "Yellow", value: "from-yellow-400 to-yellow-600" },
   { label: "Lime", value: "from-lime-400 to-lime-600" },
   { label: "Teal", value: "from-teal-400 to-teal-600" },
-  { label: "Indigo", value: "from-indigo-400 to-indigo-600" },
+  { label: "Indigo", value: "from-emerald-400 to-emerald-600" },
   { label: "Violet", value: "from-violet-400 to-violet-600" },
 ];
 
@@ -87,7 +87,7 @@ export function RoomDialog({ room, open, onOpenChange }: RoomDialogProps) {
       price: "",
       minPlayers: 2,
       maxPlayers: 10,
-      color: "from-blue-400 to-blue-600",
+      color: "from-green-400 to-green-600",
       icon: "🎉",
     },
   });
@@ -100,7 +100,7 @@ export function RoomDialog({ room, open, onOpenChange }: RoomDialogProps) {
         price: room.price.toString(),
         minPlayers: room.minPlayers,
         maxPlayers: room.maxPlayers,
-        color: room.color || "from-blue-400 to-blue-600",
+        color: room.color || "from-green-400 to-green-600",
         icon: room.icon || "🎉",
       });
     } else {
@@ -110,7 +110,7 @@ export function RoomDialog({ room, open, onOpenChange }: RoomDialogProps) {
         price: "",
         minPlayers: 2,
         maxPlayers: 10,
-        color: "from-blue-400 to-blue-600",
+        color: "from-green-400 to-green-600",
         icon: "🎉",
       });
     }
@@ -155,7 +155,7 @@ export function RoomDialog({ room, open, onOpenChange }: RoomDialogProps) {
                   <FormControl>
                     <Input
                       placeholder="e.g. VIP Lounge"
-                      className="h-11 rounded-xl bg-white/5 border-white/10 text-sm focus:ring-blue-500/50"
+                      className="h-11 rounded-xl bg-white/5 border-white/10 text-sm focus:ring-green-500/50"
                       {...field}
                     />
                   </FormControl>
@@ -349,7 +349,7 @@ export function RoomDialog({ room, open, onOpenChange }: RoomDialogProps) {
               </Button>
               <Button
                 type="submit"
-                className="w-full rounded-xl bg-linear-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-lg shadow-blue-500/20 text-xs font-bold h-11"
+                className="w-full rounded-xl bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg shadow-green-500/20 text-xs font-bold h-11"
                 disabled={isCreating || isUpdating}
               >
                 {isCreating || isUpdating

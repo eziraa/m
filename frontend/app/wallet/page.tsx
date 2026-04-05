@@ -124,7 +124,7 @@ export default function WalletPage() {
       case "game_win":
         return <Trophy className="text-amber-400" size={20} />;
       case "game_lost":
-        return <Gamepad2 className="text-blue-400" size={20} />;
+        return <Gamepad2 className="text-green-400" size={20} />;
       case "game_fee":
         return <CreditCard className="text-amber-400" size={20} />;
       case "referral_reward":
@@ -204,13 +204,13 @@ export default function WalletPage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl bg-linear-to-br to-indigo-600 from-indigo-500 via-blue-500  p-4 px-6 self-stretch text-foreground shadow-2xl shadow-blue-900/40 mb-6 group"
+        className="relative overflow-hidden rounded-2xl bg-linear-to-br to-emerald-600 from-emerald-500 via-green-500  p-4 px-6 self-stretch text-foreground shadow-2xl shadow-green-900/40 mb-6 group"
       >
         <div className="absolute top-0 right-0 w-64 h-64 bg-foreground/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-cyan-400/20 rounded-full blur-3xl -ml-16 -mb-16 pointer-events-none" />
 
         <div className="relative z-10 flex flex-col items-start text-center">
-          <p className="font-medium text-blue-100/80 mb-2 uppercase tracking-widest text-xs">
+          <p className="font-medium text-green-100/80 mb-2 uppercase tracking-widest text-xs">
             {t("balance.title")}
           </p>
           <h2 className="text-6xl font-black tracking-tighter mb-4 drop-shadow-lg">
@@ -223,7 +223,7 @@ export default function WalletPage() {
 
           <div className="grid grid-cols-2 gap-2 w-full ">
             <Button
-              className="bg-foreground text-blue-600 hover:bg-blue-50 hover:text-blue-700 font-bold h-12 rounded-2xl text-sm shadow-xl hover:shadow-2xl transition-all hover:-translate-y-0.5 border-0"
+              className="bg-foreground text-green-600 hover:bg-green-50 hover:text-green-700 font-bold h-12 rounded-2xl text-sm shadow-xl hover:shadow-2xl transition-all hover:-translate-y-0.5 border-0"
               onClick={() => router.push("/deposit")}
             >
               <Plus size={16} className="mr-0.5" /> {t("balance.deposit")}
@@ -471,7 +471,7 @@ export default function WalletPage() {
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: groupIndex * 0.1 + i * 0.05 }}
                         >
-                          <Card className="flex flex-row items-center justify-between p-3 sm:p-4 bg-blue-600/5 border-blue-600/50 hover:bg-blue-600/10 hover:border-blue-600/10 transition-all cursor-pointer group rounded-[10px] backdrop-blur-md gap-2">
+                          <Card className="flex flex-row items-center justify-between p-3 sm:p-4 bg-green-600/5 border-green-600/50 hover:bg-green-600/10 hover:border-green-600/10 transition-all cursor-pointer group rounded-[10px] backdrop-blur-md gap-2">
                             <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                               <div
                                 className={`w-10 h-10 sm:w-12 sm:h-12 shrink-0 rounded-[12px] sm:rounded-2xl flex items-center justify-center border transition-transform group-hover:scale-105 shadow-inner ${

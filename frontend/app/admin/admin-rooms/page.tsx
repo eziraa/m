@@ -133,7 +133,7 @@ export default function AdminRoomsPage() {
             <Button
               onClick={handleCreate}
               size="sm"
-              className="rounded-xl shadow-lg shadow-primary/20 bg-linear-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold h-9 px-4"
+              className="rounded-xl shadow-lg shadow-primary/20 bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold h-9 px-4"
             >
               <Plus className="mr-1.5 h-4 w-4 stroke-[3px]" />
               {t("actions.newRoom")}
@@ -199,7 +199,7 @@ export default function AdminRoomsPage() {
                 <div
                   className={cn(
                     "h-16 w-16 shrink-0 rounded-2xl bg-linear-to-br shadow-xl flex items-center justify-center text-3xl mt-1 ring-1 ring-white/10",
-                    room.color || "from-blue-400 to-blue-600",
+                    room.color || "from-green-400 to-green-600",
                   )}
                 >
                   {room.icon || "🎉"}
@@ -210,7 +210,7 @@ export default function AdminRoomsPage() {
                     {room.name}
                   </span>
 
-                  <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-[10px] h-5 px-2.5 font-black uppercase tracking-wider">
+                  <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-[10px] h-5 px-2.5 font-black uppercase tracking-wider">
                     {room.price} ETB
                   </Badge>
 

@@ -76,7 +76,7 @@ export function GameResultView({
             isLost &&
               "bg-linear-to-br from-red-500 to-orange-600 shadow-red-500/20",
             isDraw &&
-              "bg-linear-to-br from-blue-500 to-slate-600 shadow-blue-500/20",
+              "bg-linear-to-br from-green-500 to-slate-600 shadow-green-500/20",
           )}
         >
           {isWin ? (
@@ -97,7 +97,7 @@ export function GameResultView({
             isWin &&
               "text-transparent bg-linear-to-r from-emerald-400 to-teal-200 bg-clip-text",
             isLost && "text-red-500",
-            isDraw && "text-blue-500",
+            isDraw && "text-green-500",
           )}
         >
           {isWin
@@ -130,7 +130,7 @@ export function GameResultView({
             <div className="grid grid-cols-5 gap-2 mb-3">
               {["B", "I", "N", "G", "O"].map((letter, idx) => {
                 const colors = [
-                  "bg-blue-500",
+                  "bg-green-500",
                   "bg-pink-500",
                   "bg-purple-500",
                   "bg-green-500",
@@ -176,7 +176,7 @@ export function GameResultView({
                           isWinning
                             ? "bg-emerald-500 border-emerald-400 text-white shadow-[0_0_16px_rgba(16,185,129,0.4)] z-10"
                             : isCalled
-                              ? "bg-blue-600 border-blue-500 text-white"
+                              ? "bg-green-600 border-green-500 text-white"
                               : "bg-muted/20 text-muted-foreground border-muted/30"
                         }`}
                       >

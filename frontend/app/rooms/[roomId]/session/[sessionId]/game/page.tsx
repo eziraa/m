@@ -49,7 +49,7 @@ function buildWinningLines() {
 const WINNING_LINES = buildWinningLines();
 
 function columnColorClass(index: number): string {
-  if (index === 0) return "bg-blue-500";
+  if (index === 0) return "bg-green-500";
   if (index === 1) return "bg-pink-500";
   if (index === 2) return "bg-purple-500";
   if (index === 3) return "bg-green-500";
@@ -844,7 +844,7 @@ export default function GameSessionPage() {
 
             <div className="flex gap-2">
               {!isSessionStarted ? (
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 font-black italic text-white shadow-lg shadow-blue-500/20">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-green-600 font-black italic text-white shadow-lg shadow-green-500/20">
                   {Math.max(startsIn, 0)}
                 </div>
               ) : null}
@@ -873,11 +873,11 @@ export default function GameSessionPage() {
               </span>
             </div>
 
-            <div className="relative flex flex-col items-start rounded-[8px] border border-blue-500/20 bg-blue-500/10 p-2 shadow-lg shadow-blue-500/5 transition-transform active:scale-95">
-              <span className="text-[10px] font-black uppercase tracking-wider text-blue-500/60">
+            <div className="relative flex flex-col items-start rounded-[8px] border border-green-500/20 bg-green-500/10 p-2 shadow-lg shadow-green-500/5 transition-transform active:scale-95">
+              <span className="text-[10px] font-black uppercase tracking-wider text-green-500/60">
                 Entry Fee
               </span>
-              <span className="line-clamp-1 text-lg font-black text-blue-500">
+              <span className="line-clamp-1 text-lg font-black text-green-500">
                 {entryFeeLabel}{" "}
                 <span className="text-[10px] opacity-60">ETB</span>
               </span>
@@ -940,7 +940,7 @@ export default function GameSessionPage() {
           </div>
 
           <div className="flex flex-col gap-3 pr-2">
-            <div className="flex flex-col items-center justify-center rounded-[10px] border border-white/10 bg-blue-600 p-2 shadow-lg shadow-blue-500/20">
+            <div className="flex flex-col items-center justify-center rounded-[10px] border border-white/10 bg-green-600 p-2 shadow-lg shadow-green-500/20">
               <span className="text-[10px] font-black uppercase tracking-widest text-white/60">
                 Target
               </span>
@@ -955,7 +955,7 @@ export default function GameSessionPage() {
                   key={`${n}-${idx}`}
                   className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-[4px] text-[12px] font-bold text-white shadow-sm ${
                     idx % 5 === 0
-                      ? "bg-blue-500"
+                      ? "bg-green-500"
                       : idx % 5 === 1
                         ? "bg-pink-500"
                         : idx % 5 === 2
@@ -996,9 +996,9 @@ export default function GameSessionPage() {
                         isFree
                           ? "border border-green-500/40 bg-green-500/20 text-green-500"
                           : isMarked
-                            ? "scale-95 bg-blue-600 text-white shadow-md"
+                            ? "scale-95 bg-green-600 text-white shadow-md"
                             : isLast3Called
-                              ? "animate-pulse border-2 border-blue-500/30 bg-blue-500/30 text-white"
+                              ? "animate-pulse border-2 border-green-500/30 bg-green-500/30 text-white"
                               : "border border-white/10 bg-foreground/5 text-foreground/70"
                       }`}
                     >
@@ -1018,10 +1018,10 @@ export default function GameSessionPage() {
                   disabled={
                     isWaiting || !isPlaying || claimingBingo || isBlocked
                   }
-                  className={`mt-2 h-10 w-full text-sm rounded-[8px] font-black tracking-widest text-white shadow-md shadow-blue-500/20 transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-55 ${
+                  className={`mt-2 h-10 w-full text-sm rounded-[8px] font-black tracking-widest text-white shadow-md shadow-green-500/20 transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-55 ${
                     isBlocked
                       ? "bg-red-600 hover:bg-red-700"
-                      : "bg-blue-600 hover:bg-blue-700"
+                      : "bg-green-600 hover:bg-green-700"
                   }`}
                 >
                   {isBlocked ? "Blocked" : claimingBingo ? "Checking" : "Bingo"}

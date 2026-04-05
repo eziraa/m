@@ -29,8 +29,8 @@ export function InsufficientBalanceModal({
         >
           {/* Ambient gradients */}
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute -top-32 -right-10 h-48 w-48 bg-blue-500/20 blur-3xl" />
-            <div className="absolute -bottom-24 -left-10 h-56 w-56 bg-blue-500/25 blur-[120px]" />
+            <div className="absolute -top-32 -right-10 h-48 w-48 bg-green-500/20 blur-3xl" />
+            <div className="absolute -bottom-24 -left-10 h-56 w-56 bg-green-500/25 blur-[120px]" />
           </div>
 
           {/* Modal Content */}
@@ -42,7 +42,7 @@ export function InsufficientBalanceModal({
             transition={{ duration: 0.4, ease: "easeOut" }}
             className="relative z-10 w-full max-w-md bg-[rgba(18,16,32,0.85)] backdrop-blur-2xl border border-white/10 rounded-3xl p-8 shadow-[0_35px_80px_rgba(0,0,0,0.55)] flex flex-col items-center text-center overflow-hidden"
           >
-            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 via-blue-500 to-indigo-500" />
+            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-green-500 via-green-500 to-emerald-500" />
 
             {/* Close Button */}
             <motion.button
@@ -77,7 +77,7 @@ export function InsufficientBalanceModal({
                   onClose();
                   router.push("/deposit");
                 }}
-                className="flex-1 h-11 rounded-[12px] bg-gradient-to-r from-blue-500 via-blue-500 to-indigo-500 hover:brightness-110 text-white active:scale-95 transition-all shadow-lg shadow-blue-500/30"
+                className="flex-1 h-11 rounded-[12px] bg-gradient-to-r from-green-500 via-green-500 to-emerald-500 hover:brightness-110 text-white active:scale-95 transition-all shadow-lg shadow-green-500/30"
               >
                 Deposit
               </Button>

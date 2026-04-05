@@ -156,7 +156,7 @@ const Debugger = ({ className, children, copyContentRef }: Props) => {
 
           <Button
             onClick={() => setIsDraggable((prev) => !prev)}
-            className="text-xs px-2 py-1 mr-2 hover:cursor-pointer bg-blue-500 text-white rounded hover:bg-blue-600"
+            className="text-xs px-2 py-1 mr-2 hover:cursor-pointer bg-green-500 text-white rounded hover:bg-green-600"
           >
             {isDraggable ? "Disable Drag" : "Enable Drag"}
           </Button>

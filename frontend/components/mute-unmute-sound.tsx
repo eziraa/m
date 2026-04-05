@@ -15,7 +15,7 @@ const MuteUnMuteSound = () => {
     <Button
       variant="ghost"
       size="icon"
-      className="rounded-full bg-blue-600 h-9 w-9 border border-blue-600"
+      className="rounded-full bg-green-600 h-9 w-9 border border-green-600"
       onClick={() => {
         const nextMuted = AudioController.getInstance().toggleMuted();
         setSoundMuted(nextMuted);

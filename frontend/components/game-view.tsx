@@ -66,7 +66,7 @@ export function GameView({
                 className="w-56 h-56 rounded-full relative z-20 overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.6)]"
               >
                 {/* 3D Shading Effects */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary to-blue-900" />
+                <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary to-green-900" />
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.4),transparent_60%)]" />
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,rgba(0,0,0,0.4),transparent_60%)]" />
                 <div className="absolute inset-2 border border-white/20 rounded-full pointer-events-none" />
@@ -124,7 +124,7 @@ export function GameView({
               <Button
                 size="lg"
                 onClick={startGame}
-                className="w-full h-16 rounded-3xl text-lg font-black tracking-widest bg-linear-to-r from-primary to-blue-500 hover:from-primary/90 hover:to-blue-400 shadow-[0_10px_30px_rgba(59,130,246,0.3)] border-0 transition-transform active:scale-95 group"
+                className="w-full h-16 rounded-3xl text-lg font-black tracking-widest bg-linear-to-r from-primary to-green-500 hover:from-primary/90 hover:to-green-400 shadow-[0_10px_30px_rgba(59,130,246,0.3)] border-0 transition-transform active:scale-95 group"
               >
                 <Play className="mr-2 fill-current group-hover:translate-x-1 transition-transform" />{" "}
                 Start

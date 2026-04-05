@@ -136,7 +136,7 @@ export default function AgentRoomsPage() {
                   <div
                     className={cn(
                       "flex h-16 w-16 shrink-0 items-center justify-center rounded-[22px] bg-linear-to-br text-3xl shadow-lg ring-1 ring-black/5",
-                      room.color || "from-blue-400 to-blue-600",
+                      room.color || "from-green-400 to-green-600",
                     )}
                   >
                     {room.icon || "🎉"}
@@ -166,7 +166,7 @@ export default function AgentRoomsPage() {
                   <h2 className=" text-base font-semibold leading-tight text-foreground">
                     {room.name}
                   </h2>
-                  <Badge className="h-7 rounded-full border-blue-500/30 bg-blue-500/15 px-3 text-xs font-bold text-blue-500">
+                  <Badge className="h-7 rounded-full border-green-500/30 bg-green-500/15 px-3 text-xs font-bold text-green-500">
                     {room.price} ETB
                   </Badge>
                 </div>

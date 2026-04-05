@@ -129,7 +129,7 @@ export default function AgentWithdrawalsPage() {
         );
       case "approved":
         return (
-          <Badge className="gap-1 border-blue-500/20 bg-blue-500/10 text-[10px] text-blue-400">
+          <Badge className="gap-1 border-green-500/20 bg-green-500/10 text-[10px] text-green-400">
             <CheckCircle2 size={10} /> {t("status.approved")}
           </Badge>
         );
@@ -272,7 +272,7 @@ export default function AgentWithdrawalsPage() {
                         <div
                           className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${
                             w.status === "approved"
-                              ? "border-blue-500/20 bg-blue-500/10"
+                              ? "border-green-500/20 bg-green-500/10"
                               : w.status === "rejected"
                                 ? "border-red-500/20 bg-red-500/10"
                                 : "border-amber-500/20 bg-amber-500/10"
@@ -282,7 +282,7 @@ export default function AgentWithdrawalsPage() {
                             size={18}
                             className={
                               w.status === "approved"
-                                ? "text-blue-400"
+                                ? "text-green-400"
                                 : w.status === "rejected"
                                   ? "text-red-400"
                                   : "text-amber-400"
@@ -356,7 +356,7 @@ export default function AgentWithdrawalsPage() {
                                 <div className="mt-2 grid grid-cols-2 gap-2">
                                   <Button
                                     size="sm"
-                                    className="h-11 rounded-lg bg-blue-600/80 text-xs font-bold text-white hover:bg-blue-600"
+                                    className="h-11 rounded-lg bg-green-600/80 text-xs font-bold text-white hover:bg-green-600"
                                     onClick={() =>
                                       setConfirmAction({
                                         id: w.id,
@@ -412,7 +412,7 @@ export default function AgentWithdrawalsPage() {
                                       size="sm"
                                       className={`h-10 flex-1 rounded-lg text-xs font-bold ${
                                         confirmAction.action === "approve"
-                                          ? "bg-blue-600 text-white hover:bg-blue-700"
+                                          ? "bg-green-600 text-white hover:bg-green-700"
                                           : "bg-red-600 text-white hover:bg-red-700"
                                       }`}
                                       onClick={() =>
