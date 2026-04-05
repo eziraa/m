@@ -13,11 +13,11 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
 
-  --primary: oklch(0.55 0.22 260); /* Vibrant Electric Blue */
+  --primary: oklch(0.68 0.19 145); /* Fresh green */
   --primary-foreground: oklch(0.985 0 0);
 
   --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.55 0.22 260);
+  --secondary-foreground: oklch(0.4 0.12 145);
 
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
@@ -40,26 +40,24 @@
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
-  --secondary: oklch(0.95 0.03 260);
-  --secondary-foreground: oklch(0.25 0.08 260);
-  --muted: oklch(0.95 0.03 260);
-  --muted-foreground: oklch(0.55 0.06 260);
-  --accent: oklch(
-    36.729% 0.22777 273.724
-  ); /* Neon Pink/Magenta for modern feel */
-  --accent-foreground: oklch(0.98 0.01 240);
+  --secondary: oklch(0.96 0.03 145);
+  --secondary-foreground: oklch(0.28 0.08 145);
+  --muted: oklch(0.96 0.02 145);
+  --muted-foreground: oklch(0.5 0.05 145);
+  --accent: oklch(0.88 0.08 145);
+  --accent-foreground: oklch(0.22 0.03 145);
   --destructive: oklch(0.6 0.2 20);
   --destructive-foreground: oklch(0.98 0.01 240);
-  --border: oklch(0.92 0.02 260);
-  --input: oklch(0.92 0.02 260);
-  --ring: oklch(0.55 0.22 260);
+  --border: oklch(0.91 0.02 145);
+  --input: oklch(0.91 0.02 145);
+  --ring: oklch(0.68 0.19 145);
   --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.55 0.22 260);
+  --sidebar-primary: oklch(0.68 0.19 145);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-accent: oklch(0.88 0.08 145);
+  --sidebar-accent-foreground: oklch(0.22 0.03 145);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
   --background: oklch(1 0 0);
@@ -84,9 +82,9 @@
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
 
-  /* Electric Blue Primary */
-  --primary: oklch(0.7 0.18 260);
-  --primary-foreground: oklch(0.1 0.05 260);
+  /* Emerald green primary */
+  --primary: oklch(0.78 0.17 145);
+  --primary-foreground: oklch(0.15 0.03 145);
 
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
@@ -104,7 +102,7 @@
   --info-foreground: oklch(0.1 0.05 240);
 
   /* Cyber Magenta Accent */
-  --accent: oklch(0.269 0 0);
+  --accent: oklch(0.24 0.03 145);
   --accent-foreground: oklch(0.985 0 0);
 
   --destructive: oklch(0.704 0.191 22.216);
@@ -116,9 +114,9 @@
 
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary: oklch(0.62 0.15 145);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent: oklch(0.24 0.03 145);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
@@ -244,10 +242,10 @@
 @keyframes pulse-glow {
   0%,
   100% {
-    box-shadow: 0 0 0 0 oklch(0.6 0.18 250 / 0.4);
+    box-shadow: 0 0 0 0 oklch(0.62 0.16 145 / 0.4);
   }
   50% {
-    box-shadow: 0 0 0 8px oklch(0.6 0.18 250 / 0);
+    box-shadow: 0 0 0 8px oklch(0.62 0.16 145 / 0);
   }
 }
 

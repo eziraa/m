@@ -30,10 +30,6 @@ const _greatVibes = Great_Vibes({
 export const metadata: Metadata = {
   title: "Beshi Bingo ",
   description: "Created with bingo lovers in mind.",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#000000" },
-  ],
   authors: [{ name: "Bingo Devs", url: "https://bingo.example.com" }],
   manifest: "/site.webmanifest",
 };
@@ -41,6 +37,10 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#16a34a" },
+    { media: "(prefers-color-scheme: dark)", color: "#14532d" },
+  ],
 };
 
 export default async function RootLayout({
